@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(flutter pub get:*)",
+      "Bash(flutter analyze:*)",
+      "Bash(flutter pub run build_runner build:*)",
+      "Bash(mysql:*)",
+      "Bash(where:*)",
+      "Bash(powershell -Command \"Get-Command mysql -ErrorAction SilentlyContinue\")",
+      "Bash(\"C:/Program Files/MySQL/MySQL Server 8.0/bin/mysql.exe\" --version)",
+      "Bash(node --version:*)",
+      "Bash(npm:*)",
+      "Bash(curl:*)",
+      "Bash(node scripts/updateTestUsers.js:*)",
+      "Bash(node src/app.js:*)",
+      "Bash(dir /s /b \"C:\\Users\\genki\\Downloads\\Food-Ordering-App-main\\Food-Ordering-App-main\\lib\" 2)",
+      "Bash(nul)",
+      "Bash(Get-ChildItem -Path \"C:\\Users\\genki\\Downloads\\Food-Ordering-App-main\\Food-Ordering-App-main\\lib\" -Recurse -File)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(dir:*)",
+      "Bash(tasklist:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "Bash(git add:*)",
+      "Bash(rm:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -1,0 +1,63 @@
+import 'package:json_annotation/json_annotation.dart';
+import 'user_model.dart';
+
+part 'auth_models.g.dart';
+
+/// Login request
+@JsonSerializable()
+class LoginRequest {
+  final String email;
+  final String password;
+  @JsonKey(name: 'user_type')
+  final String userType;
+
+  LoginRequest({
+    required this.email,
+    required this.password,
+    required this.userType,
+  });
+
+  Map<String, dynamic> toJson() => _$LoginRequestToJson(this);
+}
+
+/// Login response
+@JsonSerializable()
+class LoginResponse {
+  final String message;
+  final String token;
+  final UserModel user;
+  @JsonKey(name: 'user_type')
+  final String userType;
+
+  LoginResponse({
+    required this.message,
+    required this.token,
+    required this.user,
+    required this.userType,
+  });
+
+  factory LoginResponse.fromJson(Map<String, dynamic> json) =>
+      _$LoginResponseFromJson(json);
+}
+
+/// Register customer request
+@JsonSerializable()
+class RegisterCustomerRequest {
+  final String email;
+  final String password;
+  @JsonKey(name: 'full_name')
+  final String fullName;
+  final String phone;
+
+  RegisterCustomerRequest({
+    required this.email,
+    required this.password,
+    required this.fullName,
+    required this.phone,
+  });
+
+  Map<String, dynamic> toJson() => _$RegisterCustomerRequestToJson(this);
+}
+
+/// Register response (same as login response)
+typedef RegisterResponse = LoginResponse;
