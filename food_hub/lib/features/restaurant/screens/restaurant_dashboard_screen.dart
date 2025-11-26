@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/loading_indicator.dart';
 import '../../../shared/widgets/error_view.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../providers/restaurant_order_provider.dart';
+import '../providers/restaurant_menu_provider.dart';
+import '../widgets/restaurant_order_card.dart';
+import 'restaurant_order_detail_screen.dart';
+import 'restaurant_menu_list_screen.dart';
 
 class RestaurantDashboardScreen extends ConsumerStatefulWidget {
   const RestaurantDashboardScreen({super.key});
@@ -18,32 +22,26 @@ class RestaurantDashboardScreen extends ConsumerStatefulWidget {
 class _RestaurantDashboardScreenState
     extends ConsumerState<RestaurantDashboardScreen> {
   String? _selectedStatus;
+  int _currentIndex = 0;
 
   @override
   Widget build(BuildContext context) {
-    final user = ref.watch(authProvider).value;
-
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('レストランダッシュボード'),
+        title: Text(_currentIndex == 0 ? '注文管理' : 'メニュー管理'),
         backgroundColor: AppColors.primaryGreen,
         foregroundColor: Colors.white,
         actions: [
           IconButton(
-            icon: const Icon(Icons.restaurant_menu),
+            icon: const Icon(Icons.refresh),
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('メニュー管理機能は開発中です')),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.bar_chart),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('統計機能は開発中です')),
-              );
+              if (_currentIndex == 0) {
+                ref.invalidate(restaurantOrdersProvider(status: _selectedStatus));
+                ref.invalidate(restaurantStatsProvider());
+              } else {
+                ref.invalidate(restaurantMenuProvider());
+              }
             },
           ),
           IconButton(
@@ -60,58 +58,188 @@ class _RestaurantDashboardScreenState
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Restaurant info card
-          if (user != null)
-            Container(
-              width: double.infinity,
-              color: Colors.white,
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    user.fullName,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    user.email,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-          // Status filter
-          _buildStatusFilter(),
-
-          // Orders list (placeholder)
-          Expanded(
-            child: EmptyState(
-              icon: Icons.receipt_long_outlined,
-              title: '注文管理',
-              message: 'レストラン側の注文管理機能は開発中です。\n\nバックエンドAPIは実装済みです：\n• 注文一覧取得\n• 注文受付・拒否\n• ステータス更新\n• メニュー管理',
-            ),
+      body: _currentIndex == 0 ? _buildOrdersTab() : const RestaurantMenuListScreen(),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        selectedItemColor: AppColors.primaryGreen,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.receipt_long),
+            label: '注文',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.restaurant_menu),
+            label: 'メニュー',
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('メニュー追加機能は開発中です')),
-          );
-        },
-        backgroundColor: AppColors.primaryGreen,
-        icon: const Icon(Icons.add),
-        label: const Text('メニュー追加'),
+      floatingActionButton: _currentIndex == 1
+          ? FloatingActionButton.extended(
+              onPressed: () {
+                Navigator.of(context).pushNamed('/restaurant/menu/add');
+              },
+              backgroundColor: AppColors.primaryGreen,
+              icon: const Icon(Icons.add),
+              label: const Text('メニュー追加'),
+            )
+          : null,
+    );
+  }
+
+  Widget _buildOrdersTab() {
+    final user = ref.watch(authProvider).value;
+    final statsAsync = ref.watch(restaurantStatsProvider());
+    final ordersAsync = ref.watch(restaurantOrdersProvider(status: _selectedStatus));
+
+    return Column(
+      children: [
+        // Stats summary
+        statsAsync.when(
+          data: (stats) => Container(
+            width: double.infinity,
+            color: Colors.white,
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (user != null)
+                  Text(
+                    user.fullName,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatCard(
+                        icon: Icons.receipt,
+                        label: '本日の注文',
+                        value: '${stats.totalOrders}件',
+                        color: Colors.blue,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildStatCard(
+                        icon: Icons.attach_money,
+                        label: '本日の売上',
+                        value: '¥${stats.totalRevenue.toStringAsFixed(0)}',
+                        color: AppColors.success,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          loading: () => Container(
+            width: double.infinity,
+            color: Colors.white,
+            padding: const EdgeInsets.all(16),
+            child: const Center(child: CircularProgressIndicator()),
+          ),
+          error: (_, __) => const SizedBox.shrink(),
+        ),
+
+        // Status filter
+        _buildStatusFilter(),
+
+        // Orders list
+        Expanded(
+          child: ordersAsync.when(
+            data: (orders) {
+              if (orders.isEmpty) {
+                return EmptyState(
+                  icon: Icons.receipt_long_outlined,
+                  title: '注文がありません',
+                  message: _selectedStatus != null
+                      ? 'この状態の注文はありません'
+                      : '新しい注文が入るとここに表示されます',
+                );
+              }
+
+              return RefreshIndicator(
+                onRefresh: () async {
+                  ref.invalidate(restaurantOrdersProvider(status: _selectedStatus));
+                },
+                child: ListView.builder(
+                  padding: const EdgeInsets.only(top: 8, bottom: 80),
+                  itemCount: orders.length,
+                  itemBuilder: (context, index) {
+                    final order = orders[index];
+                    return RestaurantOrderCard(
+                      order: order,
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => RestaurantOrderDetailScreen(
+                              orderId: order.id,
+                            ),
+                          ),
+                        );
+                      },
+                      onAccept: () => _handleAcceptOrder(order.id),
+                      onReject: () => _showRejectDialog(order.id),
+                      onStartPreparing: () => _handleStartPreparing(order.id),
+                      onMarkReady: () => _handleMarkReady(order.id),
+                    );
+                  },
+                ),
+              );
+            },
+            loading: () => const LoadingIndicator(message: '注文を読み込み中...'),
+            error: (error, _) => ErrorView(
+              error: error,
+              onRetry: () {
+                ref.invalidate(restaurantOrdersProvider(status: _selectedStatus));
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatCard({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 28),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -142,6 +270,8 @@ class _RestaurantDashboardScreenState
                 setState(() {
                   _selectedStatus = selected ? entry.key : null;
                 });
+                ref.read(restaurantOrdersProvider(status: _selectedStatus).notifier)
+                    .filterByStatus(_selectedStatus);
               },
               selectedColor: AppColors.primaryGreen,
               labelStyle: TextStyle(
@@ -152,5 +282,105 @@ class _RestaurantDashboardScreenState
         }).toList(),
       ),
     );
+  }
+
+  Future<void> _handleAcceptOrder(int orderId) async {
+    final success = await ref
+        .read(restaurantOrdersProvider(status: _selectedStatus).notifier)
+        .acceptOrder(orderId);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(success ? '注文を受け付けました' : '注文の受付に失敗しました'),
+          backgroundColor: success ? AppColors.success : Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _showRejectDialog(int orderId) async {
+    final reasonController = TextEditingController();
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('注文を拒否'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('この注文を拒否しますか？'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: reasonController,
+              decoration: const InputDecoration(
+                labelText: '理由（任意）',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 2,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('キャンセル'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('拒否'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final success = await ref
+          .read(restaurantOrdersProvider(status: _selectedStatus).notifier)
+          .rejectOrder(orderId, reason: reasonController.text.isNotEmpty ? reasonController.text : null);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(success ? '注文を拒否しました' : '注文の拒否に失敗しました'),
+            backgroundColor: success ? Colors.orange : Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _handleStartPreparing(int orderId) async {
+    final success = await ref
+        .read(restaurantOrdersProvider(status: _selectedStatus).notifier)
+        .startPreparing(orderId);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(success ? '調理を開始しました' : '状態の更新に失敗しました'),
+          backgroundColor: success ? Colors.purple : Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _handleMarkReady(int orderId) async {
+    final success = await ref
+        .read(restaurantOrdersProvider(status: _selectedStatus).notifier)
+        .markReady(orderId);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(success ? '準備完了にしました' : '状態の更新に失敗しました'),
+          backgroundColor: success ? AppColors.success : Colors.red,
+        ),
+      );
+    }
   }
 }

@@ -1,10 +1,10 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../../../core/network/api_result.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../shared/models/order_model.dart';
 import '../data/repositories/order_repository.dart';
 import '../data/services/order_api_service.dart';
 import 'cart_provider.dart';
-import '../../models/cart_item.dart';
 
 part 'order_provider.g.dart';
 

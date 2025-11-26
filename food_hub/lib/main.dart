@@ -12,6 +12,7 @@ import 'features/customer/screens/cart_screen.dart';
 import 'features/customer/screens/order_history_screen.dart';
 import 'features/customer/screens/order_detail_screen.dart';
 import 'features/restaurant/screens/restaurant_dashboard_screen.dart';
+import 'features/restaurant/screens/restaurant_menu_add_screen.dart';
 import 'features/driver/screens/driver_dashboard_screen.dart';
 import 'shared/constants/app_constants.dart';
 
@@ -61,6 +62,7 @@ class MyApp extends ConsumerWidget {
         AppRoutes.customerHome: (context) => const HomeScreen(),
         // Restaurant routes
         '/restaurant/dashboard': (context) => const RestaurantDashboardScreen(),
+        '/restaurant/menu/add': (context) => const RestaurantMenuAddScreen(),
         // Driver routes
         '/driver/dashboard': (context) => const DriverDashboardScreen(),
       },

@@ -1,0 +1,496 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../shared/widgets/loading_indicator.dart';
+import '../../../shared/widgets/error_view.dart';
+import '../providers/restaurant_order_provider.dart';
+
+class RestaurantOrderDetailScreen extends ConsumerWidget {
+  final int orderId;
+
+  const RestaurantOrderDetailScreen({
+    super.key,
+    required this.orderId,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final orderAsync = ref.watch(restaurantOrderDetailProvider(orderId));
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text('注文詳細'),
+        backgroundColor: AppColors.primaryGreen,
+        foregroundColor: Colors.white,
+      ),
+      body: orderAsync.when(
+        data: (order) => SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Order header
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '注文 #${order.orderNumber}',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          _buildStatusChip(order.status),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        DateFormat('yyyy年MM月dd日 HH:mm').format(order.createdAt),
+                        style: TextStyle(color: AppColors.textSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Customer info
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        '配達先情報',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      if (order.deliveryAddress != null) ...[
+                        Row(
+                          children: [
+                            const Icon(Icons.location_on, size: 20, color: Colors.grey),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                '${order.deliveryAddress!.addressLine}, ${order.deliveryAddress!.city} ${order.deliveryAddress!.postalCode}',
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            const Icon(Icons.label, size: 20, color: Colors.grey),
+                            const SizedBox(width: 8),
+                            Text(order.deliveryAddress!.label),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Order items
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        '注文内容',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      if (order.items != null)
+                        ...order.items!.map((item) => Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: 24,
+                                height: 24,
+                                decoration: BoxDecoration(
+                                  color: AppColors.primaryGreen.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    '${item.quantity}',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.primaryGreen,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      item.menuItem?.name ?? 'メニュー',
+                                      style: const TextStyle(fontWeight: FontWeight.w500),
+                                    ),
+                                    if (item.selectedOptions != null && item.selectedOptions!.isNotEmpty)
+                                      Text(
+                                        item.selectedOptions!.map((o) => o.name).join(', '),
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: AppColors.textSecondary,
+                                        ),
+                                      ),
+                                    if (item.specialRequest != null && item.specialRequest!.isNotEmpty)
+                                      Text(
+                                        '備考: ${item.specialRequest}',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: AppColors.textSecondary,
+                                          fontStyle: FontStyle.italic,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                              Text(
+                                '¥${item.totalPrice.toStringAsFixed(0)}',
+                                style: const TextStyle(fontWeight: FontWeight.w500),
+                              ),
+                            ],
+                          ),
+                        )),
+                      const Divider(),
+                      // Summary
+                      _buildSummaryRow('小計', '¥${order.subtotal.toStringAsFixed(0)}'),
+                      _buildSummaryRow('配達料', '¥${order.deliveryFee.toStringAsFixed(0)}'),
+                      _buildSummaryRow('税', '¥${order.tax.toStringAsFixed(0)}'),
+                      if (order.discount > 0)
+                        _buildSummaryRow('割引', '-¥${order.discount.toStringAsFixed(0)}', isDiscount: true),
+                      const Divider(),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            '合計',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            '¥${order.total.toStringAsFixed(0)}',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Special instructions
+              if (order.specialInstructions != null && order.specialInstructions!.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          '特別な指示',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(order.specialInstructions!),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 24),
+
+              // Action buttons
+              _buildActionButtons(context, ref, order.status),
+              const SizedBox(height: 24),
+            ],
+          ),
+        ),
+        loading: () => const LoadingIndicator(message: '注文詳細を読み込み中...'),
+        error: (error, _) => ErrorView(
+          error: error,
+          onRetry: () {
+            ref.invalidate(restaurantOrderDetailProvider(orderId));
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusChip(String status) {
+    Color color;
+    String label;
+
+    switch (status) {
+      case 'pending':
+        color = Colors.orange;
+        label = '新規';
+        break;
+      case 'accepted':
+        color = Colors.blue;
+        label = '受付済み';
+        break;
+      case 'preparing':
+        color = Colors.purple;
+        label = '準備中';
+        break;
+      case 'ready':
+        color = AppColors.success;
+        label = '準備完了';
+        break;
+      case 'picked_up':
+        color = Colors.teal;
+        label = '配達中';
+        break;
+      case 'delivered':
+        color = Colors.grey;
+        label = '配達完了';
+        break;
+      case 'cancelled':
+        color = Colors.red;
+        label = 'キャンセル';
+        break;
+      default:
+        color = Colors.grey;
+        label = status;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontWeight: FontWeight.w600,
+          fontSize: 12,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSummaryRow(String label, String value, {bool isDiscount = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: TextStyle(color: AppColors.textSecondary)),
+          Text(
+            value,
+            style: TextStyle(
+              color: isDiscount ? AppColors.success : null,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButtons(BuildContext context, WidgetRef ref, String status) {
+    switch (status) {
+      case 'pending':
+        return Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () => _handleReject(context, ref),
+                icon: const Icon(Icons.close),
+                label: const Text('拒否'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.red,
+                  side: const BorderSide(color: Colors.red),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () => _handleAccept(context, ref),
+                icon: const Icon(Icons.check),
+                label: const Text('受付'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryGreen,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
+          ],
+        );
+      case 'accepted':
+        return SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: () => _handleStartPreparing(context, ref),
+            icon: const Icon(Icons.restaurant),
+            label: const Text('調理開始'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.purple,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+            ),
+          ),
+        );
+      case 'preparing':
+        return SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: () => _handleMarkReady(context, ref),
+            icon: const Icon(Icons.check_circle),
+            label: const Text('準備完了'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.success,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+            ),
+          ),
+        );
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  Future<void> _handleAccept(BuildContext context, WidgetRef ref) async {
+    final success = await ref
+        .read(restaurantOrderDetailProvider(orderId).notifier)
+        .accept();
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(success ? '注文を受け付けました' : '注文の受付に失敗しました'),
+          backgroundColor: success ? AppColors.success : Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _handleReject(BuildContext context, WidgetRef ref) async {
+    final reasonController = TextEditingController();
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('注文を拒否'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('この注文を拒否しますか？'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: reasonController,
+              decoration: const InputDecoration(
+                labelText: '理由（任意）',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 2,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('キャンセル'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('拒否'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final success = await ref
+          .read(restaurantOrderDetailProvider(orderId).notifier)
+          .reject(reason: reasonController.text.isNotEmpty ? reasonController.text : null);
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(success ? '注文を拒否しました' : '注文の拒否に失敗しました'),
+            backgroundColor: success ? Colors.orange : Colors.red,
+          ),
+        );
+        if (success) {
+          Navigator.of(context).pop();
+        }
+      }
+    }
+  }
+
+  Future<void> _handleStartPreparing(BuildContext context, WidgetRef ref) async {
+    final success = await ref
+        .read(restaurantOrderDetailProvider(orderId).notifier)
+        .startPreparing();
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(success ? '調理を開始しました' : '状態の更新に失敗しました'),
+          backgroundColor: success ? Colors.purple : Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _handleMarkReady(BuildContext context, WidgetRef ref) async {
+    final success = await ref
+        .read(restaurantOrderDetailProvider(orderId).notifier)
+        .markReady();
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(success ? '準備完了にしました' : '状態の更新に失敗しました'),
+          backgroundColor: success ? AppColors.success : Colors.red,
+        ),
+      );
+    }
+  }
+}
