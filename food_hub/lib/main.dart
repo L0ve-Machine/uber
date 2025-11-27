@@ -11,10 +11,17 @@ import 'features/customer/screens/restaurant_detail_screen.dart';
 import 'features/customer/screens/cart_screen.dart';
 import 'features/customer/screens/order_history_screen.dart';
 import 'features/customer/screens/order_detail_screen.dart';
+import 'features/customer/screens/checkout_screen.dart';
+import 'features/customer/screens/order_confirmation_screen.dart';
+import 'features/customer/screens/order_tracking_screen.dart';
+import 'features/customer/screens/address_selection_screen.dart';
+import 'features/customer/screens/add_address_screen.dart';
 import 'features/restaurant/screens/restaurant_dashboard_screen.dart';
 import 'features/restaurant/screens/restaurant_menu_add_screen.dart';
 import 'features/driver/screens/driver_dashboard_screen.dart';
 import 'shared/constants/app_constants.dart';
+import 'shared/models/address_model.dart';
+import 'shared/models/order_model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -91,6 +98,39 @@ onGenerateRoute: (settings) {
           final orderId = settings.arguments as int;
           return MaterialPageRoute(
             builder: (context) => OrderDetailScreen(orderId: orderId),
+          );
+        }
+        // Handle checkout route
+        if (settings.name == '/customer/checkout') {
+          return MaterialPageRoute(
+            builder: (context) => const CheckoutScreen(),
+          );
+        }
+        // Handle order confirmation route
+        if (settings.name == '/customer/order-confirmation') {
+          final order = settings.arguments as OrderModel;
+          return MaterialPageRoute(
+            builder: (context) => OrderConfirmationScreen(order: order),
+          );
+        }
+        // Handle order tracking route
+        if (settings.name != null && settings.name!.startsWith('/customer/order-tracking/')) {
+          final orderId = int.parse(settings.name!.split('/').last);
+          return MaterialPageRoute(
+            builder: (context) => OrderTrackingScreen(orderId: orderId),
+          );
+        }
+        // Handle address selection route
+        if (settings.name == '/customer/addresses/select') {
+          final currentAddress = settings.arguments as AddressModel?;
+          return MaterialPageRoute(
+            builder: (context) => AddressSelectionScreen(currentAddress: currentAddress),
+          );
+        }
+        // Handle add address route
+        if (settings.name == '/customer/addresses/add') {
+          return MaterialPageRoute(
+            builder: (context) => const AddAddressScreen(),
           );
         }
         return null;

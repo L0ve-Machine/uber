@@ -1,290 +1,228 @@
-# 🍔 FoodHub プロジェクト状況
+# FoodHub プロジェクト状況
 
-**最終更新**: 2025-11-22
+**最終更新**: 2025-11-27
 **プロジェクト開始日**: 2025-11-22
 
 ---
 
-## 📊 全体進捗: 25%
+## 全体進捗: 45%
 
 ```
 Phase 1: ████████████ 100% 完了
-Phase 2: ████░░░░░░░░  40% 進行中
-Phase 3: ░░░░░░░░░░░░   0% 未着手
-Phase 4: ░░░░░░░░░░░░   0% 未着手
-Phase 5: ░░░░░░░░░░░░   0% 未着手
+Phase 2: ████████████ 100% 完了
+Phase 3: ████████░░░░  70% 進行中
+Phase 4: ████████████ 100% 完了
+Phase 5: ████████████ 100% 完了
 Phase 6: ░░░░░░░░░░░░   0% 未着手
 ```
 
 ---
 
-## ✅ 完了したフェーズ
+## 完了したフェーズ
 
-### **Phase 1: 基盤構築** ✅ 100%
-**期間**: 2025-11-22
-**状態**: 完了
+### Phase 1: 基盤構築 ✅ 100%
 
-#### Flutter (フロントエンド)
-- ✅ プロジェクト作成 (`food_hub`)
-- ✅ ディレクトリ構造 (customer/restaurant/driver/shared)
-- ✅ 依存パッケージインストール
-  - flutter_riverpod (状態管理)
-  - dio (HTTP通信)
-  - flutter_stripe (決済)
-  - google_maps_flutter (地図)
-  - socket_io_client (リアルタイム通信)
-- ✅ テーマ設定 (白×緑カラー)
-- ✅ ルーティング定義
-- ✅ 定数・設定ファイル
+- [x] Flutter プロジェクト構成
+- [x] Node.js バックエンド構成
+- [x] MySQL データベース設計（11テーブル）
+- [x] Riverpod 状態管理セットアップ
+- [x] Dio HTTPクライアント設定
+- [x] JWT認証システム
 
-#### Database (MySQL)
-- ✅ MySQL Server 8.0 インストール
-- ✅ `foodhub` データベース作成
-- ✅ 11テーブル作成
-  - customers, customer_addresses
-  - restaurants, restaurant_hours
-  - menu_items, menu_item_options
-  - drivers
-  - orders, order_items
-  - reviews, favorites
-- ✅ テストデータ投入
+### Phase 2: 認証システム ✅ 100%
 
-#### Backend (Node.js)
-- ✅ Express.js プロジェクト初期化
-- ✅ 依存パッケージインストール
-  - express, sequelize, mysql2
-  - bcrypt, jsonwebtoken
-  - stripe, socket.io
-- ✅ Sequelize ORM設定
-- ✅ データベース接続確認
-- ✅ 基本API構造
+- [x] ログイン画面（3ユーザータイプ対応）
+- [x] 新規登録画面
+- [x] 認証状態管理
+- [x] トークン保存・自動ログイン
+
+### Phase 4: Restaurant機能 ✅ 100%
+
+- [x] ダッシュボード（注文一覧）
+- [x] 注文ステータス変更（受付/調理中/準備完了）
+- [x] メニュー管理（一覧、追加、編集）
+- [x] 売上統計表示
+
+### Phase 5: Driver機能 ✅ 100%
+
+- [x] ダッシュボード
+- [x] オンライン/オフライン切替
+- [x] 配達受付・完了
+- [x] 配達履歴
+- [x] 日別統計
 
 ---
 
-## 🔄 進行中のフェーズ
+## 進行中のフェーズ
 
-### **Phase 2: 認証システム** 🔄 40%
-**期間**: 2025-11-22 ~
-**状態**: バックエンド完了、フロントエンド未着手
+### Phase 3: Customer機能 🔄 70%
 
-#### Backend API ✅
-- ✅ JWT認証ユーティリティ
-- ✅ bcryptパスワードハッシュ化
-- ✅ Sequelizeモデル (Customer, Restaurant, Driver)
-- ✅ 認証コントローラー
-- ✅ 認証ルート
-  - `POST /api/auth/login`
-  - `POST /api/auth/register/customer`
-  - `POST /api/auth/register/restaurant`
-  - `POST /api/auth/register/driver`
-  - `GET /api/auth/me`
-- ✅ 認証ミドルウェア
-- ✅ テストユーザー準備
+#### 完了 ✅
+- [x] ホーム画面（レストラン一覧）
+- [x] レストラン検索・カテゴリフィルター
+- [x] レストラン詳細画面・メニュー表示
+- [x] カート機能（追加、数量変更、削除）
+- [x] 注文履歴画面・注文詳細画面
+- [x] **チェックアウト画面** ← 2025-11-27 NEW
+- [x] **住所選択画面** ← 2025-11-27 NEW
+- [x] **住所追加画面** ← 2025-11-27 NEW
+- [x] **注文確認画面** ← 2025-11-27 NEW
+- [x] **注文追跡画面（ステータスタイムライン）** ← 2025-11-27 NEW
 
-#### 次のタスク
-- [ ] APIエンドポイントテスト
-- [ ] Flutter ログイン画面UI
-- [ ] Flutter 認証サービス実装
-- [ ] トークン保存・管理 (SharedPreferences)
-- [ ] ユーザータイプ別画面遷移
-
----
-
-## 📅 今後のフェーズ
-
-### **Phase 3: カスタマーアプリ（コア機能）** 📅 0%
-**予定期間**: 3週間
-**優先度**: 高
-
-#### 3-1: レストラン一覧・検索
-- [ ] ホーム画面（レストラン一覧）
-- [ ] カテゴリー別フィルター
-- [ ] 検索機能
-- [ ] レストラン詳細ページ
-- [ ] メニュー表示
-
-**API:**
-- [ ] `GET /api/restaurants` - レストラン一覧
-- [ ] `GET /api/restaurants/:id` - レストラン詳細
-- [ ] `GET /api/restaurants/:id/menu` - メニュー取得
-
-#### 3-2: カート・注文機能
-- [ ] カート画面
-- [ ] 商品追加/削除/数量変更
-- [ ] チェックアウト画面
-- [ ] Stripe決済統合
-- [ ] 注文作成
-
-**API:**
-- [ ] `POST /api/orders` - 注文作成
-- [ ] `POST /api/payments/create-intent` - Stripe決済
-
-#### 3-3: 注文履歴
-- [ ] 注文履歴一覧
-- [ ] 注文詳細
-- [ ] 再注文機能
-
-**API:**
-- [ ] `GET /api/orders` - 注文履歴
-- [ ] `GET /api/orders/:id` - 注文詳細
-
----
-
-### **Phase 4: レストランアプリ** 📅 0%
-**予定期間**: 2週間
-**優先度**: 高
-
-#### 4-1: ダッシュボード
-- [ ] 新規注文一覧（リアルタイム）
-- [ ] 注文受付/拒否
-- [ ] ステータス更新（調理中→完了）
-
-**API:**
-- [ ] `GET /api/restaurant/orders` - 店舗の注文一覧
-- [ ] `PATCH /api/orders/:id/accept` - 注文受付
-- [ ] `PATCH /api/orders/:id/status` - ステータス更新
-
-#### 4-2: メニュー管理
-- [ ] メニュー一覧
-- [ ] メニュー追加/編集/削除
-- [ ] 在庫管理（売り切れ設定）
-
-**API:**
-- [ ] `GET /api/restaurant/menu` - メニュー管理
-- [ ] `POST /api/restaurant/menu` - メニュー追加
-- [ ] `PUT /api/restaurant/menu/:id` - メニュー編集
-- [ ] `DELETE /api/restaurant/menu/:id` - メニュー削除
-
-#### 4-3: 売上管理
-- [ ] 日別/週別/月別売上
-- [ ] 注文統計
-
----
-
-### **Phase 5: ドライバーアプリ** 📅 0%
-**予定期間**: 2週間
-**優先度**: 高
-
-#### 5-1: 配達リクエスト
-- [ ] オンライン/オフライン切替
-- [ ] 配達リクエスト受信
-- [ ] リクエスト受諾/拒否
-
-**API:**
-- [ ] `GET /api/driver/available-orders` - 配達可能な注文
-- [ ] `POST /api/orders/:id/accept-delivery` - 配達受諾
-
-#### 5-2: ナビゲーション
-- [ ] レストランへの経路案内
-- [ ] 配達先への経路案内
-- [ ] Google Maps 統合
-- [ ] ステータス更新（ピックアップ→配達中→完了）
-
-#### 5-3: 収入管理
-- [ ] 配達履歴
-- [ ] 日別/週別/月別収入
-
----
-
-### **Phase 6: リアルタイム機能** 📅 0%
-**予定期間**: 2週間
-**優先度**: 中
-
-#### Socket.io統合
-- [ ] 注文状況のリアルタイム更新
-- [ ] 配達員位置のリアルタイム追跡
-- [ ] プッシュ通知（Firebase）
-
-**API:**
-- [ ] WebSocket接続
-- [ ] イベント: `order_updated`, `driver_location`, `new_order`
-
----
-
-### **Phase 7: 追加機能** 📅 0%
-**予定期間**: 2週間
-**優先度**: 低
-
-#### レビュー・評価
-- [ ] レストラン評価
-- [ ] 配達員評価
-- [ ] コメント・写真投稿
-
-#### その他
-- [ ] お気に入り機能
-- [ ] クーポン・プロモーション
-- [ ] 予約注文
-- [ ] 住所管理（複数登録）
+#### 未完了
 - [ ] プロフィール編集
+- [ ] お気に入り機能
+- [ ] レビュー投稿
+- [ ] クーポン適用
+- [ ] Stripe決済統合
 
 ---
 
-### **Phase 8: 最適化・テスト** 📅 0%
-**予定期間**: 2週間
+## 今回の実装内容（2025-11-27）
 
-- [ ] パフォーマンス最適化
-- [ ] エラーハンドリング
-- [ ] UI/UXブラッシュアップ
-- [ ] E2Eテスト
-- [ ] セキュリティ強化（HTTPS化）
+### 5-1: チェックアウト画面の完成 ✅
 
----
-
-## 📂 プロジェクト構造
-
+**新規ファイル:**
 ```
-C:\Users\genki\Projects\app\uber\
-├── food_hub/                    # Flutter アプリ
-│   ├── lib/
-│   │   ├── core/               # テーマ、ルート
-│   │   ├── customer/           # 購入者機能
-│   │   ├── restaurant/         # レストラン機能
-│   │   ├── driver/             # 配達員機能
-│   │   └── shared/             # 共通コード
-│   └── pubspec.yaml
-│
-└── foodhub-backend/             # Node.js API
-    ├── src/
-    │   ├── config/             # DB設定
-    │   ├── models/             # Sequelizeモデル
-    │   ├── controllers/        # ビジネスロジック
-    │   ├── routes/             # APIルート
-    │   ├── middleware/         # 認証等
-    │   ├── utils/              # JWT, パスワード等
-    │   └── app.js              # メインサーバー
-    ├── database/
-    │   └── schema.sql          # DBスキーマ
-    ├── scripts/
-    │   └── updateTestUsers.js  # テストデータ更新
-    ├── .env                    # 環境変数
-    └── README.md               # API仕様書
+lib/features/customer/
+├── data/
+│   ├── services/address_api_service.dart
+│   └── repositories/address_repository.dart
+├── providers/
+│   └── address_provider.dart
+└── screens/
+    ├── checkout_screen.dart
+    ├── address_selection_screen.dart
+    ├── add_address_screen.dart
+    └── order_confirmation_screen.dart
 ```
 
+**機能:**
+- 配達先住所の選択・追加・デフォルト設定
+- 注文内容の確認
+- 支払い方法選択（代金引換 / クレジットカード準備中）
+- 特別リクエスト入力
+- 注文確定・注文番号表示
+
+### 5-3: 注文追跡機能 ✅
+
+**新規ファイル:**
+```
+lib/features/customer/
+├── screens/
+│   └── order_tracking_screen.dart
+└── widgets/
+    └── order_status_timeline.dart
+```
+
+**機能:**
+- 注文ステータスタイムライン表示
+  - 注文受付 → 確認済み → 調理中 → 準備完了 → 配達中 → 配達完了
+- 30秒ごとの自動更新（ポーリング）
+- 注文キャンセル機能（pending状態のみ）
+- 配達先・注文内容・料金表示
+
 ---
 
-## 🔑 重要情報
+## 今後の実装予定
 
-### テスト認証情報
+### 優先度: 高
+
+| 機能 | 説明 | 状態 |
+|-----|------|------|
+| Stripe決済統合 | クレジットカード決済 | 未着手 |
+| プッシュ通知 | Firebase Cloud Messaging | 未着手 |
+| Socket.ioリアルタイム更新 | 注文ステータス即時反映 | 未着手 |
+
+### 優先度: 中
+
+| 機能 | 説明 | 状態 |
+|-----|------|------|
+| ドライバーGPS追跡 | Google Maps + Geolocator | 未着手 |
+| 地図上でのドライバー位置表示 | 顧客アプリ | 未着手 |
+| レビュー・評価システム | 店舗・ドライバー両方 | 未着手 |
+| プロフィール編集 | 全ユーザータイプ | 未着手 |
+
+### 優先度: 低
+
+| 機能 | 説明 | 状態 |
+|-----|------|------|
+| クーポン・プロモコード | 割引適用 | 未着手 |
+| お気に入り機能 | 店舗・メニュー | 未着手 |
+| 注文予約機能 | 指定時間配達 | 未着手 |
+| 週次/月次レポート | 店舗・ドライバー向け | 未着手 |
+
+---
+
+## テスト用認証情報
+
 | ユーザータイプ | メール | パスワード |
 |--------------|--------|----------|
 | 顧客 | customer@test.com | password123 |
 | レストラン | restaurant@test.com | password123 |
 | 配達員 | driver@test.com | password123 |
 
-### データベース
-- **Host**: localhost
-- **Port**: 3306
-- **Database**: foodhub
-- **User**: root
-- **Password**: Prod/0915
+---
 
-### API
-- **URL**: http://localhost:3000
-- **環境**: development
+## 技術的メモ
+
+### 注文ステータス一覧
+```
+pending     → 注文受付（キャンセル可能）
+accepted    → 店舗確認済み
+preparing   → 調理中
+ready       → 配達準備完了
+picked_up   → 配達中
+delivered   → 配達完了
+cancelled   → キャンセル
+```
+
+### APIエンドポイント
+
+**住所関連:**
+- `GET /customers/:id/addresses` - 住所一覧
+- `POST /customers/:id/addresses` - 住所追加
+- `PUT /addresses/:id` - 住所更新
+- `DELETE /addresses/:id` - 住所削除
+- `PATCH /addresses/:id/default` - デフォルト設定
+
+**注文関連:**
+- `POST /orders` - 注文作成
+- `GET /orders` - 注文一覧
+- `GET /orders/:id` - 注文詳細
+- `PATCH /orders/:id/cancel` - キャンセル
 
 ---
 
-## 🚀 クイックスタート
+## ディレクトリ構成
+
+```
+uber/
+├── food_hub/                 # Flutter アプリ
+│   └── lib/
+│       ├── core/             # 基盤（theme, routes, network, storage）
+│       ├── features/         # 機能別モジュール
+│       │   ├── auth/         # 認証
+│       │   ├── customer/     # 顧客機能
+│       │   ├── restaurant/   # 店舗機能
+│       │   └── driver/       # 配達員機能
+│       └── shared/           # 共有（models, widgets, constants）
+│
+├── foodhub-backend/          # Node.js バックエンド
+│   └── src/
+│       ├── controllers/      # コントローラー
+│       ├── models/           # Sequelizeモデル
+│       ├── routes/           # ルート定義
+│       ├── middleware/       # 認証ミドルウェア
+│       └── utils/            # ユーティリティ
+│
+├── PROJECT_STATUS.md         # このファイル
+└── PLAN.md                   # 実装計画詳細
+```
+
+---
+
+## クイックスタート
 
 ### バックエンド起動
 ```bash
@@ -298,75 +236,19 @@ cd C:\Users\genki\Projects\app\uber\food_hub
 flutter run
 ```
 
-### APIテスト
-```bash
-curl -X POST http://localhost:3000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d "{\"email\":\"customer@test.com\",\"password\":\"password123\",\"user_type\":\"customer\"}"
-```
-
 ---
 
-## 📝 次回のタスク
-
-1. **バックグラウンドプロセスのクリーンアップ**
-   - 複数のnodeプロセスが残っている可能性
-   - `tasklist | findstr node` で確認
-   - 必要に応じて `taskkill /F /IM node.exe`
-
-2. **APIエンドポイントテスト**
-   - サーバー再起動
-   - ログインAPIテスト
-   - レスポンス確認（JWTトークン取得）
-
-3. **Flutter ログイン画面実装**
-   - ログイン画面UI
-   - APIサービス作成
-   - 状態管理（Riverpod）
-   - トークン保存
-
----
-
-## 🐛 既知の問題
-
-### バックグラウンドプロセス
-- **問題**: 複数のnodeプロセスが起動中
-- **影響**: ポート競合の可能性
-- **対処**: 次回セッション開始時に全nodeプロセスをkill
-
-### APIテスト未完了
-- **問題**: 認証APIエンドポイントのテストが未完了
-- **影響**: ログイン機能の動作確認ができていない
-- **対処**: 次回、curlまたはPostmanでテスト
-
----
-
-## 📊 工数見積もり
-
-| フェーズ | 予定工数 | 実績工数 | 状態 |
-|---------|---------|---------|------|
-| Phase 1 | 2週間 | 1日 | ✅ 完了 |
-| Phase 2 | 2週間 | 0.5日 | 🔄 40% |
-| Phase 3 | 3週間 | - | 📅 未着手 |
-| Phase 4 | 2週間 | - | 📅 未着手 |
-| Phase 5 | 2週間 | - | 📅 未着手 |
-| Phase 6 | 2週間 | - | 📅 未着手 |
-| Phase 7 | 2週間 | - | 📅 未着手 |
-| Phase 8 | 2週間 | - | 📅 未着手 |
-| **合計** | **約3.5ヶ月** | **1.5日** | **25%** |
-
----
-
-## 🎯 マイルストーン
+## マイルストーン
 
 - [x] **M1**: プロジェクト初期化完了 (2025-11-22)
 - [x] **M2**: データベース構築完了 (2025-11-22)
-- [ ] **M3**: 認証システム完了（APIテスト含む）
-- [ ] **M4**: MVP完成（レストラン閲覧＋注文）
-- [ ] **M5**: レストランアプリ完成
-- [ ] **M6**: ドライバーアプリ完成
-- [ ] **M7**: リアルタイム機能完成
-- [ ] **M8**: 本番リリース
+- [x] **M3**: 認証システム完了 (2025-11-22)
+- [x] **M4**: Customer/Restaurant/Driver UI実装 (2025-11-22)
+- [x] **M5**: チェックアウト・注文追跡機能 (2025-11-27) ← NEW
+- [ ] **M6**: Stripe決済統合
+- [ ] **M7**: リアルタイム機能（Socket.io/Firebase）
+- [ ] **M8**: GPS追跡・地図表示
+- [ ] **M9**: 本番リリース
 
 ---
 

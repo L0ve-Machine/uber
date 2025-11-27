@@ -126,12 +126,7 @@ class CartScreen extends ConsumerWidget {
                             text: 'チェックアウトへ進む',
                             onPressed: cartNotifier.isFromSingleRestaurant
                                 ? () {
-                                    // TODO: Navigate to checkout
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('チェックアウト機能は開発中です'),
-                                      ),
-                                    );
+                                    Navigator.of(context).pushNamed('/customer/checkout');
                                   }
                                 : null,
                           ),
