@@ -1,12 +1,22 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const http = require('http');
+const { Server } = require('socket.io');
 const sequelize = require('./config/database');
 
 // Initialize model associations
 require('./models/index');
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: '*', // In production, specify allowed origins
+    methods: ['GET', 'POST'],
+  },
+});
+
 const PORT = process.env.PORT || 3000;
 
 // Middleware
@@ -69,10 +79,73 @@ app.use((req, res) => {
   });
 });
 
+// ==================== Socket.IO Setup ====================
+const Driver = require('./models/Driver');
+
+// Store active driver connections
+const activeDrivers = new Map(); // driverId -> socketId
+
+io.on('connection', (socket) => {
+  console.log(`🔌 Client connected: ${socket.id}`);
+
+  // Driver connects and registers
+  socket.on('driver:register', async (data) => {
+    const { driverId, token } = data;
+    console.log(`👤 Driver ${driverId} registered with socket ${socket.id}`);
+
+    activeDrivers.set(driverId, socket.id);
+    socket.driverId = driverId;
+    socket.join(`driver-${driverId}`);
+
+    socket.emit('driver:registered', { success: true });
+  });
+
+  // Driver sends location update
+  socket.on('driver:location-update', async (data) => {
+    const { driverId, latitude, longitude } = data;
+
+    try {
+      // Update driver location in database
+      await Driver.update(
+        {
+          current_latitude: latitude,
+          current_longitude: longitude,
+        },
+        { where: { id: driverId } }
+      );
+
+      console.log(`📍 Driver ${driverId} location updated: ${latitude}, ${longitude}`);
+
+      // Broadcast to all customers tracking this driver
+      io.emit('driver:location-changed', {
+        driverId,
+        latitude,
+        longitude,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error('Error updating driver location:', error);
+    }
+  });
+
+  // Disconnect
+  socket.on('disconnect', () => {
+    if (socket.driverId) {
+      activeDrivers.delete(socket.driverId);
+      console.log(`👋 Driver ${socket.driverId} disconnected`);
+    }
+    console.log(`🔌 Client disconnected: ${socket.id}`);
+  });
+});
+
+// Make io accessible to routes
+app.set('io', io);
+
 // Start server
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`🔌 Socket.IO server ready`);
   console.log(`📝 Environment: ${process.env.NODE_ENV}`);
 });
 
-module.exports = app;
+module.exports = { app, server, io };

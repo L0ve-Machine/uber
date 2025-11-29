@@ -5,6 +5,7 @@ const OrderItem = require('../models/OrderItem');
 const Restaurant = require('../models/Restaurant');
 const CustomerAddress = require('../models/CustomerAddress');
 const MenuItem = require('../models/MenuItem');
+const Driver = require('../models/Driver');
 
 /**
  * Generate unique order number
@@ -303,6 +304,135 @@ exports.cancelOrder = async (req, res) => {
     });
   } catch (error) {
     console.error('Cancel order error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+/**
+ * Get order tracking information (with privacy protection)
+ * GET /api/orders/:id/tracking
+ */
+exports.getOrderTracking = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const customer_id = req.user.id;
+
+    // Get order with all necessary relations
+    const order = await Order.findOne({
+      where: { id, customer_id },
+      include: [
+        {
+          model: Restaurant,
+          as: 'restaurant',
+          attributes: ['id', 'name', 'address', 'latitude', 'longitude', 'phone'],
+        },
+        {
+          model: CustomerAddress,
+          as: 'delivery_address',
+          attributes: ['id', 'address_line', 'city', 'latitude', 'longitude'],
+        },
+        {
+          model: Driver,
+          as: 'driver',
+          attributes: ['id', 'full_name', 'phone', 'current_latitude', 'current_longitude', 'updated_at'],
+        },
+      ],
+    });
+
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    // If no driver assigned yet
+    if (!order.driver_id) {
+      return res.json({
+        orderId: order.id,
+        orderNumber: order.order_number,
+        status: order.status,
+        isDriverAssigned: false,
+        message: '配達員を探しています...',
+        restaurantLocation: order.restaurant ? {
+          latitude: order.restaurant.latitude,
+          longitude: order.restaurant.longitude,
+          name: order.restaurant.name,
+          address: order.restaurant.address,
+        } : null,
+        deliveryLocation: order.delivery_address ? {
+          latitude: order.delivery_address.latitude,
+          longitude: order.delivery_address.longitude,
+          address: order.delivery_address.address_line + ', ' + order.delivery_address.city,
+        } : null,
+      });
+    }
+
+    // Get all active orders for this driver (for sequence calculation)
+    const driverOrders = await Order.findAll({
+      where: {
+        driver_id: order.driver_id,
+        status: ['picked_up', 'delivering'],
+      },
+      attributes: ['id', 'created_at', 'delivery_sequence'],
+      order: [
+        ['delivery_sequence', 'ASC'],
+        ['created_at', 'ASC'],
+      ],
+    });
+
+    // Find position of this order in driver's queue
+    const myIndex = driverOrders.findIndex(o => o.id === order.id);
+    const isCurrentlyDeliveringToMe = myIndex === 0;  // First in queue = currently delivering
+    const remainingDeliveries = Math.max(0, myIndex);  // How many before me
+
+    // *** PRIVACY PROTECTION: Only show driver location if delivering to current customer ***
+    const driverLocation = (isCurrentlyDeliveringToMe && order.driver) ? {
+      latitude: parseFloat(order.driver.current_latitude),
+      longitude: parseFloat(order.driver.current_longitude),
+      lastUpdate: order.driver.updated_at,
+    } : null;
+
+    // Calculate driver info (name & phone shown only when actively delivering)
+    const driverInfo = order.driver ? {
+      id: order.driver.id,
+      fullName: isCurrentlyDeliveringToMe ? order.driver.full_name : null,
+      phone: isCurrentlyDeliveringToMe ? order.driver.phone : null,
+    } : null;
+
+    res.json({
+      orderId: order.id,
+      orderNumber: order.order_number,
+      status: order.status,
+      isDriverAssigned: true,
+      isCurrentlyDeliveringToYou: isCurrentlyDeliveringToMe,
+      deliverySequence: myIndex + 1,
+      remainingDeliveries,
+      totalOrdersInBatch: driverOrders.length,
+
+      // Driver location (null if not currently delivering to you)
+      driverLocation,
+      driverInfo,
+
+      // Location data
+      restaurantLocation: order.restaurant ? {
+        latitude: order.restaurant.latitude,
+        longitude: order.restaurant.longitude,
+        name: order.restaurant.name,
+        address: order.restaurant.address,
+      } : null,
+
+      deliveryLocation: order.delivery_address ? {
+        latitude: order.delivery_address.latitude,
+        longitude: order.delivery_address.longitude,
+        address: order.delivery_address.address_line + ', ' + order.delivery_address.city,
+      } : null,
+
+      // Timestamps
+      createdAt: order.created_at,
+      acceptedAt: order.accepted_at,
+      pickedUpAt: order.picked_up_at,
+      estimatedDelivery: order.estimated_delivery_time,
+    });
+  } catch (error) {
+    console.error('Get order tracking error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };

@@ -2,22 +2,6 @@
 
 part of 'restaurant_model.dart';
 
-// Helper function to parse double from String or num
-double _parseDouble(dynamic value) {
-  if (value == null) return 0.0;
-  if (value is num) return value.toDouble();
-  if (value is String) return double.tryParse(value) ?? 0.0;
-  return 0.0;
-}
-
-// Helper function to parse int from String or num
-int _parseInt(dynamic value) {
-  if (value == null) return 0;
-  if (value is num) return value.toInt();
-  if (value is String) return int.tryParse(value) ?? 0;
-  return 0;
-}
-
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
@@ -31,16 +15,16 @@ RestaurantModel _$RestaurantModelFromJson(Map<String, dynamic> json) =>
       category: json['category'] as String,
       phone: json['phone'] as String,
       address: json['address'] as String,
-      latitude: _parseDouble(json['latitude']),
-      longitude: _parseDouble(json['longitude']),
+      latitude: (json['latitude'] as num).toDouble(),
+      longitude: (json['longitude'] as num).toDouble(),
       coverImageUrl: json['cover_image_url'] as String?,
       logoUrl: json['logo_url'] as String?,
-      rating: _parseDouble(json['rating']),
-      totalReviews: _parseInt(json['total_reviews']),
-      minOrderAmount: _parseDouble(json['min_order_amount']),
-      deliveryFee: _parseDouble(json['delivery_fee']),
-      deliveryTimeMinutes: _parseInt(json['delivery_time_minutes']),
-      deliveryRadiusKm: _parseDouble(json['delivery_radius_km']),
+      rating: (json['rating'] as num).toDouble(),
+      totalReviews: (json['total_reviews'] as num).toInt(),
+      minOrderAmount: (json['min_order_amount'] as num).toDouble(),
+      deliveryFee: (json['delivery_fee'] as num).toDouble(),
+      deliveryTimeMinutes: (json['delivery_time_minutes'] as num).toInt(),
+      deliveryRadiusKm: (json['delivery_radius_km'] as num).toDouble(),
       isOpen: json['is_open'] as bool,
       isApproved: json['is_approved'] as bool,
       createdAt: DateTime.parse(json['created_at'] as String),

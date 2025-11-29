@@ -2,10 +2,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/services/socket_service.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/loading_indicator.dart';
 import '../providers/order_provider.dart';
 import '../widgets/order_status_timeline.dart';
+import '../widgets/order_tracking_map.dart';
 
 class OrderTrackingScreen extends ConsumerStatefulWidget {
   final int orderId;
@@ -21,11 +23,30 @@ class OrderTrackingScreen extends ConsumerStatefulWidget {
 
 class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
   Timer? _refreshTimer;
+  final SocketService _socketService = SocketService();
+  StreamSubscription? _locationSubscription;
+
+  // リアルタイム配達員位置（Socket.IOから更新）
+  double? _realtimeDriverLat;
+  double? _realtimeDriverLng;
 
   @override
   void initState() {
     super.initState();
-    // Auto-refresh every 30 seconds
+
+    // Socket.IO接続
+    _socketService.connect();
+
+    // 配達員位置更新をリッスン
+    _locationSubscription = _socketService.driverLocationStream.listen((update) {
+      print('[OrderTrackingScreen] Driver location update: ${update.driverId}');
+      setState(() {
+        _realtimeDriverLat = update.latitude;
+        _realtimeDriverLng = update.longitude;
+      });
+    });
+
+    // Auto-refresh every 30 seconds (fallback for non-realtime data)
     _refreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
       ref.invalidate(orderDetailProvider(widget.orderId));
     });
@@ -34,6 +55,7 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
   @override
   void dispose() {
     _refreshTimer?.cancel();
+    _locationSubscription?.cancel();
     super.dispose();
   }
 
@@ -156,6 +178,35 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
                   ),
 
                   const SizedBox(height: 24),
+
+                  // Delivery Map (only if order has location data)
+                  if (order.deliveryAddress?.latitude != null &&
+                      order.deliveryAddress?.longitude != null &&
+                      order.restaurant?.latitude != null &&
+                      order.restaurant?.longitude != null) ...[
+                    const Text(
+                      '配達状況',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    OrderTrackingMap(
+                      driverLatitude: _realtimeDriverLat,
+                      driverLongitude: _realtimeDriverLng,
+                      restaurantLatitude: order.restaurant!.latitude,
+                      restaurantLongitude: order.restaurant!.longitude,
+                      deliveryLatitude: order.deliveryAddress!.latitude!,
+                      deliveryLongitude: order.deliveryAddress!.longitude!,
+                      showDriverLocation: isActive &&
+                          order.driverId != null &&
+                          _realtimeDriverLat != null &&
+                          _realtimeDriverLng != null,
+                      restaurantName: order.restaurant?.name,
+                    ),
+                    const SizedBox(height: 24),
+                  ],
 
                   // Status Timeline
                   const Text(

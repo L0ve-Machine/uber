@@ -50,4 +50,11 @@ router.get('/:id', authMiddleware, isCustomer, orderController.getOrderById);
  */
 router.patch('/:id/cancel', authMiddleware, isCustomer, orderController.cancelOrder);
 
+/**
+ * @route   GET /api/orders/:id/tracking
+ * @desc    Get real-time order tracking info (with privacy protection)
+ * @access  Private (Customer only)
+ */
+router.get('/:id/tracking', authMiddleware, isCustomer, orderController.getOrderTracking);
+
 module.exports = router;
