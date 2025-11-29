@@ -9,6 +9,7 @@ class CustomButton extends StatelessWidget {
   final double? width;
   final double height;
   final EdgeInsetsGeometry? padding;
+  final IconData? icon;
 
   const CustomButton({
     super.key,
@@ -20,6 +21,7 @@ class CustomButton extends StatelessWidget {
     this.width,
     this.height = 56,
     this.padding,
+    this.icon,
   });
 
   @override
@@ -50,13 +52,27 @@ class CustomButton extends StatelessWidget {
                   valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                 ),
               )
-            : Text(
-                text,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: textColor ?? Colors.white,
-                ),
+            : Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (icon != null) ...[
+                    Icon(
+                      icon,
+                      size: 20,
+                      color: textColor ?? Colors.white,
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                  Text(
+                    text,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: textColor ?? Colors.white,
+                    ),
+                  ),
+                ],
               ),
       ),
     );

@@ -34,6 +34,7 @@ app.get('/api', (req, res) => {
       restaurants: '/api/restaurants',
       drivers: '/api/drivers',
       orders: '/api/orders',
+      reviews: '/api/reviews',
     },
   });
 });
@@ -45,6 +46,9 @@ app.use('/api/menu-items', require('./routes/menuItems'));
 app.use('/api/orders', require('./routes/orders'));
 app.use('/api', require('./routes/addresses')); // Handles /api/customers/:id/addresses & /api/addresses/:id
 app.use('/api/favorites', require('./routes/favorites'));
+app.use('/api/reviews', require('./routes/reviews')); // Review management
+app.use('/api/coupons', require('./routes/coupons')); // Coupon management
+app.use('/api/customers', require('./routes/customers')); // Customer profile management
 app.use('/api/restaurant', require('./routes/restaurant')); // Restaurant dashboard & menu management
 app.use('/api/driver', require('./routes/driver')); // Driver delivery management
 

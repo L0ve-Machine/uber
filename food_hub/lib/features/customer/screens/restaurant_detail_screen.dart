@@ -8,7 +8,9 @@ import '../../../shared/widgets/error_view.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../providers/restaurant_provider.dart';
 import '../providers/cart_provider.dart';
+import '../providers/favorite_provider.dart';
 import '../widgets/add_to_cart_sheet.dart';
+import '../widgets/review_list_widget.dart';
 
 class RestaurantDetailScreen extends ConsumerStatefulWidget {
   final int restaurantId;
@@ -57,6 +59,10 @@ class _RestaurantDetailScreenState
               expandedHeight: 250,
               pinned: true,
               backgroundColor: AppColors.primaryGreen,
+              actions: [
+                // Favorite button
+                _buildFavoriteButton(),
+              ],
               flexibleSpace: FlexibleSpaceBar(
                 background: restaurant.coverImageUrl != null
                     ? CachedNetworkImage(
@@ -268,13 +274,16 @@ class _RestaurantDetailScreenState
             menuAsync.when(
               data: (menuItems) {
                 if (menuItems.isEmpty) {
-                  return SliverFillRemaining(
-                    child: EmptyState(
-                      icon: Icons.restaurant_menu,
-                      title: 'メニューがありません',
-                      message: _selectedCategory != null
-                          ? 'このカテゴリーにはメニューがありません'
-                          : 'メニューが登録されていません',
+                  return SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32),
+                      child: EmptyState(
+                        icon: Icons.restaurant_menu,
+                        title: 'メニューがありません',
+                        message: _selectedCategory != null
+                            ? 'このカテゴリーにはメニューがありません'
+                            : 'メニューが登録されていません',
+                      ),
                     ),
                   );
                 }
@@ -292,19 +301,39 @@ class _RestaurantDetailScreenState
                   ),
                 );
               },
-              loading: () => const SliverFillRemaining(
-                child: LoadingIndicator(message: 'メニューを読み込み中...'),
-              ),
-              error: (error, _) => SliverFillRemaining(
-                child: ErrorView(
-                  error: error,
-                  onRetry: () {
-                    ref.invalidate(restaurantMenuProvider(
-                      restaurantId: widget.restaurantId,
-                    ));
-                  },
+              loading: () => const SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.all(32),
+                  child: Center(child: CircularProgressIndicator()),
                 ),
               ),
+              error: (error, _) => SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: ErrorView(
+                    error: error,
+                    onRetry: () {
+                      ref.invalidate(restaurantMenuProvider(
+                        restaurantId: widget.restaurantId,
+                      ));
+                    },
+                  ),
+                ),
+              ),
+            ),
+
+            // Reviews Section
+            SliverToBoxAdapter(
+              child: Container(
+                margin: const EdgeInsets.only(top: 16),
+                color: Colors.white,
+                child: ReviewListWidget(restaurantId: widget.restaurantId),
+              ),
+            ),
+
+            // Bottom padding
+            const SliverToBoxAdapter(
+              child: SizedBox(height: 80),
             ),
           ],
         ),
@@ -469,6 +498,56 @@ class _RestaurantDetailScreenState
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => AddToCartSheet(menuItem: menuItem),
+    );
+  }
+
+  Widget _buildFavoriteButton() {
+    final isFavorited = ref.watch(isFavoritedProvider(widget.restaurantId));
+    final favorite = ref.watch(favoriteByRestaurantIdProvider(widget.restaurantId));
+
+    return IconButton(
+      icon: Icon(
+        isFavorited ? Icons.favorite : Icons.favorite_border,
+        color: isFavorited ? Colors.red : Colors.white,
+      ),
+      onPressed: () async {
+        try {
+          if (isFavorited && favorite != null) {
+            await ref
+                .read(favoriteListProvider.notifier)
+                .removeFavorite(favorite.id);
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('お気に入りから削除しました'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            }
+          } else {
+            await ref
+                .read(favoriteListProvider.notifier)
+                .addFavorite(widget.restaurantId);
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('お気に入りに追加しました'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            }
+          }
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('エラーが発生しました: $e'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      },
     );
   }
 }

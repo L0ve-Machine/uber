@@ -57,7 +57,7 @@ final isAuthenticatedProvider = AutoDisposeFutureProvider<bool>.internal(
 );
 
 typedef IsAuthenticatedRef = AutoDisposeFutureProviderRef<bool>;
-String _$authHash() => r'4e557250220c958e940170a2cd89988f00e19211';
+String _$authHash() => r'5f30a66006bbe1f536f31b4161a6ea5c94091f77';
 
 /// Auth state provider
 /// Manages current user authentication state

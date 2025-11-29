@@ -104,6 +104,14 @@ class Auth extends _$Auth {
       },
     );
   }
+
+  /// Update user data (called from profile update)
+  Future<void> updateUser(UserModel user) async {
+    state = AsyncValue.data(user);
+    // Also update storage
+    final repository = ref.read(authRepositoryProvider);
+    await repository.updateUserInStorage(user);
+  }
 }
 
 /// Check if user is authenticated

@@ -14,7 +14,12 @@ class AppRoutes {
   static const String orderTracking = '/customer/order-tracking/:id';
   static const String orderHistory = '/customer/order-history';
   static const String customerProfile = '/customer/profile';
+  static const String editProfile = '/customer/profile/edit';
+  static const String changePassword = '/customer/password/change';
   static const String addressManagement = '/customer/addresses';
+  static const String favorites = '/customer/favorites';
+  static const String myReviews = '/customer/my-reviews';
+  static const String writeReview = '/customer/write-review';
 
   // Restaurant Routes
   static const String restaurantDashboard = '/restaurant/dashboard';

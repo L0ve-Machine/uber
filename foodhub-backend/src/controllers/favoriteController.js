@@ -4,16 +4,11 @@ const Restaurant = require('../models/Restaurant');
 
 /**
  * Get customer's favorites
- * GET /api/customers/:customerId/favorites
+ * GET /api/favorites
  */
 exports.getFavorites = async (req, res) => {
   try {
-    const { customerId } = req.params;
     const customer_id = req.user.id;
-
-    if (parseInt(customerId) !== customer_id) {
-      return res.status(403).json({ error: 'Access denied' });
-    }
 
     const favorites = await Favorite.findAll({
       where: { customer_id },

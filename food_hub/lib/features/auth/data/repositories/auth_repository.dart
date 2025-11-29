@@ -98,4 +98,9 @@ class AuthRepository {
       failure: (error) => Failure(error),
     );
   }
+
+  /// Update user in storage (called after profile update)
+  Future<void> updateUserInStorage(UserModel user) async {
+    await _storageService.saveUser(user);
+  }
 }

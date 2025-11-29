@@ -6,7 +6,9 @@ import '../../../shared/widgets/loading_indicator.dart';
 import '../../../shared/widgets/error_view.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../providers/order_provider.dart';
+import '../providers/review_provider.dart';
 import '../../../shared/models/order_model.dart';
+import 'write_review_screen.dart';
 
 class OrderDetailScreen extends ConsumerWidget {
   final int orderId;
@@ -48,6 +50,10 @@ class OrderDetailScreen extends ConsumerWidget {
               // Price Summary Card
               _buildPriceSummaryCard(context, order),
 
+              // Review button for delivered orders
+              if (order.status == 'delivered')
+                _buildReviewButton(context, ref, order),
+
               // Cancel button
               if (order.status == 'pending')
                 Padding(
@@ -60,6 +66,8 @@ class OrderDetailScreen extends ConsumerWidget {
                     backgroundColor: Colors.red,
                   ),
                 ),
+
+              const SizedBox(height: 16),
             ],
           ),
         ),
@@ -370,6 +378,99 @@ class OrderDetailScreen extends ConsumerWidget {
       default:
         return {'label': status, 'color': Colors.grey};
     }
+  }
+
+  Widget _buildReviewButton(BuildContext context, WidgetRef ref, OrderModel order) {
+    final canReviewAsync = ref.watch(canReviewProvider(order.id));
+
+    return canReviewAsync.when(
+      data: (canReviewResponse) {
+        if (canReviewResponse.hasReview) {
+          // Already reviewed - show the existing review
+          return Card(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.rate_review, color: AppColors.primaryGreen),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'レビュー投稿済み',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (canReviewResponse.review != null) ...[
+                    const SizedBox(height: 12),
+                    Row(
+                      children: List.generate(5, (i) {
+                        return Icon(
+                          i < canReviewResponse.review!.rating
+                              ? Icons.star
+                              : Icons.star_border,
+                          color: Colors.amber,
+                          size: 20,
+                        );
+                      }),
+                    ),
+                    if (canReviewResponse.review!.comment != null &&
+                        canReviewResponse.review!.comment!.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        canReviewResponse.review!.comment!,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ],
+                ],
+              ),
+            ),
+          );
+        }
+
+        if (canReviewResponse.canReview) {
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: CustomButton(
+              text: 'レビューを書く',
+              onPressed: () async {
+                final result = await Navigator.of(context).push<bool>(
+                  MaterialPageRoute(
+                    builder: (context) => WriteReviewScreen(
+                      orderId: order.id,
+                      restaurantName: order.restaurant?.name ?? 'レストラン',
+                    ),
+                  ),
+                );
+
+                if (result == true) {
+                  ref.invalidate(canReviewProvider(order.id));
+                }
+              },
+              backgroundColor: AppColors.primaryGreen,
+              icon: Icons.rate_review,
+            ),
+          );
+        }
+
+        return const SizedBox.shrink();
+      },
+      loading: () => const Padding(
+        padding: EdgeInsets.all(16),
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (_, __) => const SizedBox.shrink(),
+    );
   }
 
   void _showCancelDialog(BuildContext context, WidgetRef ref, int orderId) {

@@ -237,9 +237,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 title: Text(user.fullName),
                 subtitle: Text(user.email),
                 contentPadding: EdgeInsets.zero,
+                onTap: () {
+                  Navigator.of(dialogContext).pop();
+                  Navigator.of(context).pushNamed('/customer/profile');
+                },
               ),
               const Divider(),
             ],
+            ListTile(
+              leading: const Icon(Icons.person_outline),
+              title: const Text('プロフィール'),
+              contentPadding: EdgeInsets.zero,
+              onTap: () {
+                Navigator.of(dialogContext).pop();
+                Navigator.of(context).pushNamed('/customer/profile');
+              },
+            ),
             ListTile(
               leading: const Icon(Icons.receipt_long),
               title: const Text('注文履歴'),
@@ -255,9 +268,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               contentPadding: EdgeInsets.zero,
               onTap: () {
                 Navigator.of(dialogContext).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('お気に入り機能は開発中です')),
-                );
+                Navigator.of(context).pushNamed('/customer/favorites');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.rate_review),
+              title: const Text('マイレビュー'),
+              contentPadding: EdgeInsets.zero,
+              onTap: () {
+                Navigator.of(dialogContext).pop();
+                Navigator.of(context).pushNamed('/customer/my-reviews');
               },
             ),
             ListTile(
@@ -266,9 +286,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               contentPadding: EdgeInsets.zero,
               onTap: () {
                 Navigator.of(dialogContext).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('住所管理機能は開発中です')),
-                );
+                Navigator.of(context).pushNamed('/customer/addresses/select');
               },
             ),
             const Divider(),

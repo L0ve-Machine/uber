@@ -8,6 +8,7 @@ import '../../../shared/widgets/loading_indicator.dart';
 import '../providers/address_provider.dart';
 import '../providers/cart_provider.dart';
 import '../providers/order_provider.dart';
+import '../providers/coupon_provider.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({super.key});
@@ -18,6 +19,7 @@ class CheckoutScreen extends ConsumerStatefulWidget {
 
 class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   final _specialInstructionsController = TextEditingController();
+  final _couponController = TextEditingController();
   String _paymentMethod = 'cash';
   bool _isPlacingOrder = false;
   AddressModel? _selectedAddress;
@@ -25,6 +27,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   @override
   void dispose() {
     _specialInstructionsController.dispose();
+    _couponController.dispose();
     super.dispose();
   }
 
@@ -140,6 +143,13 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
                   const SizedBox(height: 24),
 
+                  // Coupon Section
+                  _buildSectionTitle('クーポン'),
+                  const SizedBox(height: 8),
+                  _buildCouponSection(),
+
+                  const SizedBox(height: 24),
+
                   // Special Instructions
                   _buildSectionTitle('特別リクエスト（オプション）'),
                   const SizedBox(height: 8),
@@ -168,15 +178,21 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   // Price Summary
                   _buildSectionTitle('料金詳細'),
                   const SizedBox(height: 8),
-                  _buildPriceSummary(cartNotifier),
+                  _buildPriceSummary(cartNotifier, ref),
 
                   const SizedBox(height: 32),
 
                   // Place Order Button
-                  CustomButton(
-                    text: '注文を確定する（¥${cartNotifier.total.toInt()}）',
-                    onPressed: _isPlacingOrder ? null : _placeOrder,
-                    isLoading: _isPlacingOrder,
+                  Consumer(
+                    builder: (context, ref, _) {
+                      final couponState = ref.watch(appliedCouponProvider);
+                      final total = cartNotifier.total - couponState.discount;
+                      return CustomButton(
+                        text: '注文を確定する（¥${total.toInt()}）',
+                        onPressed: _isPlacingOrder ? null : _placeOrder,
+                        isLoading: _isPlacingOrder,
+                      );
+                    },
                   ),
 
                   const SizedBox(height: 16),
@@ -428,7 +444,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     );
   }
 
-  Widget _buildPriceSummary(Cart cartNotifier) {
+  Widget _buildPriceSummary(Cart cartNotifier, WidgetRef ref) {
+    final couponState = ref.watch(appliedCouponProvider);
+    final discount = couponState.discount.toDouble();
+    final total = cartNotifier.total - discount;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -439,15 +459,162 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             _buildPriceRow('配送料', cartNotifier.deliveryFee),
             const SizedBox(height: 8),
             _buildPriceRow('消費税（10%）', cartNotifier.tax),
+            if (discount > 0) ...[
+              const SizedBox(height: 8),
+              _buildPriceRow('クーポン割引', -discount, isDiscount: true),
+            ],
             const Divider(height: 24),
-            _buildPriceRow('合計', cartNotifier.total, isTotal: true),
+            _buildPriceRow('合計', total, isTotal: true),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildPriceRow(String label, double amount, {bool isTotal = false}) {
+  Widget _buildCouponSection() {
+    final couponState = ref.watch(appliedCouponProvider);
+
+    if (couponState.coupon != null) {
+      // Coupon applied - show applied coupon
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Icon(Icons.local_offer, color: AppColors.primaryGreen),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      couponState.coupon!.code,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      '-¥${couponState.discount}',
+                      style: TextStyle(
+                        color: AppColors.primaryGreen,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () {
+                  ref.read(appliedCouponProvider.notifier).removeCoupon();
+                  _couponController.clear();
+                },
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // No coupon - show input field
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _couponController,
+                    decoration: InputDecoration(
+                      hintText: 'クーポンコードを入力',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 12,
+                      ),
+                      isDense: true,
+                    ),
+                    textCapitalization: TextCapitalization.characters,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                ElevatedButton(
+                  onPressed: couponState.isLoading
+                      ? null
+                      : () async {
+                          if (_couponController.text.trim().isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('クーポンコードを入力してください'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                            return;
+                          }
+
+                          final cartNotifier = ref.read(cartProvider.notifier);
+                          final success = await ref
+                              .read(appliedCouponProvider.notifier)
+                              .applyCoupon(
+                                code: _couponController.text.trim(),
+                                subtotal: cartNotifier.subtotal,
+                              );
+
+                          if (!mounted) return;
+
+                          if (success) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('クーポンが適用されました'),
+                                backgroundColor: AppColors.primaryGreen,
+                              ),
+                            );
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryGreen,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
+                  ),
+                  child: couponState.isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : const Text('適用'),
+                ),
+              ],
+            ),
+            if (couponState.error != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                couponState.error!,
+                style: const TextStyle(
+                  color: Colors.red,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPriceRow(String label, double amount, {bool isTotal = false, bool isDiscount = false}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -456,7 +623,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           style: TextStyle(
             fontSize: isTotal ? 16 : 14,
             fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-            color: isTotal ? AppColors.textPrimary : AppColors.textSecondary,
+            color: isDiscount ? AppColors.primaryGreen : (isTotal ? AppColors.textPrimary : AppColors.textSecondary),
           ),
         ),
         Text(
@@ -464,7 +631,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           style: TextStyle(
             fontSize: isTotal ? 18 : 14,
             fontWeight: isTotal ? FontWeight.bold : FontWeight.w600,
-            color: isTotal ? AppColors.primaryGreen : AppColors.textPrimary,
+            color: isDiscount ? AppColors.primaryGreen : (isTotal ? AppColors.primaryGreen : AppColors.textPrimary),
           ),
         ),
       ],

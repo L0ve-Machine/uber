@@ -8,6 +8,9 @@ const CustomerAddress = require('./CustomerAddress');
 const Order = require('./Order');
 const OrderItem = require('./OrderItem');
 const Favorite = require('./Favorite');
+const Review = require('./Review');
+const Coupon = require('./Coupon');
+const CouponUsage = require('./CouponUsage');
 
 // Customer - CustomerAddress (One-to-Many)
 Customer.hasMany(CustomerAddress, {
@@ -91,6 +94,66 @@ Favorite.belongsTo(Restaurant, {
   as: 'restaurant',
 });
 
+// Review - Customer (Many-to-One)
+Review.belongsTo(Customer, {
+  foreignKey: 'customer_id',
+  as: 'customer',
+});
+
+// Review - Restaurant (Many-to-One)
+Review.belongsTo(Restaurant, {
+  foreignKey: 'restaurant_id',
+  as: 'restaurant',
+});
+
+// Review - Order (One-to-One)
+Review.belongsTo(Order, {
+  foreignKey: 'order_id',
+  as: 'order',
+});
+
+// Order - Review (One-to-One)
+Order.hasOne(Review, {
+  foreignKey: 'order_id',
+  as: 'review',
+});
+
+// Restaurant - Reviews (One-to-Many)
+Restaurant.hasMany(Review, {
+  foreignKey: 'restaurant_id',
+  as: 'reviews',
+});
+
+// Coupon - CouponUsage (One-to-Many)
+Coupon.hasMany(CouponUsage, {
+  foreignKey: 'coupon_id',
+  as: 'usages',
+});
+CouponUsage.belongsTo(Coupon, {
+  foreignKey: 'coupon_id',
+  as: 'coupon',
+});
+
+// Customer - CouponUsage (One-to-Many)
+Customer.hasMany(CouponUsage, {
+  foreignKey: 'customer_id',
+  as: 'coupon_usages',
+});
+CouponUsage.belongsTo(Customer, {
+  foreignKey: 'customer_id',
+  as: 'customer',
+});
+
+// Order - CouponUsage (One-to-One)
+Order.hasOne(CouponUsage, {
+  foreignKey: 'order_id',
+  as: 'coupon_usage',
+});
+CouponUsage.belongsTo(Order, {
+  foreignKey: 'order_id',
+  as: 'order',
+});
+
 module.exports = {
   Customer,
   Restaurant,
@@ -101,4 +164,7 @@ module.exports = {
   Order,
   OrderItem,
   Favorite,
+  Review,
+  Coupon,
+  CouponUsage,
 };

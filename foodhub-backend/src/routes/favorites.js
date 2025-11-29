@@ -11,6 +11,18 @@ const addFavoriteValidation = [
 ];
 
 /**
+ * @route   GET /api/favorites
+ * @desc    Get customer's favorites
+ * @access  Private (Customer only)
+ */
+router.get(
+  '/',
+  authMiddleware,
+  isCustomer,
+  favoriteController.getFavorites
+);
+
+/**
  * @route   POST /api/favorites
  * @desc    Add restaurant to favorites
  * @access  Private (Customer only)

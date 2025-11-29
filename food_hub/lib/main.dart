@@ -16,6 +16,12 @@ import 'features/customer/screens/order_confirmation_screen.dart';
 import 'features/customer/screens/order_tracking_screen.dart';
 import 'features/customer/screens/address_selection_screen.dart';
 import 'features/customer/screens/add_address_screen.dart';
+import 'features/customer/screens/favorites_screen.dart';
+import 'features/customer/screens/profile_screen.dart';
+import 'features/customer/screens/edit_profile_screen.dart';
+import 'features/customer/screens/change_password_screen.dart';
+import 'features/customer/screens/my_reviews_screen.dart';
+import 'features/customer/screens/write_review_screen.dart';
 import 'features/restaurant/screens/restaurant_dashboard_screen.dart';
 import 'features/restaurant/screens/restaurant_menu_add_screen.dart';
 import 'features/driver/screens/driver_dashboard_screen.dart';
@@ -60,7 +66,7 @@ class MyApp extends ConsumerWidget {
       title: 'FoodHub',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: const SplashScreen(),
+      initialRoute: AppRoutes.splash,
       routes: {
         AppRoutes.splash: (context) => const SplashScreen(),
         AppRoutes.login: (context) => const LoginScreen(),
@@ -131,6 +137,46 @@ onGenerateRoute: (settings) {
         if (settings.name == '/customer/addresses/add') {
           return MaterialPageRoute(
             builder: (context) => const AddAddressScreen(),
+          );
+        }
+        // Handle favorites route
+        if (settings.name == '/customer/favorites') {
+          return MaterialPageRoute(
+            builder: (context) => const FavoritesScreen(),
+          );
+        }
+        // Handle profile route
+        if (settings.name == '/customer/profile') {
+          return MaterialPageRoute(
+            builder: (context) => const ProfileScreen(),
+          );
+        }
+        // Handle edit profile route
+        if (settings.name == '/customer/profile/edit') {
+          return MaterialPageRoute(
+            builder: (context) => const EditProfileScreen(),
+          );
+        }
+        // Handle change password route
+        if (settings.name == '/customer/password/change') {
+          return MaterialPageRoute(
+            builder: (context) => const ChangePasswordScreen(),
+          );
+        }
+        // Handle my reviews route
+        if (settings.name == '/customer/my-reviews') {
+          return MaterialPageRoute(
+            builder: (context) => const MyReviewsScreen(),
+          );
+        }
+        // Handle write review route
+        if (settings.name == '/customer/write-review') {
+          final args = settings.arguments as Map<String, dynamic>;
+          return MaterialPageRoute(
+            builder: (context) => WriteReviewScreen(
+              orderId: args['orderId'] as int,
+              restaurantName: args['restaurantName'] as String,
+            ),
           );
         }
         return null;
