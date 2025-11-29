@@ -14,15 +14,7 @@ class FavoritesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final favoritesAsync = ref.watch(favoriteListProvider);
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('お気に入り'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-      ),
-      body: favoritesAsync.when(
+    return favoritesAsync.when(
         data: (favorites) {
           if (favorites.isEmpty) {
             return const EmptyState(
@@ -128,7 +120,6 @@ class FavoritesScreen extends ConsumerWidget {
             ref.invalidate(favoriteListProvider);
           },
         ),
-      ),
     );
   }
 }

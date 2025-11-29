@@ -6,6 +6,7 @@ import 'core/routes/app_routes.dart';
 import 'core/storage/storage_service.dart';
 import 'features/auth/screens/login_screen.dart';
 import 'features/auth/screens/register_screen.dart';
+import 'features/customer/screens/main_navigation_screen.dart';
 import 'features/customer/screens/home_screen.dart';
 import 'features/customer/screens/restaurant_detail_screen.dart';
 import 'features/customer/screens/cart_screen.dart';
@@ -72,7 +73,7 @@ class MyApp extends ConsumerWidget {
         AppRoutes.login: (context) => const LoginScreen(),
         AppRoutes.register: (context) => const RegisterScreen(),
         // Customer routes
-        AppRoutes.customerHome: (context) => const HomeScreen(),
+        AppRoutes.customerHome: (context) => const MainNavigationScreen(),
         // Restaurant routes
         '/restaurant/dashboard': (context) => const RestaurantDashboardScreen(),
         '/restaurant/menu/add': (context) => const RestaurantMenuAddScreen(),

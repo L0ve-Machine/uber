@@ -68,7 +68,13 @@
       "Bash(git -C \"C:\\Users\\genki\\Projects\\app\\uber\" commit -m \"$(cat <<''EOF''\nfeat: UI redesign to modern black and white theme\n\n- Change all AppBars from green to white background with black text\n- Replace all green accent colors with black throughout the app\n- Update CustomButton default color from green to black\n- Update LoadingIndicator to use black color\n- Change category chips, icons, and prices to black\n- Add user type selector (Customer/Restaurant/Driver) to login\n- Update login screen icon to black square with white \"U\"\n- Reduce border radius (12px -> 4-8px) for modern look\n- Update 30+ files across all screens and widgets\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
       "Bash(powershell -Command \"Get-Command mysql -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source\")",
       "Bash(git -C \"C:\\Users\\genki\\Projects\\app\\uber\" diff --stat)",
-      "Bash(git -C \"C:\\Users\\genki\\Projects\\app\\uber\" log --oneline -5)"
+      "Bash(git -C \"C:\\Users\\genki\\Projects\\app\\uber\" log --oneline -5)",
+      "Bash(git -C \"C:\\Users\\genki\\Projects\\app\\uber\" fetch origin)",
+      "Bash(git -C \"C:\\Users\\genki\\Projects\\app\\uber\" log --oneline origin/master -3)",
+      "Bash(git -C \"C:\\Users\\genki\\Projects\\app\\uber\" pull origin master)",
+      "Bash(git -C \"C:\\Users\\genki\\Projects\\app\\uber\" status --short)",
+      "Bash(git -C \"C:\\Users\\genki\\Projects\\app\\uber\" add APPBAR_DESIGN_OPTIONS.md)",
+      "Bash(git -C \"C:\\Users\\genki\\Projects\\app\\uber\" commit -m \"$(cat <<''EOF''\ndocs: Add AppBar design options documentation\n\n5つのAppBarデザインオプションを設計:\n- オプション1: カートのみ（全タブ）\n- オプション2: 完全削除（タイトルのみ）\n- オプション3: 現状維持+ボトムナビ\n- オプション4: タブ別最適化\n- オプション5: ハイブリッド（推奨）\n\n次の実装でオプション5を採用予定\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
     ],
     "deny": [],
     "ask": []

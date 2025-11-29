@@ -195,8 +195,8 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
                     OrderTrackingMap(
                       driverLatitude: _realtimeDriverLat,
                       driverLongitude: _realtimeDriverLng,
-                      restaurantLatitude: order.restaurant!.latitude,
-                      restaurantLongitude: order.restaurant!.longitude,
+                      restaurantLatitude: order.restaurant!.latitude!,
+                      restaurantLongitude: order.restaurant!.longitude!,
                       deliveryLatitude: order.deliveryAddress!.latitude!,
                       deliveryLongitude: order.deliveryAddress!.longitude!,
                       showDriverLocation: isActive &&

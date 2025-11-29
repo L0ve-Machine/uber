@@ -37,6 +37,22 @@ class OrderDetailScreen extends ConsumerWidget {
               // Status Card
               _buildStatusCard(context, order),
 
+              // Track Order Button (for active deliveries)
+              if (['picked_up', 'delivering'].contains(order.status))
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: CustomButton(
+                    text: '配達を追跡',
+                    icon: Icons.location_on,
+                    onPressed: () {
+                      Navigator.of(context).pushNamed(
+                        '/customer/order-tracking/${order.id}',
+                      );
+                    },
+                    backgroundColor: Colors.black,
+                  ),
+                ),
+
               // Order Info Card
               _buildOrderInfoCard(context, order),
 

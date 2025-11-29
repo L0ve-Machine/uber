@@ -132,6 +132,8 @@ RestaurantBasicModel _$RestaurantBasicModelFromJson(
       logoUrl: json['logo_url'] as String?,
       phone: json['phone'] as String?,
       address: json['address'] as String?,
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
     );
 
 Map<String, dynamic> _$RestaurantBasicModelToJson(
@@ -142,4 +144,6 @@ Map<String, dynamic> _$RestaurantBasicModelToJson(
       'logo_url': instance.logoUrl,
       'phone': instance.phone,
       'address': instance.address,
+      'latitude': instance.latitude,
+      'longitude': instance.longitude,
     };

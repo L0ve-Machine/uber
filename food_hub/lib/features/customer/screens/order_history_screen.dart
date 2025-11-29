@@ -23,14 +23,7 @@ class _OrderHistoryScreenState extends ConsumerState<OrderHistoryScreen> {
   Widget build(BuildContext context) {
     final ordersAsync = ref.watch(orderHistoryProvider(status: _selectedStatus));
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('注文履歴'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-      ),
-      body: Column(
+    return Column(
         children: [
           // Status filter
           _buildStatusFilter(),
@@ -90,7 +83,6 @@ class _OrderHistoryScreenState extends ConsumerState<OrderHistoryScreen> {
             ),
           ),
         ],
-      ),
     );
   }
 
@@ -232,20 +224,51 @@ class _OrderCard extends StatelessWidget {
               ],
               const SizedBox(height: 12),
 
-              // Action button
-              if (order.status == 'pending')
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () {
-                      _showCancelDialog(context, order.id);
-                    },
-                    child: const Text(
-                      'キャンセル',
-                      style: TextStyle(color: Colors.red),
+              // Action buttons
+              Row(
+                children: [
+                  // Track button for active deliveries
+                  if (['picked_up', 'delivering'].contains(order.status))
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        icon: const Icon(Icons.location_on, size: 18),
+                        label: const Text('追跡'),
+                        onPressed: () {
+                          Navigator.of(context).pushNamed(
+                            '/customer/order-tracking/${order.id}',
+                          );
+                        },
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.black,
+                          side: const BorderSide(color: Colors.black),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
+
+                  // Spacer between buttons
+                  if (['picked_up', 'delivering'].contains(order.status) && order.status == 'pending')
+                    const SizedBox(width: 8),
+
+                  // Cancel button for pending orders
+                  if (order.status == 'pending')
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () {
+                          _showCancelDialog(context, order.id);
+                        },
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.red,
+                          side: const BorderSide(color: Colors.red),
+                        ),
+                        child: const Text('キャンセル'),
+                      ),
+                    ),
+
+                  // Empty spacer if no action buttons
+                  if (!['picked_up', 'delivering', 'pending'].contains(order.status))
+                    const SizedBox.shrink(),
+                ],
+              ),
             ],
           ),
         ),

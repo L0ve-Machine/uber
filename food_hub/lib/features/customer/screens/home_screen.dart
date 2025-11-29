@@ -47,63 +47,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final restaurantsAsync = ref.watch(restaurantListProvider());
-    final userAsync = ref.watch(authProvider);
-    final cartItemCount = ref.watch(cartItemCountProvider);
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('FoodHub'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-        actions: [
-          // Cart icon with badge
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.shopping_cart),
-                onPressed: () {
-                  Navigator.of(context).pushNamed('/customer/cart');
-                },
-              ),
-              if (cartItemCount > 0)
-                Positioned(
-                  right: 8,
-                  top: 8,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
-                    ),
-                    constraints: const BoxConstraints(
-                      minWidth: 18,
-                      minHeight: 18,
-                    ),
-                    child: Text(
-                      '$cartItemCount',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          IconButton(
-            icon: const Icon(Icons.person),
-            onPressed: () {
-              _showProfileDialog();
-            },
-          ),
-        ],
-      ),
-      body: Column(
+    return Column(
         children: [
           // Search bar
           Container(
@@ -166,7 +111,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           ),
         ],
-      ),
     );
   }
 
@@ -219,106 +163,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             );
           }),
-        ],
-      ),
-    );
-  }
-
-  void _showProfileDialog() {
-    final user = ref.read(authProvider).value;
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('メニュー'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (user != null) ...[
-              ListTile(
-                leading: const Icon(Icons.person),
-                title: Text(user.fullName),
-                subtitle: Text(user.email),
-                contentPadding: EdgeInsets.zero,
-                onTap: () {
-                  Navigator.of(dialogContext).pop();
-                  Navigator.of(context).pushNamed('/customer/profile');
-                },
-              ),
-              const Divider(),
-            ],
-            ListTile(
-              leading: const Icon(Icons.person_outline),
-              title: const Text('プロフィール'),
-              contentPadding: EdgeInsets.zero,
-              onTap: () {
-                Navigator.of(dialogContext).pop();
-                Navigator.of(context).pushNamed('/customer/profile');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.receipt_long),
-              title: const Text('注文履歴'),
-              contentPadding: EdgeInsets.zero,
-              onTap: () {
-                Navigator.of(dialogContext).pop();
-                Navigator.of(context).pushNamed('/customer/order-history');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.favorite),
-              title: const Text('お気に入り'),
-              contentPadding: EdgeInsets.zero,
-              onTap: () {
-                Navigator.of(dialogContext).pop();
-                Navigator.of(context).pushNamed('/customer/favorites');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.rate_review),
-              title: const Text('マイレビュー'),
-              contentPadding: EdgeInsets.zero,
-              onTap: () {
-                Navigator.of(dialogContext).pop();
-                Navigator.of(context).pushNamed('/customer/my-reviews');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.location_on),
-              title: const Text('住所管理'),
-              contentPadding: EdgeInsets.zero,
-              onTap: () {
-                Navigator.of(dialogContext).pop();
-                Navigator.of(context).pushNamed('/customer/addresses/select');
-              },
-            ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text(
-                'ログアウト',
-                style: TextStyle(color: Colors.red),
-              ),
-              contentPadding: EdgeInsets.zero,
-              onTap: () async {
-                Navigator.of(dialogContext).pop();
-                await ref.read(authProvider.notifier).logout();
-                if (mounted) {
-                  Navigator.of(context).pushNamedAndRemoveUntil(
-                    '/login',
-                    (route) => false,
-                  );
-                }
-              },
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('閉じる'),
-          ),
         ],
       ),
     );
