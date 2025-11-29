@@ -44,12 +44,18 @@ class StorageService {
   Future<bool> saveUser(UserModel user) async {
     final prefs = await _preferences;
     final userJson = jsonEncode(user.toJson());
-    final results = await Future.wait([
+    final futures = <Future<bool>>[
       prefs.setInt(AppConstants.userIdKey, user.id),
-      prefs.setString(AppConstants.userTypeKey, user.userType),
       prefs.setString('user_data', userJson),
       prefs.setBool(AppConstants.isLoggedInKey, true),
-    ]);
+    ];
+
+    // Only save userType if it's not null
+    if (user.userType != null) {
+      futures.add(prefs.setString(AppConstants.userTypeKey, user.userType!));
+    }
+
+    final results = await Future.wait(futures);
     return results.every((result) => result);
   }
 

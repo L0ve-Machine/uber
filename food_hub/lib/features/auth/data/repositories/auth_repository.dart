@@ -1,3 +1,4 @@
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/network/api_result.dart';
 import '../../../../core/storage/storage_service.dart';
 import '../../../../shared/models/auth_models.dart';
@@ -32,11 +33,26 @@ class AuthRepository {
 
     return result.when(
       success: (loginResponse) async {
+        // Create user with userType from loginResponse
+        final userWithType = UserModel(
+          id: loginResponse.user.id,
+          email: loginResponse.user.email,
+          fullName: loginResponse.user.fullName,
+          phone: loginResponse.user.phone,
+          userType: loginResponse.userType,
+          profileImageUrl: loginResponse.user.profileImageUrl,
+          isActive: loginResponse.user.isActive,
+          createdAt: loginResponse.user.createdAt,
+        );
+
         // Save token and user data
         await _storageService.saveAuthToken(loginResponse.token);
-        await _storageService.saveUser(loginResponse.user);
+        await _storageService.saveUser(userWithType);
+        // Save userType separately for navigation
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user_type', loginResponse.userType);
 
-        return Success(loginResponse.user);
+        return Success(userWithType);
       },
       failure: (error) => Failure(error),
     );
@@ -60,11 +76,26 @@ class AuthRepository {
 
     return result.when(
       success: (registerResponse) async {
+        // Create user with userType from registerResponse
+        final userWithType = UserModel(
+          id: registerResponse.user.id,
+          email: registerResponse.user.email,
+          fullName: registerResponse.user.fullName,
+          phone: registerResponse.user.phone,
+          userType: registerResponse.userType,
+          profileImageUrl: registerResponse.user.profileImageUrl,
+          isActive: registerResponse.user.isActive,
+          createdAt: registerResponse.user.createdAt,
+        );
+
         // Save token and user data
         await _storageService.saveAuthToken(registerResponse.token);
-        await _storageService.saveUser(registerResponse.user);
+        await _storageService.saveUser(userWithType);
+        // Save userType separately for navigation
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user_type', registerResponse.userType);
 
-        return Success(registerResponse.user);
+        return Success(userWithType);
       },
       failure: (error) => Failure(error),
     );

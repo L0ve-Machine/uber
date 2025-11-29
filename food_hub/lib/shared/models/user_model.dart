@@ -10,7 +10,7 @@ class UserModel {
   final String fullName;
   final String phone;
   @JsonKey(name: 'user_type')
-  final String userType; // 'customer', 'restaurant', 'driver'
+  final String? userType; // 'customer', 'restaurant', 'driver'
   @JsonKey(name: 'profile_image_url')
   final String? profileImageUrl;
   @JsonKey(name: 'is_active')
@@ -23,7 +23,7 @@ class UserModel {
     required this.email,
     required this.fullName,
     required this.phone,
-    required this.userType,
+    this.userType,
     this.profileImageUrl,
     required this.isActive,
     required this.createdAt,
