@@ -214,7 +214,7 @@ class DriverOrderCard extends StatelessWidget {
             icon: const Icon(Icons.check),
             label: const Text('配達を受ける'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryGreen,
+              backgroundColor: Colors.black,
               foregroundColor: Colors.white,
             ),
           ),

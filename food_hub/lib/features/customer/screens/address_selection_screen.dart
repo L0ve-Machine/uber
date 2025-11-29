@@ -22,8 +22,8 @@ class AddressSelectionScreen extends ConsumerWidget {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('配達先を選択'),
-        backgroundColor: AppColors.primaryGreen,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
       ),
       body: addressListAsync.when(
         loading: () => const LoadingIndicator(),
@@ -209,7 +209,7 @@ class _AddressCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: isSelected
-            ? BorderSide(color: AppColors.primaryGreen, width: 2)
+            ? const BorderSide(color: Colors.black, width: 2)
             : BorderSide.none,
       ),
       child: InkWell(
@@ -227,10 +227,10 @@ class _AddressCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: isSelected ? AppColors.primaryGreen : Colors.grey[400]!,
+                    color: isSelected ? Colors.black : Colors.grey[400]!,
                     width: 2,
                   ),
-                  color: isSelected ? AppColors.primaryGreen : Colors.transparent,
+                  color: isSelected ? Colors.black : Colors.transparent,
                 ),
                 child: isSelected
                     ? const Icon(
@@ -252,7 +252,7 @@ class _AddressCard extends StatelessWidget {
                         Icon(
                           _getLabelIcon(address.label),
                           size: 18,
-                          color: AppColors.primaryGreen,
+                          color: Colors.black,
                         ),
                         const SizedBox(width: 8),
                         Text(
@@ -270,14 +270,14 @@ class _AddressCard extends StatelessWidget {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.primaryGreen.withValues(alpha: 0.1),
+                              color: Colors.black.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: Text(
+                            child: const Text(
                               'デフォルト',
                               style: TextStyle(
                                 fontSize: 11,
-                                color: AppColors.primaryGreen,
+                                color: Colors.black,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),

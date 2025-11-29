@@ -222,7 +222,7 @@ class RestaurantOrderCard extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: onAccept,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryGreen,
+                  backgroundColor: Colors.black,
                   foregroundColor: Colors.white,
                 ),
                 child: const Text('受付'),

@@ -96,7 +96,7 @@ class _RestaurantMenuListScreenState extends ConsumerState<RestaurantMenuListScr
                 ref.read(restaurantMenuProvider(category: null).notifier)
                     .filterByCategory(null);
               },
-              selectedColor: AppColors.primaryGreen,
+              selectedColor: Colors.black,
               labelStyle: TextStyle(
                 color: _selectedCategory == null ? Colors.white : AppColors.textPrimary,
               ),
@@ -116,7 +116,7 @@ class _RestaurantMenuListScreenState extends ConsumerState<RestaurantMenuListScr
                   ref.read(restaurantMenuProvider(category: _selectedCategory).notifier)
                       .filterByCategory(_selectedCategory);
                 },
-                selectedColor: AppColors.primaryGreen,
+                selectedColor: Colors.black,
                 labelStyle: TextStyle(
                   color: isSelected ? Colors.white : AppColors.textPrimary,
                 ),

@@ -107,6 +107,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   // Logo & Title
                   Column(
                     children: [
+                      Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          color: Colors.black,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'U',
+                            style: TextStyle(
+                              fontSize: 36,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
                       const Text(
                         'FoodHub',
                         style: TextStyle(
@@ -292,7 +311,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 curve: Curves.easeInOut,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.primaryGreen : null,
+                  color: isSelected ? Colors.black : null,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
@@ -316,11 +335,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return Container(
       height: 56,
       decoration: BoxDecoration(
-        color: AppColors.primaryGreen,
+        color: Colors.black,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryGreen.withOpacity(0.4),
+            color: Colors.black.withOpacity(0.4),
             blurRadius: 16,
             offset: const Offset(0, 8),
           ),
@@ -379,7 +398,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryGreen,
+                  color: Colors.black,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
@@ -415,7 +434,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 });
               },
               style: OutlinedButton.styleFrom(
-                side: BorderSide(color: AppColors.primaryGreen, width: 1.5),
+                side: BorderSide(color: Colors.black, width: 1.5),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -423,7 +442,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               child: const Text(
                 '自動入力',
                 style: TextStyle(
-                  color: AppColors.primaryGreen,
+                  color: Colors.black,
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
                 ),

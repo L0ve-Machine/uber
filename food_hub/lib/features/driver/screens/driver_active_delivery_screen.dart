@@ -23,8 +23,8 @@ class DriverActiveDeliveryScreen extends ConsumerWidget {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('配達詳細'),
-        backgroundColor: AppColors.primaryGreen,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
       ),
       body: activeDeliveriesAsync.when(
         data: (orders) {
@@ -222,15 +222,15 @@ class DriverActiveDeliveryScreen extends ConsumerWidget {
                                   width: 24,
                                   height: 24,
                                   decoration: BoxDecoration(
-                                    color: AppColors.primaryGreen.withValues(alpha: 0.1),
+                                    color: Colors.black.withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Center(
                                     child: Text(
                                       '${item.quantity}',
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        color: AppColors.primaryGreen,
+                                        color: Colors.black,
                                       ),
                                     ),
                                   ),

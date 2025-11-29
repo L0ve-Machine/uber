@@ -26,8 +26,8 @@ class OrderDetailScreen extends ConsumerWidget {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('注文詳細'),
-        backgroundColor: AppColors.primaryGreen,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
       ),
       body: orderAsync.when(
         data: (order) => SingleChildScrollView(
@@ -350,7 +350,7 @@ class OrderDetailScreen extends ConsumerWidget {
           style: TextStyle(
             fontSize: isTotal ? 20 : 14,
             fontWeight: isTotal ? FontWeight.bold : FontWeight.w600,
-            color: color ?? (isTotal ? AppColors.primaryGreen : AppColors.textPrimary),
+            color: color ?? Colors.black,
           ),
         ),
       ],
@@ -370,7 +370,7 @@ class OrderDetailScreen extends ConsumerWidget {
       case 'picked_up':
         return {'label': 'ピックアップ済み', 'color': Colors.indigo};
       case 'delivering':
-        return {'label': '配達中', 'color': AppColors.primaryGreen};
+        return {'label': '配達中', 'color': Colors.blue};
       case 'delivered':
         return {'label': '配達完了', 'color': AppColors.success};
       case 'cancelled':
@@ -396,7 +396,7 @@ class OrderDetailScreen extends ConsumerWidget {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.rate_review, color: AppColors.primaryGreen),
+                      const Icon(Icons.rate_review, color: Colors.black),
                       const SizedBox(width: 8),
                       const Text(
                         'レビュー投稿済み',
@@ -457,7 +457,7 @@ class OrderDetailScreen extends ConsumerWidget {
                   ref.invalidate(canReviewProvider(order.id));
                 }
               },
-              backgroundColor: AppColors.primaryGreen,
+              backgroundColor: Colors.black,
               icon: Icons.rate_review,
             ),
           );

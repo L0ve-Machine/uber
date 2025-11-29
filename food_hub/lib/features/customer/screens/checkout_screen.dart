@@ -119,8 +119,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('チェックアウト'),
-        backgroundColor: AppColors.primaryGreen,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
       ),
       body: cartItems.isEmpty
           ? const Center(child: Text('カートが空です'))
@@ -240,7 +240,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               if (address == null) {
                 return Row(
                   children: [
-                    Icon(Icons.add_location, color: AppColors.primaryGreen),
+                    Icon(Icons.add_location, color: Colors.black),
                     const SizedBox(width: 12),
                     const Expanded(
                       child: Text('配達先を追加'),
@@ -255,7 +255,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 children: [
                   Icon(
                     _getLabelIcon(address.label),
-                    color: AppColors.primaryGreen,
+                    color: Colors.black,
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -282,7 +282,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   Text(
                     '変更',
                     style: TextStyle(
-                      color: AppColors.primaryGreen,
+                      color: Colors.black,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -404,7 +404,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 Text('代金引換'),
               ],
             ),
-            activeColor: AppColors.primaryGreen,
+            activeColor: Colors.black,
           ),
           const Divider(height: 1),
           RadioListTile<String>(
@@ -437,7 +437,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 ),
               ],
             ),
-            activeColor: AppColors.primaryGreen,
+            activeColor: Colors.black,
           ),
         ],
       ),
@@ -481,7 +481,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              Icon(Icons.local_offer, color: AppColors.primaryGreen),
+              Icon(Icons.local_offer, color: Colors.black),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -496,7 +496,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     Text(
                       '-¥${couponState.discount}',
                       style: TextStyle(
-                        color: AppColors.primaryGreen,
+                        color: Colors.black,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -571,13 +571,13 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text('クーポンが適用されました'),
-                                backgroundColor: AppColors.primaryGreen,
+                                backgroundColor: Colors.black,
                               ),
                             );
                           }
                         },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryGreen,
+                    backgroundColor: Colors.black,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 20,
@@ -623,7 +623,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           style: TextStyle(
             fontSize: isTotal ? 16 : 14,
             fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-            color: isDiscount ? AppColors.primaryGreen : (isTotal ? AppColors.textPrimary : AppColors.textSecondary),
+            color: isDiscount ? Colors.black : (isTotal ? AppColors.textPrimary : AppColors.textSecondary),
           ),
         ),
         Text(
@@ -631,7 +631,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           style: TextStyle(
             fontSize: isTotal ? 18 : 14,
             fontWeight: isTotal ? FontWeight.bold : FontWeight.w600,
-            color: isDiscount ? AppColors.primaryGreen : (isTotal ? AppColors.primaryGreen : AppColors.textPrimary),
+            color: isDiscount ? Colors.black : (isTotal ? Colors.black : AppColors.textPrimary),
           ),
         ),
       ],

@@ -45,8 +45,8 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('注文追跡'),
-        backgroundColor: AppColors.primaryGreen,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -197,9 +197,9 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.location_on,
-                            color: AppColors.primaryGreen,
+                            color: Colors.black,
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -433,8 +433,7 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
           style: TextStyle(
             fontSize: isTotal ? 16 : 13,
             fontWeight: isTotal ? FontWeight.bold : FontWeight.w500,
-            color: valueColor ??
-                (isTotal ? AppColors.primaryGreen : AppColors.textPrimary),
+            color: valueColor ?? Colors.black,
           ),
         ),
       ],

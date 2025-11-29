@@ -37,7 +37,7 @@ class AppTheme {
       // Button Themes
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primaryGreen,
+          backgroundColor: Colors.black,
           foregroundColor: AppColors.white,
           minimumSize: const Size(double.infinity, 50),
           shape: RoundedRectangleBorder(
@@ -70,7 +70,7 @@ class AppTheme {
 
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: AppColors.primaryGreen,
+          foregroundColor: AppColors.gray900,
           textStyle: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
@@ -109,18 +109,17 @@ class AppTheme {
       // Card Theme
       cardTheme: CardThemeData(
         color: AppColors.white,
-        elevation: 0,
-        shadowColor: Colors.black.withOpacity(0.03),
+        elevation: 1,
+        shadowColor: Colors.black.withOpacity(0.08),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: AppColors.gray200),
+          borderRadius: BorderRadius.circular(8),
         ),
       ),
 
       // Bottom Navigation Bar
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: AppColors.white,
-        selectedItemColor: AppColors.primaryGreen,
+        selectedItemColor: Colors.black,
         unselectedItemColor: AppColors.gray600,
         type: BottomNavigationBarType.fixed,
         elevation: 8,

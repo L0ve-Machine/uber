@@ -18,8 +18,8 @@ class CartScreen extends ConsumerWidget {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('カート'),
-        backgroundColor: AppColors.primaryGreen,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
         actions: [
           if (cartItems.isNotEmpty)
             TextButton(
@@ -28,7 +28,7 @@ class CartScreen extends ConsumerWidget {
               },
               child: const Text(
                 'すべて削除',
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(color: Colors.black),
               ),
             ),
         ],
@@ -157,7 +157,7 @@ class CartScreen extends ConsumerWidget {
           style: TextStyle(
             fontSize: isTotal ? 20 : 16,
             fontWeight: isTotal ? FontWeight.bold : FontWeight.w600,
-            color: isTotal ? AppColors.primaryGreen : AppColors.textPrimary,
+            color: isTotal ? Colors.black : AppColors.textPrimary,
           ),
         ),
       ],
@@ -293,7 +293,7 @@ class _CartItemTile extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.primaryGreen,
+                          color: Colors.black,
                         ),
                       ),
                       const Spacer(),

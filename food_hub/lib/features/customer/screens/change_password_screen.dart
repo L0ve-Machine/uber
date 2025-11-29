@@ -77,8 +77,8 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('パスワード変更'),
-        backgroundColor: AppColors.primaryGreen,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
         elevation: 0,
       ),
       body: SingleChildScrollView(

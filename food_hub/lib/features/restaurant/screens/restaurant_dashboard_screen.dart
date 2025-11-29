@@ -30,8 +30,8 @@ class _RestaurantDashboardScreenState
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(_currentIndex == 0 ? '注文管理' : 'メニュー管理'),
-        backgroundColor: AppColors.primaryGreen,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -66,7 +66,7 @@ class _RestaurantDashboardScreenState
             _currentIndex = index;
           });
         },
-        selectedItemColor: AppColors.primaryGreen,
+        selectedItemColor: Colors.black,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.receipt_long),
@@ -83,7 +83,7 @@ class _RestaurantDashboardScreenState
               onPressed: () {
                 Navigator.of(context).pushNamed('/restaurant/menu/add');
               },
-              backgroundColor: AppColors.primaryGreen,
+              backgroundColor: Colors.black,
               icon: const Icon(Icons.add),
               label: const Text('メニュー追加'),
             )
@@ -273,9 +273,11 @@ class _RestaurantDashboardScreenState
                 ref.read(restaurantOrdersProvider(status: _selectedStatus).notifier)
                     .filterByStatus(_selectedStatus);
               },
-              selectedColor: AppColors.primaryGreen,
+              selectedColor: Colors.black,
+              backgroundColor: Colors.white,
+              side: BorderSide(color: isSelected ? Colors.black : AppColors.gray300),
               labelStyle: TextStyle(
-                color: isSelected ? Colors.white : AppColors.textPrimary,
+                color: isSelected ? Colors.white : Colors.black,
               ),
             ),
           );

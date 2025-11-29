@@ -17,8 +17,8 @@ class ProfileScreen extends ConsumerWidget {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('プロフィール'),
-        backgroundColor: AppColors.primaryGreen,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
         elevation: 0,
       ),
       body: userAsync.when(
@@ -32,15 +32,15 @@ class ProfileScreen extends ConsumerWidget {
               children: [
                 // Profile header
                 Container(
-                  color: AppColors.primaryGreen,
-                  padding: const EdgeInsets.only(bottom: 32),
+                  color: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 32),
                   child: Center(
                     child: Column(
                       children: [
                         // Avatar
                         CircleAvatar(
                           radius: 50,
-                          backgroundColor: Colors.white,
+                          backgroundColor: AppColors.gray200,
                           child: user.profileImageUrl != null
                               ? ClipOval(
                                   child: CachedNetworkImage(
@@ -54,10 +54,10 @@ class ProfileScreen extends ConsumerWidget {
                                         const Icon(Icons.person, size: 48),
                                   ),
                                 )
-                              : Icon(
+                              : const Icon(
                                   Icons.person,
                                   size: 48,
-                                  color: AppColors.primaryGreen,
+                                  color: Colors.black,
                                 ),
                         ),
                         const SizedBox(height: 16),
@@ -208,7 +208,7 @@ class ProfileScreen extends ConsumerWidget {
       child: ListTile(
         leading: Icon(
           icon,
-          color: iconColor ?? AppColors.primaryGreen,
+          color: iconColor ?? Colors.black,
         ),
         title: Text(
           title,

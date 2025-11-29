@@ -189,7 +189,7 @@ class _AddToCartSheetState extends ConsumerState<AddToCartSheet> {
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.primaryGreen,
+                                color: Colors.black,
                               ),
                             ),
                           ],
@@ -226,7 +226,7 @@ class _AddToCartSheetState extends ConsumerState<AddToCartSheet> {
                               onChanged: (value) {
                                 _toggleOption(option);
                               },
-                              activeColor: AppColors.primaryGreen,
+                              activeColor: Colors.black,
                               contentPadding: EdgeInsets.zero,
                               dense: true,
                             );

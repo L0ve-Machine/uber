@@ -90,8 +90,8 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('新しい住所を追加'),
-        backgroundColor: AppColors.primaryGreen,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -128,11 +128,11 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? AppColors.primaryGreen.withValues(alpha: 0.1)
+                                ? Colors.black.withOpacity(0.05)
                                 : Colors.white,
                             border: Border.all(
                               color: isSelected
-                                  ? AppColors.primaryGreen
+                                  ? Colors.black
                                   : Colors.grey[300]!,
                               width: isSelected ? 2 : 1,
                             ),
@@ -143,7 +143,7 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
                               Icon(
                                 option['icon'],
                                 color: isSelected
-                                    ? AppColors.primaryGreen
+                                    ? Colors.black
                                     : Colors.grey[600],
                               ),
                               const SizedBox(height: 4),
@@ -155,7 +155,7 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
                                       ? FontWeight.w600
                                       : FontWeight.normal,
                                   color: isSelected
-                                      ? AppColors.primaryGreen
+                                      ? Colors.black
                                       : Colors.grey[600],
                                 ),
                               ),
@@ -241,7 +241,7 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
                       color: Colors.grey[600],
                     ),
                   ),
-                  activeColor: AppColors.primaryGreen,
+                  activeColor: Colors.black,
                   controlAffinity: ListTileControlAffinity.leading,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),

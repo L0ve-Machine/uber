@@ -39,8 +39,8 @@ class _RestaurantMenuAddScreenState extends ConsumerState<RestaurantMenuAddScree
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('メニュー追加'),
-        backgroundColor: AppColors.primaryGreen,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

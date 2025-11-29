@@ -140,13 +140,13 @@ class ReviewListWidget extends ConsumerWidget {
             children: [
               CircleAvatar(
                 radius: 16,
-                backgroundColor: AppColors.primaryGreen.withOpacity(0.1),
+                backgroundColor: Colors.black.withOpacity(0.1),
                 child: Text(
                   review.customer?.fullName.isNotEmpty == true
                       ? review.customer!.fullName[0]
                       : '?',
                   style: const TextStyle(
-                    color: AppColors.primaryGreen,
+                    color: Colors.black,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

@@ -22,8 +22,8 @@ class RestaurantOrderDetailScreen extends ConsumerWidget {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('注文詳細'),
-        backgroundColor: AppColors.primaryGreen,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
       ),
       body: orderAsync.when(
         data: (order) => SingleChildScrollView(
@@ -129,15 +129,15 @@ class RestaurantOrderDetailScreen extends ConsumerWidget {
                                 width: 24,
                                 height: 24,
                                 decoration: BoxDecoration(
-                                  color: AppColors.primaryGreen.withValues(alpha: 0.1),
+                                  color: Colors.black.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Center(
                                   child: Text(
                                     '${item.quantity}',
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      color: AppColors.primaryGreen,
+                                      color: Colors.black,
                                     ),
                                   ),
                                 ),
@@ -350,7 +350,7 @@ class RestaurantOrderDetailScreen extends ConsumerWidget {
                 icon: const Icon(Icons.check),
                 label: const Text('受付'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryGreen,
+                  backgroundColor: Colors.black,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                 ),

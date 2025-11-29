@@ -225,13 +225,13 @@ class _TimelineItem extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: isCompleted
-                        ? AppColors.primaryGreen
+                        ? Colors.black
                         : isCurrent
-                            ? AppColors.primaryGreen.withValues(alpha: 0.2)
+                            ? Colors.black.withValues(alpha: 0.2)
                             : Colors.grey[200],
                     border: isCurrent && !isCompleted
                         ? Border.all(
-                            color: AppColors.primaryGreen,
+                            color: Colors.black,
                             width: 2,
                           )
                         : null,
@@ -242,7 +242,7 @@ class _TimelineItem extends StatelessWidget {
                     color: isCompleted
                         ? Colors.white
                         : isCurrent
-                            ? AppColors.primaryGreen
+                            ? Colors.black
                             : Colors.grey[400],
                   ),
                 ),
@@ -253,7 +253,7 @@ class _TimelineItem extends StatelessWidget {
                     child: Container(
                       width: 2,
                       margin: const EdgeInsets.symmetric(vertical: 4),
-                      color: isCompleted ? AppColors.primaryGreen : Colors.grey[300],
+                      color: isCompleted ? Colors.black : Colors.grey[300],
                     ),
                   ),
               ],
@@ -291,14 +291,14 @@ class _TimelineItem extends StatelessWidget {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.primaryGreen.withValues(alpha: 0.1),
+                            color: Colors.black.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
                             '現在',
                             style: TextStyle(
                               fontSize: 11,
-                              color: AppColors.primaryGreen,
+                              color: Colors.black,
                               fontWeight: FontWeight.w500,
                             ),
                           ),

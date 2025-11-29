@@ -58,7 +58,7 @@ class _WriteReviewScreenState extends ConsumerState<WriteReviewScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('レビューを投稿しました'),
-          backgroundColor: AppColors.primaryGreen,
+          backgroundColor: Colors.black,
         ),
       );
       Navigator.of(context).pop(true);
@@ -79,8 +79,8 @@ class _WriteReviewScreenState extends ConsumerState<WriteReviewScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('レビューを書く'),
-        backgroundColor: AppColors.primaryGreen,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -96,7 +96,7 @@ class _WriteReviewScreenState extends ConsumerState<WriteReviewScreen> {
                   children: [
                     const Icon(
                       Icons.restaurant,
-                      color: AppColors.primaryGreen,
+                      color: Colors.black,
                       size: 32,
                     ),
                     const SizedBox(width: 12),
@@ -204,10 +204,10 @@ class _WriteReviewScreenState extends ConsumerState<WriteReviewScreen> {
               child: ElevatedButton(
                 onPressed: _isSubmitting ? null : _submitReview,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryGreen,
+                  backgroundColor: Colors.black,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(4),
                   ),
                 ),
                 child: _isSubmitting

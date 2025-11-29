@@ -54,8 +54,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('FoodHub'),
-        backgroundColor: AppColors.primaryGreen,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
         elevation: 0,
         actions: [
           // Cart icon with badge
@@ -107,8 +107,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         children: [
           // Search bar
           Container(
-            color: AppColors.primaryGreen,
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            color: Colors.white,
+            padding: const EdgeInsets.all(16),
             child: CustomTextField(
               controller: _searchController,
               hintText: 'レストランを検索...',
@@ -189,9 +189,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               onSelected: (selected) {
                 _onCategorySelected(null);
               },
-              selectedColor: AppColors.primaryGreen,
+              selectedColor: Colors.black,
+              backgroundColor: Colors.white,
+              side: BorderSide(color: _selectedCategory == null ? Colors.black : AppColors.gray300),
               labelStyle: TextStyle(
-                color: _selectedCategory == null ? Colors.white : AppColors.textPrimary,
+                color: _selectedCategory == null ? Colors.white : Colors.black,
                 fontWeight: _selectedCategory == null ? FontWeight.w600 : FontWeight.normal,
               ),
             ),
@@ -207,9 +209,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 onSelected: (selected) {
                   _onCategorySelected(selected ? category : null);
                 },
-                selectedColor: AppColors.primaryGreen,
+                selectedColor: Colors.black,
+                backgroundColor: Colors.white,
+                side: BorderSide(color: isSelected ? Colors.black : AppColors.gray300),
                 labelStyle: TextStyle(
-                  color: isSelected ? Colors.white : AppColors.textPrimary,
+                  color: isSelected ? Colors.white : Colors.black,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                 ),
               ),

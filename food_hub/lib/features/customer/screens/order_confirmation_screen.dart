@@ -28,13 +28,13 @@ class OrderConfirmationScreen extends StatelessWidget {
                 width: 100,
                 height: 100,
                 decoration: BoxDecoration(
-                  color: AppColors.primaryGreen.withValues(alpha: 0.1),
+                  color: Colors.black.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.check_circle,
                   size: 60,
-                  color: AppColors.primaryGreen,
+                  color: Colors.black,
                 ),
               ),
 
@@ -126,7 +126,7 @@ class OrderConfirmationScreen extends StatelessWidget {
                       Icons.attach_money,
                       '合計金額',
                       '¥${order.total.toInt()}',
-                      valueColor: AppColors.primaryGreen,
+                      valueColor: Colors.black,
                     ),
                   ],
                 ),

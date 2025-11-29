@@ -82,8 +82,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('プロフィール編集'),
-        backgroundColor: AppColors.primaryGreen,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
         elevation: 0,
         actions: [
           TextButton(
@@ -91,7 +91,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             child: const Text(
               '保存',
               style: TextStyle(
-                color: Colors.white,
+                color: Colors.black,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -143,8 +143,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                           right: 0,
                           child: Container(
                             padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: AppColors.primaryGreen,
+                            decoration: const BoxDecoration(
+                              color: Colors.black,
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
@@ -167,10 +167,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                         ),
                       );
                     },
-                    child: Text(
+                    child: const Text(
                       '写真を変更',
                       style: TextStyle(
-                        color: AppColors.primaryGreen,
+                        color: Colors.black,
                       ),
                     ),
                   ),

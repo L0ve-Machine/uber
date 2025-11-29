@@ -27,8 +27,8 @@ class _OrderHistoryScreenState extends ConsumerState<OrderHistoryScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('注文履歴'),
-        backgroundColor: AppColors.primaryGreen,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
       ),
       body: Column(
         children: [
@@ -125,7 +125,7 @@ class _OrderHistoryScreenState extends ConsumerState<OrderHistoryScreen> {
                   _selectedStatus = selected ? entry.key : null;
                 });
               },
-              selectedColor: AppColors.primaryGreen,
+              selectedColor: Colors.black,
               labelStyle: TextStyle(
                 color: isSelected ? Colors.white : AppColors.textPrimary,
               ),
@@ -286,7 +286,7 @@ class _OrderCard extends StatelessWidget {
       case 'picked_up':
         return {'label': 'ピックアップ済み', 'color': Colors.indigo};
       case 'delivering':
-        return {'label': '配達中', 'color': AppColors.primaryGreen};
+        return {'label': '配達中', 'color': Colors.black};
       case 'delivered':
         return {'label': '配達完了', 'color': AppColors.success};
       case 'cancelled':

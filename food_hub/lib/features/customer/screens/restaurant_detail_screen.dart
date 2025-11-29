@@ -46,7 +46,8 @@ class _RestaurantDetailScreenState
               onPressed: () {
                 Navigator.of(context).pushNamed('/customer/cart');
               },
-              backgroundColor: AppColors.primaryGreen,
+              backgroundColor: Colors.black,
+              foregroundColor: Colors.white,
               icon: const Icon(Icons.shopping_cart),
               label: Text('カート ($cartItemCount)'),
             )
@@ -58,7 +59,8 @@ class _RestaurantDetailScreenState
             SliverAppBar(
               expandedHeight: 250,
               pinned: true,
-              backgroundColor: AppColors.primaryGreen,
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.black,
               actions: [
                 // Favorite button
                 _buildFavoriteButton(),
@@ -164,7 +166,7 @@ class _RestaurantDetailScreenState
                         // Delivery Fee
                         _buildStatItem(
                           icon: Icons.delivery_dining,
-                          iconColor: AppColors.primaryGreen,
+                          iconColor: Colors.black,
                           label: restaurant.deliveryFee == 0
                               ? '無料'
                               : '¥${restaurant.deliveryFee.toInt()}',
@@ -175,7 +177,7 @@ class _RestaurantDetailScreenState
                         // Delivery Time
                         _buildStatItem(
                           icon: Icons.access_time,
-                          iconColor: AppColors.primaryGreen,
+                          iconColor: Colors.black,
                           label: '${restaurant.deliveryTimeMinutes}分',
                           sublabel: '配達時間',
                         ),
@@ -188,21 +190,21 @@ class _RestaurantDetailScreenState
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: AppColors.lightGreen,
+                          color: AppColors.gray100,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.info_outline,
                               size: 20,
-                              color: AppColors.darkGreen,
+                              color: Colors.black,
                             ),
                             const SizedBox(width: 8),
                             Text(
                               '最低注文金額: ¥${restaurant.minOrderAmount.toInt()}',
-                              style: TextStyle(
-                                color: AppColors.darkGreen,
+                              style: const TextStyle(
+                                color: Colors.black,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -237,11 +239,13 @@ class _RestaurantDetailScreenState
                               _selectedCategory = null;
                             });
                           },
-                          selectedColor: AppColors.primaryGreen,
+                          selectedColor: Colors.black,
+                          backgroundColor: Colors.white,
+                          side: BorderSide(color: _selectedCategory == null ? Colors.black : AppColors.gray300),
                           labelStyle: TextStyle(
                             color: _selectedCategory == null
                                 ? Colors.white
-                                : AppColors.textPrimary,
+                                : Colors.black,
                           ),
                         ),
                       ),
@@ -258,9 +262,11 @@ class _RestaurantDetailScreenState
                                 _selectedCategory = selected ? category : null;
                               });
                             },
-                            selectedColor: AppColors.primaryGreen,
+                            selectedColor: Colors.black,
+                            backgroundColor: Colors.white,
+                            side: BorderSide(color: isSelected ? Colors.black : AppColors.gray300),
                             labelStyle: TextStyle(
-                              color: isSelected ? Colors.white : AppColors.textPrimary,
+                              color: isSelected ? Colors.white : Colors.black,
                             ),
                           ),
                         );
@@ -454,10 +460,10 @@ class _RestaurantDetailScreenState
                       children: [
                         Text(
                           '¥${menuItem.price.toInt()}',
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.primaryGreen,
+                            color: Colors.black,
                           ),
                         ),
                         const Spacer(),

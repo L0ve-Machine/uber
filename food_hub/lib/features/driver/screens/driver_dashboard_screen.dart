@@ -29,8 +29,8 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(_getTitle()),
-        backgroundColor: AppColors.primaryGreen,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -121,7 +121,7 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
             _currentIndex = index;
           });
         },
-        selectedItemColor: AppColors.primaryGreen,
+        selectedItemColor: Colors.black,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.local_shipping),
@@ -170,7 +170,7 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
                 icon: Icons.delivery_dining,
                 label: '本日の配達',
                 value: '${stats.totalDeliveries}件',
-                color: AppColors.primaryGreen,
+                color: Colors.black,
               ),
             ),
             const SizedBox(width: 12),

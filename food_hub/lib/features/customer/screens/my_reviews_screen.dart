@@ -18,8 +18,8 @@ class MyReviewsScreen extends ConsumerWidget {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('マイレビュー'),
-        backgroundColor: AppColors.primaryGreen,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
         elevation: 0,
       ),
       body: reviewsAsync.when(
@@ -211,7 +211,7 @@ class MyReviewsScreen extends ConsumerWidget {
                   SnackBar(
                     content: Text(success ? 'レビューを削除しました' : 'レビューの削除に失敗しました'),
                     backgroundColor:
-                        success ? AppColors.primaryGreen : Colors.red,
+                        success ? Colors.black : Colors.red,
                   ),
                 );
               }

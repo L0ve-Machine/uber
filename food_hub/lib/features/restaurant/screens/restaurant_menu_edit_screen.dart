@@ -63,8 +63,8 @@ class _RestaurantMenuEditScreenState extends ConsumerState<RestaurantMenuEditScr
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('メニュー編集'),
-        backgroundColor: AppColors.primaryGreen,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
         actions: [
           IconButton(
             icon: const Icon(Icons.delete),
