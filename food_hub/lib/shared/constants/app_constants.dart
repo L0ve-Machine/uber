@@ -1,7 +1,7 @@
 class AppConstants {
   // API Configuration
-  static const String baseUrl = 'http://133.117.77.23:3000/api';
-  static const String socketUrl = 'http://133.117.77.23:3000';
+  static const String baseUrl = 'https://133-117-77-23.nip.io/api';
+  static const String socketUrl = 'https://133-117-77-23.nip.io';
 
   // Stripe Keys (Replace with your own keys)
   static const String stripePublishableKey = 'pk_test_YOUR_PUBLISHABLE_KEY';
