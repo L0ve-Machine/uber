@@ -11,7 +11,7 @@ UserModel _$UserModelFromJson(Map<String, dynamic> json) => UserModel(
       email: json['email'] as String,
       fullName: json['full_name'] as String,
       phone: json['phone'] as String,
-      userType: json['user_type'] as String,
+      userType: json['user_type'] as String?,
       profileImageUrl: json['profile_image_url'] as String?,
       isActive: json['is_active'] as bool,
       createdAt: DateTime.parse(json['created_at'] as String),
