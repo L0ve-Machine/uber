@@ -51,8 +51,11 @@ class RestaurantCard extends StatelessWidget {
                     )
                   : Container(
                       height: 160,
+                      width: double.infinity,
                       color: Colors.grey[200],
-                      child: const Icon(Icons.restaurant, size: 48),
+                      child: const Center(
+                        child: Icon(Icons.restaurant, size: 48),
+                      ),
                     ),
             ),
 

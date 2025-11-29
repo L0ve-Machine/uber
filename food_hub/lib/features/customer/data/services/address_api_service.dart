@@ -12,11 +12,14 @@ class AddressApiService {
   /// Get customer's addresses
   Future<ApiResult<List<AddressModel>>> getAddresses(int customerId) async {
     try {
+      print('[ADDRESS] Fetching addresses for customer: $customerId');
       final response = await _dio.get('/customers/$customerId/addresses');
+      print('[ADDRESS] Response status: ${response.statusCode}');
+      print('[ADDRESS] Response data: ${response.data}');
 
       if (response.statusCode == 200) {
         final data = response.data as Map<String, dynamic>;
-        final addressesList = data['addresses'] as List<dynamic>;
+        final addressesList = data['addresses'] as List<dynamic>? ?? [];
 
         final addresses = addressesList
             .map((json) => AddressModel.fromJson(json as Map<String, dynamic>))
@@ -27,8 +30,11 @@ class AddressApiService {
 
       return Failure(ApiError.fromResponse(response.statusCode, response.data));
     } on DioException catch (e) {
+      print('[ADDRESS] DioException: ${e.message}');
+      print('[ADDRESS] DioException response: ${e.response?.data}');
       return Failure(ApiError.fromDioException(e));
     } catch (e) {
+      print('[ADDRESS] Unexpected error: $e');
       return Failure(ApiError(message: 'Unexpected error: $e'));
     }
   }

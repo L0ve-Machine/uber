@@ -2,17 +2,33 @@
 
 part of 'menu_item_model.dart';
 
+// Helper function to parse double from String or num
+double _parseDouble(dynamic value) {
+  if (value == null) return 0.0;
+  if (value is num) return value.toDouble();
+  if (value is String) return double.tryParse(value) ?? 0.0;
+  return 0.0;
+}
+
+// Helper function to parse int from String or num
+int _parseInt(dynamic value) {
+  if (value == null) return 0;
+  if (value is num) return value.toInt();
+  if (value is String) return int.tryParse(value) ?? 0;
+  return 0;
+}
+
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
 MenuItemModel _$MenuItemModelFromJson(Map<String, dynamic> json) =>
     MenuItemModel(
-      id: (json['id'] as num).toInt(),
-      restaurantId: (json['restaurant_id'] as num).toInt(),
+      id: _parseInt(json['id']),
+      restaurantId: _parseInt(json['restaurant_id']),
       name: json['name'] as String,
       description: json['description'] as String?,
-      price: (json['price'] as num).toDouble(),
+      price: _parseDouble(json['price']),
       category: json['category'] as String,
       imageUrl: json['image_url'] as String?,
       isAvailable: json['is_available'] as bool,
@@ -40,11 +56,11 @@ Map<String, dynamic> _$MenuItemModelToJson(MenuItemModel instance) =>
 
 MenuItemOptionModel _$MenuItemOptionModelFromJson(Map<String, dynamic> json) =>
     MenuItemOptionModel(
-      id: (json['id'] as num).toInt(),
-      menuItemId: (json['menu_item_id'] as num).toInt(),
+      id: _parseInt(json['id']),
+      menuItemId: _parseInt(json['menu_item_id']),
       optionGroupName: json['option_group_name'] as String,
       optionName: json['option_name'] as String,
-      additionalPrice: (json['additional_price'] as num).toDouble(),
+      additionalPrice: _parseDouble(json['additional_price']),
     );
 
 Map<String, dynamic> _$MenuItemOptionModelToJson(

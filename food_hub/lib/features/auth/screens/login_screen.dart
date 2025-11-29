@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../shared/constants/app_constants.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_text_field.dart';
 import '../providers/auth_provider.dart';
@@ -17,6 +18,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  String _selectedUserType = AppConstants.userTypeCustomer;
+
+  // ユーザータイプごとの設定
+  static const _userTypeConfigs = {
+    AppConstants.userTypeCustomer: _UserTypeConfig(
+      label: '顧客',
+      testEmail: 'customer@test.com',
+      route: '/customer/home',
+    ),
+    AppConstants.userTypeRestaurant: _UserTypeConfig(
+      label: '店舗',
+      testEmail: 'restaurant@test.com',
+      route: '/restaurant/dashboard',
+    ),
+    AppConstants.userTypeDriver: _UserTypeConfig(
+      label: '配達員',
+      testEmail: 'driver@test.com',
+      route: '/driver/dashboard',
+    ),
+  };
 
   @override
   void dispose() {
@@ -33,6 +54,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     await ref.read(authProvider.notifier).login(
           email: _emailController.text.trim(),
           password: _passwordController.text,
+          userType: _selectedUserType,
         );
 
     // Check auth state after login attempt
@@ -40,9 +62,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     authState.when(
       data: (user) {
         if (user != null) {
-          // Navigate to home screen
+          // Navigate based on user type
           if (mounted) {
-            Navigator.of(context).pushReplacementNamed('/customer/home');
+            final config = _userTypeConfigs[_selectedUserType]!;
+            Navigator.of(context).pushReplacementNamed(config.route);
           }
         }
       },
@@ -53,7 +76,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(error.toString()),
-              backgroundColor: Colors.red,
+              backgroundColor: Colors.red[400],
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           );
         }
@@ -64,209 +91,395 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
+    final currentConfig = _userTypeConfigs[_selectedUserType]!;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8F9FA),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 60),
-
-                // Logo
-                Icon(
-                  Icons.restaurant,
-                  size: 80,
-                  color: AppColors.primaryGreen,
-                ),
-                const SizedBox(height: 24),
-
-                // Title
-                Text(
-                  'FoodHub',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                        color: AppColors.primaryGreen,
-                        fontWeight: FontWeight.bold,
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Logo & Title
+                  Column(
+                    children: [
+                      const Text(
+                        'FoodHub',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF1F2937),
+                          letterSpacing: -0.5,
+                        ),
                       ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'おいしい料理をあなたのもとへ',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: AppColors.textSecondary,
+                      const SizedBox(height: 8),
+                      Text(
+                        'おいしい料理をあなたのもとへ',
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w400,
+                        ),
                       ),
-                ),
-                const SizedBox(height: 48),
+                    ],
+                  ),
+                  const SizedBox(height: 48),
 
-                // Email field
-                CustomTextField(
-                  controller: _emailController,
-                  labelText: 'メールアドレス',
-                  hintText: 'example@email.com',
-                  keyboardType: TextInputType.emailAddress,
-                  prefixIcon: const Icon(Icons.email_outlined),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'メールアドレスを入力してください';
-                    }
-                    if (!value.contains('@')) {
-                      return '有効なメールアドレスを入力してください';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
+                  // User Type Selection
+                  _buildUserTypeSelector(),
+                  const SizedBox(height: 32),
 
-                // Password field
-                CustomTextField(
-                  controller: _passwordController,
-                  labelText: 'パスワード',
-                  hintText: '6文字以上',
-                  obscureText: _obscurePassword,
-                  prefixIcon: const Icon(Icons.lock_outlined),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility_outlined
-                          : Icons.visibility_off_outlined,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _obscurePassword = !_obscurePassword;
-                      });
+                  // Email field
+                  CustomTextField(
+                    controller: _emailController,
+                    labelText: 'メールアドレス',
+                    hintText: 'example@email.com',
+                    keyboardType: TextInputType.emailAddress,
+                    prefixIcon: const Icon(Icons.email_outlined),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'メールアドレスを入力してください';
+                      }
+                      if (!value.contains('@')) {
+                        return '有効なメールアドレスを入力してください';
+                      }
+                      return null;
                     },
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'パスワードを入力してください';
-                    }
-                    if (value.length < 6) {
-                      return 'パスワードは6文字以上である必要があります';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 24),
+                  const SizedBox(height: 16),
 
-                // Login button
-                authState.when(
-                  data: (_) => CustomButton(
-                    text: 'ログイン',
-                    onPressed: _handleLogin,
-                  ),
-                  loading: () => const CustomButton(
-                    text: 'ログイン',
-                    isLoading: true,
-                  ),
-                  error: (_, __) => CustomButton(
-                    text: 'ログイン',
-                    onPressed: _handleLogin,
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Forgot password
-                TextButton(
-                  onPressed: () {
-                    // TODO: Navigate to forgot password screen
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('パスワードリセット機能は開発中です'),
+                  // Password field
+                  CustomTextField(
+                    controller: _passwordController,
+                    labelText: 'パスワード',
+                    hintText: '6文字以上',
+                    obscureText: _obscurePassword,
+                    prefixIcon: const Icon(Icons.lock_outlined),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
                       ),
-                    );
-                  },
-                  child: Text(
-                    'パスワードをお忘れですか？',
-                    style: TextStyle(color: AppColors.textSecondary),
-                  ),
-                ),
-                const SizedBox(height: 32),
-
-                // Divider
-                Row(
-                  children: [
-                    Expanded(child: Divider(color: Colors.grey[300])),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text(
-                        'または',
-                        style: TextStyle(color: AppColors.textSecondary),
-                      ),
-                    ),
-                    Expanded(child: Divider(color: Colors.grey[300])),
-                  ],
-                ),
-                const SizedBox(height: 32),
-
-                // Register link
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'アカウントをお持ちでないですか？',
-                      style: TextStyle(color: AppColors.textSecondary),
-                    ),
-                    TextButton(
                       onPressed: () {
-                        Navigator.of(context).pushNamed('/register');
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
                       },
-                      child: const Text(
-                        '新規登録',
-                        style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'パスワードを入力してください';
+                      }
+                      if (value.length < 6) {
+                        return 'パスワードは6文字以上である必要があります';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Forgot password
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text('パスワードリセット機能は開発中です'),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        'パスワードをお忘れですか？',
+                        style: TextStyle(
+                          color: Colors.grey[700],
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 24),
 
-                const SizedBox(height: 24),
+                  // Login button
+                  authState.when(
+                    data: (_) => _buildLoginButton(),
+                    loading: () => _buildLoginButton(isLoading: true),
+                    error: (_, __) => _buildLoginButton(),
+                  ),
 
-                // Test credentials info (development only)
-                if (const bool.fromEnvironment('dart.vm.product') == false)
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.lightGreen,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  // Register link (only for customer)
+                  if (_selectedUserType == AppConstants.userTypeCustomer) ...[
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'テストアカウント',
+                          'アカウントをお持ちでないですか？',
                           style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.darkGreen,
+                            color: Colors.grey[600],
+                            fontSize: 14,
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Email: customer@test.com',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                        Text(
-                          'Password: password123',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textSecondary,
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pushNamed('/register');
+                          },
+                          child: const Text(
+                            '新規登録',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
                           ),
                         ),
                       ],
                     ),
-                  ),
-              ],
+                  ],
+
+                  const SizedBox(height: 32),
+
+                  // Test credentials info (development only)
+                  if (const bool.fromEnvironment('dart.vm.product') == false)
+                    _buildTestCredentialsCard(currentConfig),
+                ],
+              ),
             ),
           ),
         ),
       ),
     );
   }
+
+  Widget _buildUserTypeSelector() {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.grey[200]!),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: _userTypeConfigs.entries.map((entry) {
+          final isSelected = _selectedUserType == entry.key;
+          final config = entry.value;
+
+          return Expanded(
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _selectedUserType = entry.key;
+                });
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeInOut,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                decoration: BoxDecoration(
+                  color: isSelected ? AppColors.primaryGreen : null,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  config.label,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: isSelected ? Colors.white : Colors.grey[700],
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                    fontSize: 15,
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildLoginButton({bool isLoading = false}) {
+    return Container(
+      height: 56,
+      decoration: BoxDecoration(
+        color: AppColors.primaryGreen,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryGreen.withOpacity(0.4),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: isLoading ? null : _handleLogin,
+          borderRadius: BorderRadius.circular(14),
+          child: Center(
+            child: isLoading
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : const Text(
+                    'ログイン',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTestCredentialsCard(_UserTypeConfig config) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[200]!),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryGreen,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.code,
+                  color: Colors.white,
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'テストアカウント（${config.label}）',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                  color: Color(0xFF1F2937),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildCredentialRow('Email', config.testEmail),
+          const SizedBox(height: 8),
+          _buildCredentialRow('Password', 'password123'),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            height: 44,
+            child: OutlinedButton(
+              onPressed: () {
+                setState(() {
+                  _emailController.text = config.testEmail;
+                  _passwordController.text = 'password123';
+                });
+              },
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: AppColors.primaryGreen, width: 1.5),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: const Text(
+                '自動入力',
+                style: TextStyle(
+                  color: AppColors.primaryGreen,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCredentialRow(String label, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8F9FA),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontSize: 13,
+                color: Color(0xFF1F2937),
+                fontFamily: 'monospace',
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _UserTypeConfig {
+  final String label;
+  final String testEmail;
+  final String route;
+
+  const _UserTypeConfig({
+    required this.label,
+    required this.testEmail,
+    required this.route,
+  });
 }

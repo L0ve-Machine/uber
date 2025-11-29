@@ -32,25 +32,29 @@ class AuthRepository {
     final result = await _apiService.login(request);
 
     return result.when(
-      success: (loginResponse) async {
-        // Create user with userType from loginResponse
+      success: (data) async {
+        final userType = data['user_type'] as String;
+        final token = data['token'] as String;
+        final userData = data['user'] as Map<String, dynamic>;
+
+        // Create user with userType - handle different user types
         final userWithType = UserModel(
-          id: loginResponse.user.id,
-          email: loginResponse.user.email,
-          fullName: loginResponse.user.fullName,
-          phone: loginResponse.user.phone,
-          userType: loginResponse.userType,
-          profileImageUrl: loginResponse.user.profileImageUrl,
-          isActive: loginResponse.user.isActive,
-          createdAt: loginResponse.user.createdAt,
+          id: userData['id'] as int,
+          email: userData['email'] as String,
+          fullName: userData['full_name'] as String? ?? userData['name'] as String? ?? '',
+          phone: userData['phone'] as String,
+          userType: userType,
+          profileImageUrl: userData['profile_image_url'] as String?,
+          isActive: userData['is_active'] as bool? ?? true,
+          createdAt: DateTime.parse(userData['created_at'] as String),
         );
 
         // Save token and user data
-        await _storageService.saveAuthToken(loginResponse.token);
+        await _storageService.saveAuthToken(token);
         await _storageService.saveUser(userWithType);
         // Save userType separately for navigation
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('user_type', loginResponse.userType);
+        await prefs.setString('user_type', userType);
 
         return Success(userWithType);
       },

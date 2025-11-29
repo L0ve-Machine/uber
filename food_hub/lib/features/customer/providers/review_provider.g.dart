@@ -201,7 +201,7 @@ class _CanReviewProviderElement
   int get orderId => (origin as CanReviewProvider).orderId;
 }
 
-String _$restaurantReviewsHash() => r'a8d1f3102b128004dd5375e89aceeeea1905532c';
+String _$restaurantReviewsHash() => r'd3e6990a4579199f68053d0254bcf538accd963b';
 
 abstract class _$RestaurantReviews
     extends BuildlessAutoDisposeAsyncNotifier<ReviewListResponse> {
