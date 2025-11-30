@@ -82,7 +82,9 @@
       "WebFetch(domain:www.restolabs.com)",
       "WebFetch(domain:012cloud.jp)",
       "WebFetch(domain:www.cjav.dev)",
-      "Bash(ssh:*)"
+      "Bash(ssh:*)",
+      "Bash(git checkout:*)",
+      "Bash(flutter build:*)"
     ],
     "deny": [],
     "ask": []

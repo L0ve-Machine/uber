@@ -36,7 +36,7 @@ class _DriverStripeSetupScreenState extends ConsumerState<DriverStripeSetupScree
 
     try {
       final storageService = ref.read(storageServiceProvider);
-      final token = await storageService.getToken();
+      final token = await storageService.getAuthToken();
 
       if (token == null) {
         throw Exception('認証トークンが見つかりません');
@@ -69,7 +69,7 @@ class _DriverStripeSetupScreenState extends ConsumerState<DriverStripeSetupScree
 
     try {
       final storageService = ref.read(storageServiceProvider);
-      final token = await storageService.getToken();
+      final token = await storageService.getAuthToken();
 
       if (token == null) {
         throw Exception('認証トークンが見つかりません');

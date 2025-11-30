@@ -88,7 +88,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             try {
               // Token取得
               final storageService = ref.read(storageServiceProvider);
-              final token = await storageService.getToken();
+              final token = await storageService.getAuthToken();
 
               if (token == null) {
                 throw Exception('認証トークンが見つかりません');
