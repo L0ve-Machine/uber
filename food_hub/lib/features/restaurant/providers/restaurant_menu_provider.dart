@@ -3,6 +3,7 @@ import '../../../core/network/dio_client.dart';
 import '../../../shared/models/menu_item_model.dart';
 import '../data/repositories/restaurant_menu_repository.dart';
 import '../data/services/restaurant_menu_api_service.dart';
+import 'restaurant_profile_provider.dart';
 
 part 'restaurant_menu_provider.g.dart';
 
@@ -107,6 +108,27 @@ class AddMenuItem extends _$AddMenuItem {
     String? imageUrl,
     List<Map<String, dynamic>>? options,
   }) async {
+    // Stripe設定チェック
+    final restaurantAsync = ref.read(restaurantProfileProvider);
+    final restaurant = restaurantAsync.valueOrNull;
+
+    if (restaurant == null) {
+      state = AsyncValue.error(
+        Exception('レストラン情報の取得に失敗しました'),
+        StackTrace.current,
+      );
+      return false;
+    }
+
+    if (!restaurant.isStripeFullySetup) {
+      state = AsyncValue.error(
+        Exception(restaurant.stripeSetupIssue ?? 'Stripe設定が必要です'),
+        StackTrace.current,
+      );
+      return false;
+    }
+
+    // 既存の処理
     state = const AsyncValue.loading();
 
     final repository = ref.read(restaurantMenuRepositoryProvider);

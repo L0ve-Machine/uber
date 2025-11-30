@@ -1,5 +1,6 @@
 import '../../../../core/network/api_result.dart';
 import '../../../../shared/models/menu_item_model.dart';
+import '../../../../shared/models/restaurant_model.dart';
 import '../services/restaurant_menu_api_service.dart';
 
 /// Restaurant Menu Repository
@@ -62,5 +63,10 @@ class RestaurantMenuRepository {
   /// Toggle menu item availability
   Future<ApiResult<MenuItemModel>> toggleAvailability(int id) async {
     return await _apiService.toggleAvailability(id);
+  }
+
+  /// Get restaurant profile (with Stripe status)
+  Future<ApiResult<RestaurantModel>> getProfile() async {
+    return await _apiService.getProfile();
   }
 }

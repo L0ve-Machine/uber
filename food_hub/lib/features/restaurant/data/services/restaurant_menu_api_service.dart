@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import '../../../../core/network/api_error.dart';
 import '../../../../core/network/api_result.dart';
 import '../../../../shared/models/menu_item_model.dart';
+import '../../../../shared/models/restaurant_model.dart';
 
 /// Restaurant Menu API Service
 class RestaurantMenuApiService {
@@ -144,6 +145,26 @@ class RestaurantMenuApiService {
           data['menu_item'] as Map<String, dynamic>,
         );
         return Success(menuItem);
+      }
+
+      return Failure(ApiError.fromResponse(response.statusCode, response.data));
+    } on DioException catch (e) {
+      return Failure(ApiError.fromDioException(e));
+    } catch (e) {
+      return Failure(ApiError(message: 'Unexpected error: $e'));
+    }
+  }
+
+  /// Get restaurant profile (with Stripe status)
+  Future<ApiResult<RestaurantModel>> getProfile() async {
+    try {
+      final response = await _dio.get('/restaurant/profile');
+
+      if (response.statusCode == 200) {
+        final restaurant = RestaurantModel.fromJson(
+          response.data as Map<String, dynamic>,
+        );
+        return Success(restaurant);
       }
 
       return Failure(ApiError.fromResponse(response.statusCode, response.data));

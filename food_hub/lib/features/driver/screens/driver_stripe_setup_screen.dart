@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/services/driver_stripe_connect_service.dart';
 import '../../../core/storage/storage_service.dart';
 import '../../../core/theme/app_colors.dart';
+import '../providers/driver_profile_provider.dart';
 
 class DriverStripeSetupScreen extends ConsumerStatefulWidget {
   const DriverStripeSetupScreen({super.key});
@@ -49,6 +50,9 @@ class _DriverStripeSetupScreenState extends ConsumerState<DriverStripeSetupScree
         _payoutsEnabled = status['stripe_payouts_enabled'] ?? false;
         _isLoading = false;
       });
+
+      // プロフィールProviderも更新
+      ref.read(driverProfileProvider.notifier).refresh();
     } catch (e) {
       setState(() {
         _errorMessage = e.toString();

@@ -41,7 +41,7 @@ final driverRepositoryProvider = AutoDisposeProvider<DriverRepository>.internal(
 
 typedef DriverRepositoryRef = AutoDisposeProviderRef<DriverRepository>;
 String _$driverOnlineStatusHash() =>
-    r'43322d49978d0f7d100a2ea7fe2a07b365c6788f';
+    r'462a982acf64445035fa31b8694bfec6b54b26bd';
 
 /// Driver online status provider
 ///
@@ -59,7 +59,7 @@ final driverOnlineStatusProvider =
 );
 
 typedef _$DriverOnlineStatus = AutoDisposeNotifier<bool>;
-String _$availableOrdersHash() => r'93b1e129e712e55a7b63d6bb384c03d765d303ad';
+String _$availableOrdersHash() => r'f19de1ba08731859ae26bdc800ee3911a76a1e6a';
 
 /// Available orders provider (ready for pickup)
 ///

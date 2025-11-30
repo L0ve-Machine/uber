@@ -4,6 +4,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/custom_text_field.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../providers/restaurant_menu_provider.dart';
+import 'restaurant_stripe_setup_screen.dart';
 
 class RestaurantMenuAddScreen extends ConsumerStatefulWidget {
   const RestaurantMenuAddScreen({super.key});
@@ -188,10 +189,39 @@ class _RestaurantMenuAddScreenState extends ConsumerState<RestaurantMenuAddScree
         );
         Navigator.of(context).pop();
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('メニューの追加に失敗しました'),
-            backgroundColor: Colors.red,
+        // エラーハンドリング拡張
+        final error = ref.read(addMenuItemProvider).error;
+        final isStripeError = error.toString().contains('Stripe');
+
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(isStripeError ? 'Stripe設定が必要です' : 'エラー'),
+            content: Text(
+              isStripeError
+                  ? error.toString().replaceAll('Exception: ', '') +
+                      '\n\n設定画面からStripe登録を完了してください。'
+                  : 'メニューの追加に失敗しました',
+            ),
+            actions: [
+              if (isStripeError)
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const RestaurantStripeSetupScreen(),
+                      ),
+                    );
+                  },
+                  child: const Text('設定画面へ'),
+                ),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(isStripeError ? 'キャンセル' : '閉じる'),
+              ),
+            ],
           ),
         );
       }

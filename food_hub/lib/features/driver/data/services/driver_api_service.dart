@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import '../../../../core/network/api_error.dart';
 import '../../../../core/network/api_result.dart';
 import '../../../../shared/models/order_model.dart';
+import '../../../../shared/models/driver_model.dart';
 import '../../models/driver_stats_model.dart';
 
 /// Driver API Service
@@ -162,6 +163,26 @@ class DriverApiService {
           response.data as Map<String, dynamic>,
         );
         return Success(stats);
+      }
+
+      return Failure(ApiError.fromResponse(response.statusCode, response.data));
+    } on DioException catch (e) {
+      return Failure(ApiError.fromDioException(e));
+    } catch (e) {
+      return Failure(ApiError(message: 'Unexpected error: $e'));
+    }
+  }
+
+  /// Get driver profile (with Stripe status)
+  Future<ApiResult<DriverModel>> getProfile() async {
+    try {
+      final response = await _dio.get('/driver/profile');
+
+      if (response.statusCode == 200) {
+        final driver = DriverModel.fromJson(
+          response.data as Map<String, dynamic>,
+        );
+        return Success(driver);
       }
 
       return Failure(ApiError.fromResponse(response.statusCode, response.data));

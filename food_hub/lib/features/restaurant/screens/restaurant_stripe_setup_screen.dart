@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/services/stripe_connect_service.dart';
 import '../../../core/storage/storage_service.dart';
 import '../../../core/theme/app_colors.dart';
+import '../providers/restaurant_profile_provider.dart';
 
 class RestaurantStripeSetupScreen extends ConsumerStatefulWidget {
   const RestaurantStripeSetupScreen({super.key});
@@ -49,6 +50,9 @@ class _RestaurantStripeSetupScreenState extends ConsumerState<RestaurantStripeSe
         _payoutsEnabled = status['stripe_payouts_enabled'] ?? false;
         _isLoading = false;
       });
+
+      // プロフィールProviderも更新
+      ref.read(restaurantProfileProvider.notifier).refresh();
     } catch (e) {
       setState(() {
         _errorMessage = e.toString();

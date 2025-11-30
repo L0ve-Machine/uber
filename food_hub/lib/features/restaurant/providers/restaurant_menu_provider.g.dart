@@ -224,7 +224,7 @@ class _RestaurantMenuProviderElement
   String? get category => (origin as RestaurantMenuProvider).category;
 }
 
-String _$addMenuItemHash() => r'3c258bb5d5aa4baf2ac69a40d57eb612157f393d';
+String _$addMenuItemHash() => r'c62a805a259a69f3209e7c7e65358923b0b3afac';
 
 /// Add menu item action provider
 ///

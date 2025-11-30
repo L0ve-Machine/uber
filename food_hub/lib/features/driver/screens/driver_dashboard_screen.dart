@@ -6,6 +6,7 @@ import '../../../shared/widgets/error_view.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/driver_provider.dart';
+import '../providers/driver_profile_provider.dart';
 import '../widgets/driver_order_card.dart';
 import 'driver_active_delivery_screen.dart';
 import 'driver_stripe_setup_screen.dart';
@@ -397,6 +398,75 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
   }
 
   Future<void> _handleToggleOnline(bool isOnline) async {
+    // オフラインにする場合は通常処理
+    if (!isOnline) {
+      final success = await ref
+          .read(driverOnlineStatusProvider.notifier)
+          .toggleOnline(isOnline);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(success ? 'オフラインになりました' : '状態の変更に失敗しました'),
+            backgroundColor: success ? AppColors.success : Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
+    // オンラインにする場合、Stripe設定チェック
+    final driverAsync = ref.read(driverProfileProvider);
+    final driver = driverAsync.valueOrNull;
+
+    if (driver == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('配達員情報の取得に失敗しました'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
+    if (!driver.isStripeFullySetup) {
+      // Stripe設定が未完了の場合、ダイアログ表示
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Stripe設定が必要です'),
+            content: Text(
+              (driver.stripeSetupIssue ?? 'Stripe設定が完了していません。') +
+                  '\n\n報酬を受け取るためには、Stripe登録を完了してください。',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const DriverStripeSetupScreen(),
+                    ),
+                  );
+                },
+                child: const Text('設定画面へ'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('キャンセル'),
+              ),
+            ],
+          ),
+        );
+      }
+      return;
+    }
+
+    // Stripe設定完了済み、通常処理
     final success = await ref
         .read(driverOnlineStatusProvider.notifier)
         .toggleOnline(isOnline);
@@ -404,11 +474,7 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            success
-                ? (isOnline ? 'オンラインになりました' : 'オフラインになりました')
-                : '状態の変更に失敗しました',
-          ),
+          content: Text(success ? 'オンラインになりました' : '状態の変更に失敗しました'),
           backgroundColor: success ? AppColors.success : Colors.red,
         ),
       );

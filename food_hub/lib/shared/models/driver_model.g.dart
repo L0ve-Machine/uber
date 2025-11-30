@@ -1,37 +1,37 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'restaurant_model.dart';
+part of 'driver_model.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-RestaurantModel _$RestaurantModelFromJson(Map<String, dynamic> json) =>
-    RestaurantModel(
+DriverModel _$DriverModelFromJson(Map<String, dynamic> json) => DriverModel(
       id: (json['id'] as num).toInt(),
-      name: json['name'] as String,
-      description: json['description'] as String?,
-      imageUrl: json['image_url'] as String?,
-      isApproved: json['is_approved'] as bool,
+      fullName: json['full_name'] as String,
+      phone: json['phone'] as String,
+      vehicleType: json['vehicle_type'] as String,
+      licensePlate: json['license_plate'] as String,
+      isOnline: json['is_online'] as bool,
       stripeAccountId: json['stripe_account_id'] as String?,
       stripeOnboardingCompleted: json['stripe_onboarding_completed'] as bool,
-      stripeChargesEnabled: json['stripe_charges_enabled'] as bool,
       stripePayoutsEnabled: json['stripe_payouts_enabled'] as bool,
-      commissionRate: (json['commission_rate'] as num).toDouble(),
+      basePayoutPerDelivery:
+          (json['base_payout_per_delivery'] as num).toDouble(),
       createdAt: DateTime.parse(json['created_at'] as String),
     );
 
-Map<String, dynamic> _$RestaurantModelToJson(RestaurantModel instance) =>
+Map<String, dynamic> _$DriverModelToJson(DriverModel instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'name': instance.name,
-      'description': instance.description,
-      'image_url': instance.imageUrl,
-      'is_approved': instance.isApproved,
+      'full_name': instance.fullName,
+      'phone': instance.phone,
+      'vehicle_type': instance.vehicleType,
+      'license_plate': instance.licensePlate,
+      'is_online': instance.isOnline,
       'stripe_account_id': instance.stripeAccountId,
       'stripe_onboarding_completed': instance.stripeOnboardingCompleted,
-      'stripe_charges_enabled': instance.stripeChargesEnabled,
       'stripe_payouts_enabled': instance.stripePayoutsEnabled,
-      'commission_rate': instance.commissionRate,
+      'base_payout_per_delivery': instance.basePayoutPerDelivery,
       'created_at': instance.createdAt.toIso8601String(),
     };

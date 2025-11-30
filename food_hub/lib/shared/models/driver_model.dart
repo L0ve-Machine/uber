@@ -1,47 +1,48 @@
 import 'package:json_annotation/json_annotation.dart';
 
-part 'restaurant_model.g.dart';
+part 'driver_model.g.dart';
 
 @JsonSerializable()
-class RestaurantModel {
+class DriverModel {
   final int id;
-  final String name;
-  final String? description;
-  @JsonKey(name: 'image_url')
-  final String? imageUrl;
-  @JsonKey(name: 'is_approved')
-  final bool isApproved;
+  @JsonKey(name: 'full_name')
+  final String fullName;
+  final String phone;
+  @JsonKey(name: 'vehicle_type')
+  final String vehicleType;
+  @JsonKey(name: 'license_plate')
+  final String licensePlate;
+  @JsonKey(name: 'is_online')
+  final bool isOnline;
   @JsonKey(name: 'stripe_account_id')
   final String? stripeAccountId;
   @JsonKey(name: 'stripe_onboarding_completed')
   final bool stripeOnboardingCompleted;
-  @JsonKey(name: 'stripe_charges_enabled')
-  final bool stripeChargesEnabled;
   @JsonKey(name: 'stripe_payouts_enabled')
   final bool stripePayoutsEnabled;
-  @JsonKey(name: 'commission_rate')
-  final double commissionRate;
+  @JsonKey(name: 'base_payout_per_delivery')
+  final double basePayoutPerDelivery;
   @JsonKey(name: 'created_at')
   final DateTime createdAt;
 
-  RestaurantModel({
+  DriverModel({
     required this.id,
-    required this.name,
-    this.description,
-    this.imageUrl,
-    required this.isApproved,
+    required this.fullName,
+    required this.phone,
+    required this.vehicleType,
+    required this.licensePlate,
+    required this.isOnline,
     this.stripeAccountId,
     required this.stripeOnboardingCompleted,
-    required this.stripeChargesEnabled,
     required this.stripePayoutsEnabled,
-    required this.commissionRate,
+    required this.basePayoutPerDelivery,
     required this.createdAt,
   });
 
-  factory RestaurantModel.fromJson(Map<String, dynamic> json) =>
-      _$RestaurantModelFromJson(json);
+  factory DriverModel.fromJson(Map<String, dynamic> json) =>
+      _$DriverModelFromJson(json);
 
-  Map<String, dynamic> toJson() => _$RestaurantModelToJson(this);
+  Map<String, dynamic> toJson() => _$DriverModelToJson(this);
 
   /// Stripeが完全に設定されているか
   bool get isStripeFullySetup =>

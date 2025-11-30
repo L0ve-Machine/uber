@@ -1,9 +1,11 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../shared/models/order_model.dart';
+import '../../../shared/models/driver_model.dart';
 import '../data/repositories/driver_repository.dart';
 import '../data/services/driver_api_service.dart';
 import '../models/driver_stats_model.dart';
+import 'driver_profile_provider.dart';
 
 part 'driver_provider.g.dart';
 
@@ -30,6 +32,34 @@ class DriverOnlineStatus extends _$DriverOnlineStatus {
   }
 
   Future<bool> toggleOnline(bool isOnline) async {
+    // オフラインにする場合はチェック不要
+    if (!isOnline) {
+      final repository = ref.read(driverRepositoryProvider);
+      final result = await repository.toggleOnlineStatus(isOnline);
+
+      return result.when(
+        success: (newStatus) {
+          state = newStatus;
+          return true;
+        },
+        failure: (error) => false,
+      );
+    }
+
+    // オンラインにする場合、Stripe設定チェック
+    final driverAsync = ref.read(driverProfileProvider);
+    final driver = driverAsync.valueOrNull;
+
+    if (driver == null) {
+      return false;
+    }
+
+    if (!driver.isStripeFullySetup) {
+      // エラーを通知（UI側でハンドル）
+      return false;
+    }
+
+    // 既存の処理
     final repository = ref.read(driverRepositoryProvider);
     final result = await repository.toggleOnlineStatus(isOnline);
 
@@ -67,6 +97,15 @@ class AvailableOrders extends _$AvailableOrders {
   }
 
   Future<bool> acceptDelivery(int orderId) async {
+    // Stripe設定チェック
+    final driverAsync = ref.read(driverProfileProvider);
+    final driver = driverAsync.valueOrNull;
+
+    if (driver == null || !driver.isStripeFullySetup) {
+      return false;
+    }
+
+    // 既存の処理
     final repository = ref.read(driverRepositoryProvider);
     final result = await repository.acceptDelivery(orderId);
 

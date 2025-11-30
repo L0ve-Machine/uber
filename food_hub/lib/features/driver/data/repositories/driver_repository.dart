@@ -1,5 +1,6 @@
 import '../../../../core/network/api_result.dart';
 import '../../../../shared/models/order_model.dart';
+import '../../../../shared/models/driver_model.dart';
 import '../../models/driver_stats_model.dart';
 import '../services/driver_api_service.dart';
 
@@ -48,5 +49,10 @@ class DriverRepository {
   /// Get driver statistics
   Future<ApiResult<DriverStatsModel>> getStats({String period = 'today'}) async {
     return await _apiService.getStats(period: period);
+  }
+
+  /// Get driver profile (with Stripe status)
+  Future<ApiResult<DriverModel>> getProfile() async {
+    return await _apiService.getProfile();
   }
 }
