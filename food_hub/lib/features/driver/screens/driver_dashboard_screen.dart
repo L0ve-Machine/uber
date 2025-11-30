@@ -8,6 +8,7 @@ import '../../auth/providers/auth_provider.dart';
 import '../providers/driver_provider.dart';
 import '../widgets/driver_order_card.dart';
 import 'driver_active_delivery_screen.dart';
+import 'driver_stripe_setup_screen.dart';
 
 class DriverDashboardScreen extends ConsumerStatefulWidget {
   const DriverDashboardScreen({super.key});
@@ -131,6 +132,10 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
             icon: Icon(Icons.history),
             label: '履歴',
           ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: '設定',
+          ),
         ],
       ),
     );
@@ -142,6 +147,8 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
         return '配達ダッシュボード';
       case 1:
         return '配達履歴';
+      case 2:
+        return '設定';
       default:
         return '配達ダッシュボード';
     }
@@ -250,8 +257,10 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
         );
       }
       return _buildDeliveryTab();
-    } else {
+    } else if (_currentIndex == 1) {
       return _buildHistoryTab();
+    } else {
+      return _buildSettingsTab();
     }
   }
 
@@ -480,6 +489,34 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
       MaterialPageRoute(
         builder: (context) => DriverActiveDeliveryScreen(orderId: orderId),
       ),
+    );
+  }
+
+  Widget _buildSettingsTab() {
+    return ListView(
+      children: [
+        const SizedBox(height: 8),
+        Card(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Column(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.account_balance, color: Colors.black),
+                title: const Text('振込先設定'),
+                subtitle: const Text('Stripe Connect'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const DriverStripeSetupScreen(),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

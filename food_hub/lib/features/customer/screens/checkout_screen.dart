@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/services/stripe_payment_service.dart';
+import '../../../core/storage/storage_service.dart';
 import '../../../shared/models/address_model.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/loading_indicator.dart';
@@ -20,9 +22,17 @@ class CheckoutScreen extends ConsumerStatefulWidget {
 class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   final _specialInstructionsController = TextEditingController();
   final _couponController = TextEditingController();
+  final StripePaymentService _stripeService = StripePaymentService();
   String _paymentMethod = 'cash';
   bool _isPlacingOrder = false;
   AddressModel? _selectedAddress;
+
+  @override
+  void initState() {
+    super.initState();
+    // Stripe初期化
+    _stripeService.initialize();
+  }
 
   @override
   void dispose() {
@@ -71,30 +81,56 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
       if (!mounted) return;
 
-      result.when(
+      await result.when(
         success: (order) async {
-          // Check if payment method is card
+          // 2. カード決済の場合、Stripe処理
           if (_paymentMethod == 'card') {
-            // TODO: Implement Stripe payment flow
-            // 1. Call create-payment-intent API
-            // 2. Show Stripe payment sheet
-            // 3. On success, navigate to confirmation
+            try {
+              // Token取得
+              final storageService = ref.read(storageServiceProvider);
+              final token = await storageService.getToken();
 
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('カード決済機能は準備中です。現金支払いをご利用ください。'),
-                backgroundColor: Colors.orange,
-                duration: Duration(seconds: 3),
-              ),
-            );
+              if (token == null) {
+                throw Exception('認証トークンが見つかりません');
+              }
 
-            // For now, navigate directly (cash-like behavior)
-            Navigator.of(context).pushReplacementNamed(
-              '/customer/order-confirmation',
-              arguments: order,
-            );
-          } else {
-            // Cash payment - navigate directly
+              // Stripe決済実行
+              final paymentSuccess = await _stripeService.processPayment(
+                orderId: order.id,
+                token: token,
+              );
+
+              if (!paymentSuccess) {
+                // キャンセルされた場合
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('決済がキャンセルされました'),
+                      backgroundColor: Colors.orange,
+                    ),
+                  );
+                }
+                return;
+              }
+
+              print('[Checkout] Payment successful for order: ${order.id}');
+
+            } catch (e) {
+              // 決済エラー
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('決済に失敗しました: ${e.toString()}'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+              return;
+            }
+          }
+
+          // 3. 注文確認画面に遷移（現金 or カード決済成功後）
+          if (mounted) {
             Navigator.of(context).pushReplacementNamed(
               '/customer/order-confirmation',
               arguments: order,
@@ -438,26 +474,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 _paymentMethod = value!;
               });
             },
-            title: Row(
+            title: const Row(
               children: [
-                const Icon(Icons.credit_card),
-                const SizedBox(width: 12),
-                const Text('クレジットカード'),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.orange[100],
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    '準備中',
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: Colors.orange[800],
-                    ),
-                  ),
-                ),
+                Icon(Icons.credit_card),
+                SizedBox(width: 12),
+                Text('クレジットカード'),
               ],
             ),
             activeColor: Colors.black,

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/theme/app_theme.dart';
 import 'core/routes/app_routes.dart';
 import 'core/storage/storage_service.dart';
+import 'core/services/stripe_payment_service.dart';
 import 'features/auth/screens/login_screen.dart';
 import 'features/auth/screens/register_screen.dart';
 import 'features/customer/screens/main_navigation_screen.dart';
@@ -36,6 +37,10 @@ void main() async {
   // Initialize storage service
   final storageService = StorageService();
   await storageService.init();
+
+  // Initialize Stripe
+  final stripeService = StripePaymentService();
+  await stripeService.initialize();
 
   // Set preferred orientations
   await SystemChrome.setPreferredOrientations([

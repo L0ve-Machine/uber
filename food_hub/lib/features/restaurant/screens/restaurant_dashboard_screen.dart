@@ -10,6 +10,7 @@ import '../providers/restaurant_menu_provider.dart';
 import '../widgets/restaurant_order_card.dart';
 import 'restaurant_order_detail_screen.dart';
 import 'restaurant_menu_list_screen.dart';
+import 'restaurant_stripe_setup_screen.dart';
 
 class RestaurantDashboardScreen extends ConsumerStatefulWidget {
   const RestaurantDashboardScreen({super.key});
@@ -26,24 +27,38 @@ class _RestaurantDashboardScreenState
 
   @override
   Widget build(BuildContext context) {
+    String _getTitle() {
+      switch (_currentIndex) {
+        case 0:
+          return '注文管理';
+        case 1:
+          return 'メニュー管理';
+        case 2:
+          return '設定';
+        default:
+          return 'FoodHub';
+      }
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text(_currentIndex == 0 ? '注文管理' : 'メニュー管理'),
+        title: Text(_getTitle()),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              if (_currentIndex == 0) {
-                ref.invalidate(restaurantOrdersProvider(status: _selectedStatus));
-                ref.invalidate(restaurantStatsProvider());
-              } else {
-                ref.invalidate(restaurantMenuProvider());
-              }
-            },
-          ),
+          if (_currentIndex != 2)
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: () {
+                if (_currentIndex == 0) {
+                  ref.invalidate(restaurantOrdersProvider(status: _selectedStatus));
+                  ref.invalidate(restaurantStatsProvider());
+                } else {
+                  ref.invalidate(restaurantMenuProvider());
+                }
+              },
+            ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
@@ -58,7 +73,11 @@ class _RestaurantDashboardScreenState
           ),
         ],
       ),
-      body: _currentIndex == 0 ? _buildOrdersTab() : const RestaurantMenuListScreen(),
+      body: _currentIndex == 0
+          ? _buildOrdersTab()
+          : _currentIndex == 1
+              ? const RestaurantMenuListScreen()
+              : _buildSettingsTab(),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
@@ -75,6 +94,10 @@ class _RestaurantDashboardScreenState
           BottomNavigationBarItem(
             icon: Icon(Icons.restaurant_menu),
             label: 'メニュー',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: '設定',
           ),
         ],
       ),
@@ -384,5 +407,33 @@ class _RestaurantDashboardScreenState
         ),
       );
     }
+  }
+
+  Widget _buildSettingsTab() {
+    return ListView(
+      children: [
+        const SizedBox(height: 8),
+        Card(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Column(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.account_balance, color: Colors.black),
+                title: const Text('振込先設定'),
+                subtitle: const Text('Stripe Connect'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const RestaurantStripeSetupScreen(),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 }
