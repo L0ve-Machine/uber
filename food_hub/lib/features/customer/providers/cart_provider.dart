@@ -13,6 +13,7 @@ const _uuid = Uuid();
 class Cart extends _$Cart {
   @override
   List<CartItem> build() {
+    print('[CartProvider] build() called - returning empty list');
     return [];
   }
 
@@ -31,7 +32,9 @@ class Cart extends _$Cart {
       specialRequest: specialRequest,
     );
 
+    print('[CartProvider] Adding item: ${menuItem.name}, quantity: $quantity');
     state = [...state, cartItem];
+    print('[CartProvider] Cart items count after add: ${state.length}');
   }
 
   /// Remove item from cart by ID

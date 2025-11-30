@@ -161,6 +161,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     final cartNotifier = ref.watch(cartProvider.notifier);
     final defaultAddressAsync = ref.watch(defaultAddressProvider);
 
+    // デバッグログ
+    print('[Checkout] build() called');
+    print('[Checkout] Cart items count: ${cartItems.length}');
+    print('[Checkout] Cart items: ${cartItems.map((item) => item.menuItem.name).toList()}');
+
     // Set initial address
     if (_selectedAddress == null) {
       defaultAddressAsync.whenData((address) {

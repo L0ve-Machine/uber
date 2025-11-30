@@ -14,6 +14,10 @@ class CartScreen extends ConsumerWidget {
     final cartItems = ref.watch(cartProvider);
     final cartNotifier = ref.watch(cartProvider.notifier);
 
+    // デバッグログ
+    print('[Cart] build() called');
+    print('[Cart] Cart items count: ${cartItems.length}');
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -126,6 +130,9 @@ class CartScreen extends ConsumerWidget {
                             text: 'チェックアウトへ進む',
                             onPressed: cartNotifier.isFromSingleRestaurant
                                 ? () {
+                                    print('[Cart] Navigating to checkout');
+                                    print('[Cart] Cart items count before navigation: ${cartItems.length}');
+                                    print('[Cart] Cart items: ${cartItems.map((item) => item.menuItem.name).toList()}');
                                     Navigator.of(context).pushNamed('/customer/checkout');
                                   }
                                 : null,
