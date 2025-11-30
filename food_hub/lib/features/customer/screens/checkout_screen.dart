@@ -72,11 +72,34 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       if (!mounted) return;
 
       result.when(
-        success: (order) {
-          Navigator.of(context).pushReplacementNamed(
-            '/customer/order-confirmation',
-            arguments: order,
-          );
+        success: (order) async {
+          // Check if payment method is card
+          if (_paymentMethod == 'card') {
+            // TODO: Implement Stripe payment flow
+            // 1. Call create-payment-intent API
+            // 2. Show Stripe payment sheet
+            // 3. On success, navigate to confirmation
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('カード決済機能は準備中です。現金支払いをご利用ください。'),
+                backgroundColor: Colors.orange,
+                duration: Duration(seconds: 3),
+              ),
+            );
+
+            // For now, navigate directly (cash-like behavior)
+            Navigator.of(context).pushReplacementNamed(
+              '/customer/order-confirmation',
+              arguments: order,
+            );
+          } else {
+            // Cash payment - navigate directly
+            Navigator.of(context).pushReplacementNamed(
+              '/customer/order-confirmation',
+              arguments: order,
+            );
+          }
         },
         failure: (error) {
           ScaffoldMessenger.of(context).showSnackBar(
