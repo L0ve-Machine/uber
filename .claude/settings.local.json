@@ -81,7 +81,8 @@
       "WebFetch(domain:aumo.jp)",
       "WebFetch(domain:www.restolabs.com)",
       "WebFetch(domain:012cloud.jp)",
-      "WebFetch(domain:www.cjav.dev)"
+      "WebFetch(domain:www.cjav.dev)",
+      "Bash(ssh:*)"
     ],
     "deny": [],
     "ask": []
