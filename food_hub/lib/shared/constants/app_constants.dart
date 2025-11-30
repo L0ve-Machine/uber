@@ -3,8 +3,8 @@ class AppConstants {
   static const String baseUrl = 'https://133-117-77-23.nip.io/api';
   static const String socketUrl = 'https://133-117-77-23.nip.io';
 
-  // Stripe Keys (Replace with your own keys)
-  static const String stripePublishableKey = 'pk_test_YOUR_PUBLISHABLE_KEY';
+  // Stripe Keys
+  static const String stripePublishableKey = 'pk_test_51SPy873YVgEeGmMJqOMOWtcuhsZNybz1yzLPnMPmmUtHOTjbpoPvdNCHaKxm2fO1T4CC5BZYcp6gFKYrWxllTPqf00cRAPEacE';
 
   // Google Maps API Key
   static const String googleMapsApiKey = 'YOUR_GOOGLE_MAPS_API_KEY';
