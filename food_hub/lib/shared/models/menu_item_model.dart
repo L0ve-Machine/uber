@@ -2,6 +2,15 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'menu_item_model.g.dart';
 
+/// Helper function to parse double values that might come as String from MySQL
+double _parseDouble(dynamic value) {
+  if (value == null) return 0.0;
+  if (value is double) return value;
+  if (value is int) return value.toDouble();
+  if (value is String) return double.tryParse(value) ?? 0.0;
+  return 0.0;
+}
+
 @JsonSerializable()
 class MenuItemModel {
   final int id;
@@ -9,6 +18,7 @@ class MenuItemModel {
   final int restaurantId;
   final String name;
   final String? description;
+  @JsonKey(fromJson: _parseDouble)
   final double price;
   final String category;
   @JsonKey(name: 'image_url')
@@ -50,7 +60,7 @@ class MenuItemOptionModel {
   final String optionGroupName;
   @JsonKey(name: 'option_name')
   final String optionName;
-  @JsonKey(name: 'additional_price')
+  @JsonKey(name: 'additional_price', fromJson: _parseDouble)
   final double additionalPrice;
 
   MenuItemOptionModel({

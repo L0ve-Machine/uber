@@ -12,7 +12,7 @@ MenuItemModel _$MenuItemModelFromJson(Map<String, dynamic> json) =>
       restaurantId: (json['restaurant_id'] as num).toInt(),
       name: json['name'] as String,
       description: json['description'] as String?,
-      price: (json['price'] as num).toDouble(),
+      price: _parseDouble(json['price']),
       category: json['category'] as String,
       imageUrl: json['image_url'] as String?,
       isAvailable: json['is_available'] as bool,
@@ -44,7 +44,7 @@ MenuItemOptionModel _$MenuItemOptionModelFromJson(Map<String, dynamic> json) =>
       menuItemId: (json['menu_item_id'] as num).toInt(),
       optionGroupName: json['option_group_name'] as String,
       optionName: json['option_name'] as String,
-      additionalPrice: (json['additional_price'] as num).toDouble(),
+      additionalPrice: _parseDouble(json['additional_price']),
     );
 
 Map<String, dynamic> _$MenuItemOptionModelToJson(
