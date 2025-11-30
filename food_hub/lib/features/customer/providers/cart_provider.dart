@@ -96,9 +96,6 @@ class Cart extends _$Cart {
     return state.fold(0.0, (sum, item) => sum + item.totalPrice);
   }
 
-  /// Calculate tax (10%)
-  double get tax => subtotal * 0.1;
-
   /// Get delivery fee (from first restaurant in cart)
   /// Note: In real app, this should come from the restaurant
   double get deliveryFee {
@@ -106,8 +103,20 @@ class Cart extends _$Cart {
     return 300.0;
   }
 
+  /// Calculate service fee (15% of subtotal)
+  double get serviceFee {
+    const SERVICE_FEE_RATE = 0.15;
+    return subtotal * SERVICE_FEE_RATE;
+  }
+
+  /// Calculate subtotal before tax
+  double get subtotalBeforeTax => subtotal + deliveryFee + serviceFee;
+
+  /// Calculate tax (10% of subtotal before tax)
+  double get tax => subtotalBeforeTax * 0.1;
+
   /// Calculate total
-  double get total => subtotal + tax + deliveryFee;
+  double get total => subtotalBeforeTax + tax;
 
   /// Check if cart is empty
   bool get isEmpty => state.isEmpty;

@@ -61,6 +61,7 @@ app.use('/api/coupons', require('./routes/coupons')); // Coupon management
 app.use('/api/customers', require('./routes/customers')); // Customer profile management
 app.use('/api/restaurant', require('./routes/restaurant')); // Restaurant dashboard & menu management
 app.use('/api/driver', require('./routes/driver')); // Driver delivery management
+app.use('/api/stripe', require('./routes/stripeConnect')); // Stripe Connect integration
 
 // Error handling middleware
 app.use((err, req, res, next) => {

@@ -57,4 +57,11 @@ router.patch('/:id/cancel', authMiddleware, isCustomer, orderController.cancelOr
  */
 router.get('/:id/tracking', authMiddleware, isCustomer, orderController.getOrderTracking);
 
+/**
+ * @route   POST /api/orders/:id/create-payment-intent
+ * @desc    Create Stripe Payment Intent for order
+ * @access  Private (Customer only)
+ */
+router.post('/:id/create-payment-intent', authMiddleware, isCustomer, orderController.createPaymentIntent);
+
 module.exports = router;

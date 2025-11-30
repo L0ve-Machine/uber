@@ -1,5 +1,6 @@
 const { validationResult } = require('express-validator');
 const sequelize = require('../config/database');
+const stripe = require('../config/stripe');
 const Order = require('../models/Order');
 const OrderItem = require('../models/OrderItem');
 const Restaurant = require('../models/Restaurant');
@@ -116,8 +117,48 @@ exports.createOrder = async (req, res) => {
 
     // Calculate fees and total
     const delivery_fee = parseFloat(restaurant.delivery_fee);
-    const tax = subtotal * 0.1; // 10% tax
-    const total = subtotal + delivery_fee + tax;
+
+    // Service fee (15% of subtotal)
+    const SERVICE_FEE_RATE = 0.15;
+    const service_fee = Math.round(subtotal * SERVICE_FEE_RATE * 100) / 100;
+
+    // Subtotal before tax
+    const subtotal_before_tax = subtotal + delivery_fee + service_fee;
+
+    // Tax (10%)
+    const tax = Math.round(subtotal_before_tax * 0.1 * 100) / 100;
+
+    // Total
+    const total = subtotal_before_tax + tax;
+
+    // Restaurant commission rate (from restaurant settings or default 35%)
+    const restaurant_commission_rate = parseFloat(restaurant.commission_rate || 0.35);
+
+    // Restaurant payout (subtotal after commission)
+    const restaurant_payout = Math.round(subtotal * (1 - restaurant_commission_rate) * 100) / 100;
+
+    // Driver payout (delivery fee or base rate)
+    const driver_payout = delivery_fee;
+
+    // Platform revenue
+    const platform_revenue = Math.round(
+      ((subtotal - restaurant_payout) +  // Restaurant commission
+       (delivery_fee - driver_payout) +  // Delivery fee margin (0 if full amount to driver)
+       service_fee +                     // Service fee
+       tax) * 100                        // Tax
+    ) / 100;
+
+    console.log('[ORDER] Price breakdown:', {
+      subtotal,
+      delivery_fee,
+      service_fee,
+      tax,
+      total,
+      restaurant_commission_rate,
+      restaurant_payout,
+      driver_payout,
+      platform_revenue,
+    });
 
     // Generate order number
     const order_number = await generateOrderNumber();
@@ -131,10 +172,15 @@ exports.createOrder = async (req, res) => {
       status: 'pending',
       subtotal,
       delivery_fee,
+      // service_fee,  // TODO: Add after DB migration
       tax,
       discount: 0,
       total,
       payment_method,
+      // restaurant_commission_rate,  // TODO: Add after DB migration
+      // restaurant_payout,  // TODO: Add after DB migration
+      // driver_payout,  // TODO: Add after DB migration
+      // platform_revenue,  // TODO: Add after DB migration
       special_instructions,
       scheduled_at: scheduled_at || null,
     }, { transaction });
@@ -436,3 +482,176 @@ exports.getOrderTracking = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
+
+/**
+ * Create Stripe Payment Intent for order
+ * POST /api/orders/:id/create-payment-intent
+ */
+exports.createPaymentIntent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const customer_id = req.user.id;
+
+    const order = await Order.findOne({
+      where: { id, customer_id },
+      include: ['restaurant'],
+    });
+
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    if (order.payment_method !== 'card') {
+      return res.status(400).json({
+        error: 'Payment method must be card',
+      });
+    }
+
+    if (order.stripe_payment_id) {
+      // Payment Intent already exists
+      const existingIntent = await stripe.paymentIntents.retrieve(order.stripe_payment_id);
+      return res.json({
+        client_secret: existingIntent.client_secret,
+        payment_id: existingIntent.id,
+      });
+    }
+
+    // Create Payment Intent
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(order.total * 100),  // JPY to cents
+      currency: 'jpy',
+      payment_method_types: ['card'],
+      transfer_group: order.order_number,
+      metadata: {
+        order_id: order.id,
+        customer_id: order.customer_id,
+        restaurant_id: order.restaurant_id,
+        order_number: order.order_number,
+      },
+      description: `FoodHub Order ${order.order_number}`,
+    });
+
+    // Save Payment Intent ID
+    await order.update({
+      stripe_payment_id: paymentIntent.id,
+    });
+
+    console.log(`[STRIPE] Payment Intent created: ${paymentIntent.id} for order ${order.id}`);
+
+    res.json({
+      client_secret: paymentIntent.client_secret,
+      payment_id: paymentIntent.id,
+      amount: order.total,
+    });
+  } catch (error) {
+    console.error('Create payment intent error:', error);
+    res.status(500).json({ error: 'Server error', details: error.message });
+  }
+};
+
+/**
+ * Process payouts to restaurant and driver (called after delivery completion)
+ * Internal function - not exposed as API endpoint
+ */
+async function processOrderPayouts(orderId) {
+  try {
+    const order = await Order.findByPk(orderId, {
+      include: ['restaurant', 'driver'],
+    });
+
+    if (!order) {
+      throw new Error(`Order ${orderId} not found`);
+    }
+
+    // Check if already processed
+    // if (order.payout_completed) {  // TODO: Uncomment after DB migration
+    //   console.log(`[PAYOUT] Already completed for order ${orderId}`);
+    //   return;
+    // }
+
+    if (!order.stripe_payment_id) {
+      throw new Error(`No Stripe payment ID for order ${orderId}`);
+    }
+
+    if (order.payment_method !== 'card') {
+      console.log(`[PAYOUT] Skip for cash payment: order ${orderId}`);
+      return;
+    }
+
+    console.log(`[PAYOUT] Processing payouts for order ${orderId}`);
+
+    // Transfer to restaurant
+    if (order.restaurant?.stripe_account_id) {
+      // Calculate restaurant payout
+      const commission_rate = parseFloat(order.restaurant.commission_rate || 0.35);
+      const restaurant_payout = Math.round(order.subtotal * (1 - commission_rate) * 100) / 100;
+
+      if (restaurant_payout > 0) {
+        const restaurantTransfer = await stripe.transfers.create({
+          amount: Math.round(restaurant_payout * 100),
+          currency: 'jpy',
+          destination: order.restaurant.stripe_account_id,
+          transfer_group: order.order_number,
+          metadata: {
+            order_id: order.id,
+            type: 'restaurant_payout',
+            original_subtotal: order.subtotal,
+            commission_rate: commission_rate,
+          },
+          description: `Order ${order.order_number} - Restaurant payout`,
+        });
+
+        console.log(`[PAYOUT] Restaurant transfer: ${restaurantTransfer.id}`);
+
+        // Update order
+        // await order.update({  // TODO: Uncomment after DB migration
+        //   stripe_restaurant_transfer_id: restaurantTransfer.id,
+        // });
+      }
+    } else {
+      console.warn(`[PAYOUT] Restaurant ${order.restaurant_id} has no Stripe account`);
+    }
+
+    // Transfer to driver
+    if (order.driver?.stripe_account_id) {
+      const driver_payout = parseFloat(order.driver.base_payout_per_delivery || order.delivery_fee);
+
+      if (driver_payout > 0) {
+        const driverTransfer = await stripe.transfers.create({
+          amount: Math.round(driver_payout * 100),
+          currency: 'jpy',
+          destination: order.driver.stripe_account_id,
+          transfer_group: order.order_number,
+          metadata: {
+            order_id: order.id,
+            type: 'driver_payout',
+            delivery_fee: order.delivery_fee,
+          },
+          description: `Order ${order.order_number} - Driver payout`,
+        });
+
+        console.log(`[PAYOUT] Driver transfer: ${driverTransfer.id}`);
+
+        // Update order
+        // await order.update({  // TODO: Uncomment after DB migration
+        //   stripe_driver_transfer_id: driverTransfer.id,
+        // });
+      }
+    } else {
+      console.warn(`[PAYOUT] Driver ${order.driver_id} has no Stripe account`);
+    }
+
+    // Mark as completed
+    // await order.update({  // TODO: Uncomment after DB migration
+    //   payout_completed: true,
+    // });
+
+    console.log(`[PAYOUT] Completed for order ${orderId}`);
+  } catch (error) {
+    console.error(`[PAYOUT] Error for order ${orderId}:`, error);
+    throw error;
+  }
+}
+
+// Export for use in other controllers
+exports.processOrderPayouts = processOrderPayouts;

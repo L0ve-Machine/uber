@@ -21,6 +21,8 @@ class OrderModel {
   final double subtotal;
   @JsonKey(name: 'delivery_fee')
   final double deliveryFee;
+  @JsonKey(name: 'service_fee')
+  final double? serviceFee;
   final double tax;
   final double discount;
   final double total;
@@ -59,6 +61,7 @@ class OrderModel {
     required this.status,
     required this.subtotal,
     required this.deliveryFee,
+    this.serviceFee,
     required this.tax,
     required this.discount,
     required this.total,

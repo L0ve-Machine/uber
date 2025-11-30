@@ -458,6 +458,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             const SizedBox(height: 8),
             _buildPriceRow('配送料', cartNotifier.deliveryFee),
             const SizedBox(height: 8),
+            _buildPriceRow('サービス料（15%）', cartNotifier.serviceFee),
+            const SizedBox(height: 8),
             _buildPriceRow('消費税（10%）', cartNotifier.tax),
             if (discount > 0) ...[
               const SizedBox(height: 8),

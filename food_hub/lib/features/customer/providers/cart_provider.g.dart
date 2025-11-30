@@ -72,7 +72,7 @@ final cartTotalProvider = AutoDisposeProvider<double>.internal(
 );
 
 typedef CartTotalRef = AutoDisposeProviderRef<double>;
-String _$cartHash() => r'7b12d33787a5d09cd1ee8e69524cc774bec54d43';
+String _$cartHash() => r'63c58d45dbd16391dbec449266d0474c69c00955';
 
 /// Cart Provider - manages shopping cart state
 ///
