@@ -179,6 +179,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       });
     }
 
+    print('[Checkout] cartItems.isEmpty: ${cartItems.isEmpty}');
+    print('[Checkout] Rendering body...');
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -188,35 +191,38 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       ),
       body: cartItems.isEmpty
           ? const Center(child: Text('カートが空です'))
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Delivery Address Section
-                  _buildSectionTitle('配達先住所'),
-                  const SizedBox(height: 8),
-                  _buildAddressCard(),
+          : Builder(
+              builder: (context) {
+                print('[Checkout] Building SingleChildScrollView');
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Delivery Address Section
+                      _buildSectionTitle('配達先住所'),
+                      const SizedBox(height: 8),
+                      _buildAddressCard(),
 
-                  const SizedBox(height: 24),
+                      const SizedBox(height: 24),
 
-                  // Order Items Section
-                  _buildSectionTitle('注文内容'),
-                  const SizedBox(height: 8),
-                  _buildOrderItemsList(cartItems),
+                      // Order Items Section
+                      _buildSectionTitle('注文内容'),
+                      const SizedBox(height: 8),
+                      _buildOrderItemsList(cartItems),
 
-                  const SizedBox(height: 24),
+                      const SizedBox(height: 24),
 
-                  // Coupon Section
-                  _buildSectionTitle('クーポン'),
-                  const SizedBox(height: 8),
-                  _buildCouponSection(),
+                      // Coupon Section
+                      _buildSectionTitle('クーポン'),
+                      const SizedBox(height: 8),
+                      _buildCouponSection(),
 
-                  const SizedBox(height: 24),
+                      const SizedBox(height: 24),
 
-                  // Special Instructions
-                  _buildSectionTitle('特別リクエスト（オプション）'),
-                  const SizedBox(height: 8),
+                      // Special Instructions
+                      _buildSectionTitle('特別リクエスト（オプション）'),
+                      const SizedBox(height: 8),
                   TextField(
                     controller: _specialInstructionsController,
                     maxLines: 3,
@@ -259,9 +265,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     },
                   ),
 
-                  const SizedBox(height: 16),
-                ],
-              ),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
+                );
+              },
             ),
     );
   }
