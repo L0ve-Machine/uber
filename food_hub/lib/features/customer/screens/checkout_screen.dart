@@ -199,71 +199,115 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Delivery Address Section
-                      _buildSectionTitle('配達先住所'),
-                      const SizedBox(height: 8),
-                      _buildAddressCard(),
+                      Builder(builder: (context) {
+                        print('[Checkout] Building Address Section');
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildSectionTitle('配達先住所'),
+                            const SizedBox(height: 8),
+                            _buildAddressCard(),
+                          ],
+                        );
+                      }),
 
                       const SizedBox(height: 24),
 
-                      // Order Items Section
-                      _buildSectionTitle('注文内容'),
-                      const SizedBox(height: 8),
-                      _buildOrderItemsList(cartItems),
+                      Builder(builder: (context) {
+                        print('[Checkout] Building Order Items Section');
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildSectionTitle('注文内容'),
+                            const SizedBox(height: 8),
+                            _buildOrderItemsList(cartItems),
+                          ],
+                        );
+                      }),
 
                       const SizedBox(height: 24),
 
-                      // Coupon Section
-                      _buildSectionTitle('クーポン'),
-                      const SizedBox(height: 8),
-                      _buildCouponSection(),
+                      Builder(builder: (context) {
+                        print('[Checkout] Building Coupon Section');
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildSectionTitle('クーポン'),
+                            const SizedBox(height: 8),
+                            _buildCouponSection(),
+                          ],
+                        );
+                      }),
 
                       const SizedBox(height: 24),
 
-                      // Special Instructions
-                      _buildSectionTitle('特別リクエスト（オプション）'),
-                      const SizedBox(height: 8),
-                  TextField(
-                    controller: _specialInstructionsController,
-                    maxLines: 3,
-                    decoration: InputDecoration(
-                      hintText: 'アレルギー情報、配達時の注意事項など',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      filled: true,
-                      fillColor: Colors.white,
-                    ),
-                  ),
+                      Builder(builder: (context) {
+                        print('[Checkout] Building Special Instructions');
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildSectionTitle('特別リクエスト（オプション）'),
+                            const SizedBox(height: 8),
+                            TextField(
+                              controller: _specialInstructionsController,
+                              maxLines: 3,
+                              decoration: InputDecoration(
+                                hintText: 'アレルギー情報、配達時の注意事項など',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                filled: true,
+                                fillColor: Colors.white,
+                              ),
+                            ),
+                          ],
+                        );
+                      }),
 
-                  const SizedBox(height: 24),
+                      const SizedBox(height: 24),
 
-                  // Payment Method
-                  _buildSectionTitle('お支払い方法'),
-                  const SizedBox(height: 8),
-                  _buildPaymentMethodSelector(),
+                      Builder(builder: (context) {
+                        print('[Checkout] Building Payment Method');
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildSectionTitle('お支払い方法'),
+                            const SizedBox(height: 8),
+                            _buildPaymentMethodSelector(),
+                          ],
+                        );
+                      }),
 
-                  const SizedBox(height: 24),
+                      const SizedBox(height: 24),
 
-                  // Price Summary
-                  _buildSectionTitle('料金詳細'),
-                  const SizedBox(height: 8),
-                  _buildPriceSummary(cartNotifier, ref),
+                      Builder(builder: (context) {
+                        print('[Checkout] Building Price Summary');
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildSectionTitle('料金詳細'),
+                            const SizedBox(height: 8),
+                            _buildPriceSummary(cartNotifier, ref),
+                          ],
+                        );
+                      }),
 
-                  const SizedBox(height: 32),
+                      const SizedBox(height: 32),
 
-                  // Place Order Button
-                  Consumer(
-                    builder: (context, ref, _) {
-                      final couponState = ref.watch(appliedCouponProvider);
-                      final total = cartNotifier.total - couponState.discount;
-                      return CustomButton(
-                        text: '注文を確定する（¥${total.toInt()}）',
-                        onPressed: _isPlacingOrder ? null : _placeOrder,
-                        isLoading: _isPlacingOrder,
-                      );
-                    },
-                  ),
+                      Builder(builder: (context) {
+                        print('[Checkout] Building Place Order Button');
+                        return Consumer(
+                          builder: (context, ref, _) {
+                            final couponState = ref.watch(appliedCouponProvider);
+                            final total = cartNotifier.total - couponState.discount;
+                            return CustomButton(
+                              text: '注文を確定する（¥${total.toInt()}）',
+                              onPressed: _isPlacingOrder ? null : _placeOrder,
+                              isLoading: _isPlacingOrder,
+                            );
+                          },
+                        );
+                      }),
 
                       const SizedBox(height: 16),
                     ],

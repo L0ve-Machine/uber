@@ -118,7 +118,9 @@ class CartScreen extends ConsumerWidget {
                           const SizedBox(height: 8),
                           _buildPriceRow('配送料', cartNotifier.deliveryFee),
                           const SizedBox(height: 8),
-                          _buildPriceRow('消費税', cartNotifier.tax),
+                          _buildPriceRow('サービス料（15%）', cartNotifier.serviceFee),
+                          const SizedBox(height: 8),
+                          _buildPriceRow('消費税（10%）', cartNotifier.tax),
                           const Divider(height: 24),
                           _buildPriceRow(
                             '合計',
