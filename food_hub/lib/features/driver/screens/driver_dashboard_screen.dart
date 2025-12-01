@@ -4,6 +4,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/loading_indicator.dart';
 import '../../../shared/widgets/error_view.dart';
 import '../../../shared/widgets/empty_state.dart';
+import '../../../shared/widgets/confirmation_dialog.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/driver_provider.dart';
 import '../providers/driver_profile_provider.dart';
@@ -416,6 +417,16 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
   }
 
   Future<void> _handleAcceptDelivery(int orderId) async {
+    final confirmed = await ConfirmationDialog.show(
+      context,
+      title: 'この配達を受諾しますか？',
+      message: 'レストランに移動して商品をピックアップしてください。',
+      confirmText: '受諾する',
+      confirmColor: Colors.green,
+    );
+
+    if (confirmed != true) return;
+
     final success = await ref
         .read(availableOrdersProvider.notifier)
         .acceptDelivery(orderId);

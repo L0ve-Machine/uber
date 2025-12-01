@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/loading_indicator.dart';
 import '../../../shared/widgets/error_view.dart';
+import '../../../shared/widgets/confirmation_dialog.dart';
 import '../providers/driver_provider.dart';
 import '../widgets/delivery_status_stepper.dart';
 
@@ -302,6 +303,16 @@ class DriverActiveDeliveryScreen extends ConsumerWidget {
   }
 
   Future<void> _handleStartDelivering(BuildContext context, WidgetRef ref) async {
+    final confirmed = await ConfirmationDialog.show(
+      context,
+      title: '配達を開始しますか？',
+      message: '商品をピックアップし、配達先に向かいます。',
+      confirmText: '開始する',
+      confirmColor: Colors.orange,
+    );
+
+    if (confirmed != true) return;
+
     final success = await ref
         .read(activeDeliveriesProvider.notifier)
         .startDelivering(orderId);
@@ -317,26 +328,12 @@ class DriverActiveDeliveryScreen extends ConsumerWidget {
   }
 
   Future<void> _handleCompleteDelivery(BuildContext context, WidgetRef ref) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('配達完了'),
-        content: const Text('この配達を完了しますか？'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('キャンセル'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.success,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('完了'),
-          ),
-        ],
-      ),
+    final confirmed = await ConfirmationDialog.show(
+      context,
+      title: '配達完了しましたか？',
+      message: '顧客に商品を渡し、配達を完了します。',
+      confirmText: '完了',
+      confirmColor: Colors.green,
     );
 
     if (confirmed == true) {
