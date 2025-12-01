@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/loading_indicator.dart';
 import '../../../shared/widgets/error_view.dart';
+import '../../../shared/widgets/confirmation_dialog.dart';
 import '../providers/restaurant_order_provider.dart';
 
 class RestaurantOrderDetailScreen extends ConsumerWidget {
@@ -384,6 +385,16 @@ class RestaurantOrderDetailScreen extends ConsumerWidget {
   }
 
   Future<void> _handleAccept(BuildContext context, WidgetRef ref) async {
+    final confirmed = await ConfirmationDialog.show(
+      context,
+      title: '注文を受け付けますか？',
+      message: 'この注文を受け付けると、調理を開始する必要があります。',
+      confirmText: '受け付ける',
+      confirmColor: Colors.green,
+    );
+
+    if (confirmed != true) return;
+
     final success = await ref
         .read(restaurantOrderDetailProvider(orderId).notifier)
         .accept();
@@ -457,6 +468,16 @@ class RestaurantOrderDetailScreen extends ConsumerWidget {
   }
 
   Future<void> _handleStartPreparing(BuildContext context, WidgetRef ref) async {
+    final confirmed = await ConfirmationDialog.show(
+      context,
+      title: '調理を開始しますか？',
+      message: 'この注文の調理を開始します。',
+      confirmText: '開始する',
+      confirmColor: Colors.purple,
+    );
+
+    if (confirmed != true) return;
+
     final success = await ref
         .read(restaurantOrderDetailProvider(orderId).notifier)
         .startPreparing();
@@ -472,6 +493,16 @@ class RestaurantOrderDetailScreen extends ConsumerWidget {
   }
 
   Future<void> _handleMarkReady(BuildContext context, WidgetRef ref) async {
+    final confirmed = await ConfirmationDialog.show(
+      context,
+      title: '準備完了にしますか？',
+      message: '商品の準備が完了し、配達員のピックアップを待つ状態にします。',
+      confirmText: '完了',
+      confirmColor: Colors.green,
+    );
+
+    if (confirmed != true) return;
+
     final success = await ref
         .read(restaurantOrderDetailProvider(orderId).notifier)
         .markReady();
