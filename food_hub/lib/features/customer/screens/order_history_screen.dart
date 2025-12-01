@@ -89,7 +89,7 @@ class _OrderHistoryScreenState extends ConsumerState<OrderHistoryScreen> {
   Widget _buildStatusFilter() {
     final statuses = {
       null: 'すべて',
-      'pending': '保留中',
+      'pending': '支払い済み',
       'accepted': '受付済み',
       'preparing': '準備中',
       'ready': '準備完了',
@@ -299,7 +299,7 @@ class _OrderCard extends StatelessWidget {
   Map<String, dynamic> _getStatusConfig(String status) {
     switch (status) {
       case 'pending':
-        return {'label': '保留中', 'color': Colors.orange};
+        return {'label': '支払い済み', 'color': Colors.green};
       case 'accepted':
         return {'label': '受付済み', 'color': Colors.blue};
       case 'preparing':
