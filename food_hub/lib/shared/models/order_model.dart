@@ -141,6 +141,7 @@ class OrderItemModel {
 class SelectedOptionModel {
   final String group;
   final String name;
+  @JsonKey(fromJson: _parseDouble)
   final double price;
 
   SelectedOptionModel({
