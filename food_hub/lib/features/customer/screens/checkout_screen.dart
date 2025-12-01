@@ -159,10 +159,16 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print('[Checkout] ========== build() START ==========');
+
     final cartItems = ref.watch(cartProvider);
+    print('[Checkout] Got cartItems: ${cartItems.length}');
+
     final cartNotifier = ref.watch(cartProvider.notifier);
+    print('[Checkout] Got cartNotifier');
 
     if (cartItems.isEmpty) {
+      print('[Checkout] Cart is empty, showing empty state');
       return Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(
@@ -173,6 +179,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         body: const Center(child: Text('カートが空です')),
       );
     }
+
+    print('[Checkout] Cart is not empty, building full UI');
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -186,11 +194,13 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Delivery Address
-            _buildSection(
-              title: '配達先住所',
-              child: _buildAddressSelector(),
-            ),
+            Builder(builder: (context) {
+              print('[Checkout] Rendering Address Section');
+              return _buildSection(
+                title: '配達先住所',
+                child: _buildAddressSelector(),
+              );
+            }),
 
             const SizedBox(height: 16),
 
