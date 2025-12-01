@@ -420,7 +420,7 @@ class _RestaurantDashboardScreenState
               ListTile(
                 leading: const Icon(Icons.account_balance, color: Colors.black),
                 title: const Text('振込先設定'),
-                subtitle: const Text('Stripe Connect'),
+                subtitle: const Text('振込先アカウント'),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
                   Navigator.of(context).push(

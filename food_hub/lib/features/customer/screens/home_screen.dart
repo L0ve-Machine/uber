@@ -115,7 +115,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildCategoryFilter() {
-    final categories = ['Japanese', 'Chinese', 'Italian', 'Korean', 'American', 'Thai'];
+    final categories = ['和食', '中華', 'イタリアン', '韓国料理', 'アメリカン', 'タイ料理'];
 
     return Container(
       height: 50,

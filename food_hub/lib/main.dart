@@ -255,13 +255,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
             Icon(
               Icons.restaurant,
               size: 80,
-              color: Theme.of(context).primaryColor,
+              color: Colors.black,
             ),
             const SizedBox(height: 16),
             Text(
               'FoodHub',
               style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                    color: Theme.of(context).primaryColor,
+                    color: Colors.black,
                     fontWeight: FontWeight.bold,
                   ),
             ),
@@ -271,7 +271,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 48),
-            const CircularProgressIndicator(),
+            const CircularProgressIndicator(
+              color: Colors.black,
+            ),
           ],
         ),
       ),

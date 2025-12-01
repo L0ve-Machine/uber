@@ -247,6 +247,8 @@ class _RestaurantDetailScreenState
                                 ? Colors.white
                                 : Colors.black,
                           ),
+                          checkmarkColor: Colors.white,
+                          showCheckmark: false,
                         ),
                       ),
                       // Categories
@@ -268,6 +270,8 @@ class _RestaurantDetailScreenState
                             labelStyle: TextStyle(
                               color: isSelected ? Colors.white : Colors.black,
                             ),
+                            checkmarkColor: Colors.white,
+                            showCheckmark: false,
                           ),
                         );
                       }),

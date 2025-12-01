@@ -6,12 +6,12 @@ class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
-      primaryColor: AppColors.primaryGreen,
+      primaryColor: Colors.black,
       scaffoldBackgroundColor: AppColors.background,
       colorScheme: const ColorScheme.light(
-        primary: AppColors.primaryGreen,
+        primary: Colors.black,
         onPrimary: AppColors.white,
-        secondary: AppColors.darkGreen,
+        secondary: AppColors.gray900,
         onSecondary: AppColors.white,
         error: AppColors.error,
         onError: AppColors.white,

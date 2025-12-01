@@ -84,12 +84,7 @@ class _AddToCartSheetState extends ConsumerState<AddToCartSheet> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('${widget.menuItem.name} をカートに追加しました'),
-        action: SnackBarAction(
-          label: 'カートを見る',
-          onPressed: () {
-            Navigator.of(context).pushNamed('/customer/cart');
-          },
-        ),
+        duration: const Duration(seconds: 3),
       ),
     );
   }

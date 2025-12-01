@@ -20,10 +20,10 @@ class _RestaurantMenuAddScreenState extends ConsumerState<RestaurantMenuAddScree
   final _priceController = TextEditingController();
   final _imageUrlController = TextEditingController();
 
-  String _selectedCategory = 'Main';
+  String _selectedCategory = 'メイン';
   bool _isLoading = false;
 
-  final List<String> _categories = ['Main', 'Side', 'Drink', 'Dessert', 'Other'];
+  final List<String> _categories = ['メイン', 'サイド', 'ドリンク', 'デザート', 'その他'];
 
   @override
   void dispose() {

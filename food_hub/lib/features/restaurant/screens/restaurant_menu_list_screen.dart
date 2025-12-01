@@ -75,7 +75,7 @@ class _RestaurantMenuListScreenState extends ConsumerState<RestaurantMenuListScr
   }
 
   Widget _buildCategoryFilter() {
-    final categories = ['Main', 'Side', 'Drink', 'Dessert', 'Other'];
+    final categories = ['メイン', 'サイド', 'ドリンク', 'デザート', 'その他'];
 
     return Container(
       height: 50,

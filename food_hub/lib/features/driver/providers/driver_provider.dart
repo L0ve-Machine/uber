@@ -34,42 +34,13 @@ class DriverOnlineStatus extends _$DriverOnlineStatus {
   }
 
   Future<bool> toggleOnline(bool isOnline) async {
-    // オフラインにする場合はチェック不要
-    if (!isOnline) {
-      final repository = ref.read(driverRepositoryProvider);
-      final result = await repository.toggleOnlineStatus(isOnline);
-
-      return result.when(
-        success: (newStatus) {
-          state = newStatus;
-          return true;
-        },
-        failure: (error) => false,
-      );
-    }
-
-    // オンラインにする場合、Stripe設定チェック
-    final driverAsync = ref.read(driverProfileProvider);
-    final driver = driverAsync.valueOrNull;
-
-    if (driver == null) {
-      return false;
-    }
-
-    if (!driver.isStripeFullySetup) {
-      // エラーを通知（UI側でハンドル）
-      return false;
-    }
-
-    // 既存の処理
+    // Temporarily disabled all Stripe checks for testing
     final repository = ref.read(driverRepositoryProvider);
     final result = await repository.toggleOnlineStatus(isOnline);
 
     return result.when(
       success: (newStatus) {
         state = newStatus;
-        // Refresh driver profile to keep it in sync
-        ref.invalidate(driverProfileProvider);
         if (newStatus) {
           // Refresh available orders when coming online
           ref.invalidate(availableOrdersProvider);
@@ -101,15 +72,7 @@ class AvailableOrders extends _$AvailableOrders {
   }
 
   Future<bool> acceptDelivery(int orderId) async {
-    // Stripe設定チェック
-    final driverAsync = ref.read(driverProfileProvider);
-    final driver = driverAsync.valueOrNull;
-
-    if (driver == null || !driver.isStripeFullySetup) {
-      return false;
-    }
-
-    // 既存の処理
+    // Temporarily disabled Stripe check for testing
     final repository = ref.read(driverRepositoryProvider);
     final result = await repository.acceptDelivery(orderId);
 
