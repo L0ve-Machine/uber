@@ -109,6 +109,16 @@ const Order = sequelize.define('Order', {
     type: DataTypes.DATE,
     allowNull: true,
   },
+  pickup_pin: {
+    type: DataTypes.STRING(4),
+    allowNull: true,
+    comment: 'ピックアップ確認用4桁PIN（statusがreadyになった時に生成）',
+  },
+  pin_verified_at: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    comment: 'PINが確認された日時',
+  },
 }, {
   tableName: 'orders',
   timestamps: true,

@@ -338,3 +338,51 @@ exports.getProfile = async (req, res) => {
     res.status(500).json({ error: 'Failed to get driver profile' });
   }
 };
+
+/**
+ * Verify pickup PIN
+ * POST /api/driver/orders/:id/verify-pin
+ */
+exports.verifyPickupPin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const driver_id = req.user.id;
+    const { pin } = req.body;
+
+    if (!pin || pin.length !== 4) {
+      return res.status(400).json({ error: 'Invalid PIN format' });
+    }
+
+    const order = await Order.findOne({
+      where: { id, driver_id, status: 'picked_up' },
+    });
+
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    // PIN照合
+    if (order.pickup_pin !== pin) {
+      console.log(`❌ Incorrect PIN for order ${order.order_number}: entered=${pin}, expected=${order.pickup_pin}`);
+      return res.status(400).json({
+        error: 'Incorrect PIN',
+        message: 'ピックアップPINが正しくありません。レストランに確認してください。',
+      });
+    }
+
+    // PIN確認成功
+    await order.update({
+      pin_verified_at: new Date(),
+    });
+
+    console.log(`✅ PIN verified for order ${order.order_number}`);
+
+    res.json({
+      message: 'PIN verified successfully',
+      order,
+    });
+  } catch (error) {
+    console.error('Verify pickup PIN error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};

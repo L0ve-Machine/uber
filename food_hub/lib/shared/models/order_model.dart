@@ -57,6 +57,10 @@ class OrderModel {
   final DateTime? deliveredAt;
   @JsonKey(name: 'cancelled_at')
   final DateTime? cancelledAt;
+  @JsonKey(name: 'pickup_pin')
+  final String? pickupPin;
+  @JsonKey(name: 'pin_verified_at')
+  final DateTime? pinVerifiedAt;
 
   // Associations
   final List<OrderItemModel>? items;
@@ -87,6 +91,8 @@ class OrderModel {
     this.pickedUpAt,
     this.deliveredAt,
     this.cancelledAt,
+    this.pickupPin,
+    this.pinVerifiedAt,
     this.items,
     this.deliveryAddress,
     this.restaurant,

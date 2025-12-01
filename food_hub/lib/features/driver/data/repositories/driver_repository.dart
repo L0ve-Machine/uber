@@ -55,4 +55,9 @@ class DriverRepository {
   Future<ApiResult<DriverModel>> getProfile() async {
     return await _apiService.getProfile();
   }
+
+  /// Verify pickup PIN
+  Future<ApiResult<OrderModel>> verifyPickupPin(int orderId, String pin) async {
+    return await _apiService.verifyPickupPin(orderId, pin);
+  }
 }

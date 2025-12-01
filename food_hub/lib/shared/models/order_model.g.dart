@@ -39,6 +39,10 @@ OrderModel _$OrderModelFromJson(Map<String, dynamic> json) => OrderModel(
       cancelledAt: json['cancelled_at'] == null
           ? null
           : DateTime.parse(json['cancelled_at'] as String),
+      pickupPin: json['pickup_pin'] as String?,
+      pinVerifiedAt: json['pin_verified_at'] == null
+          ? null
+          : DateTime.parse(json['pin_verified_at'] as String),
       items: (json['items'] as List<dynamic>?)
           ?.map((e) => OrderItemModel.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -76,6 +80,8 @@ Map<String, dynamic> _$OrderModelToJson(OrderModel instance) =>
       'picked_up_at': instance.pickedUpAt?.toIso8601String(),
       'delivered_at': instance.deliveredAt?.toIso8601String(),
       'cancelled_at': instance.cancelledAt?.toIso8601String(),
+      'pickup_pin': instance.pickupPin,
+      'pin_verified_at': instance.pinVerifiedAt?.toIso8601String(),
       'items': instance.items,
       'delivery_address': instance.deliveryAddress,
       'restaurant': instance.restaurant,
@@ -115,7 +121,7 @@ SelectedOptionModel _$SelectedOptionModelFromJson(Map<String, dynamic> json) =>
     SelectedOptionModel(
       group: json['group'] as String,
       name: json['name'] as String,
-      price: (json['price'] as num).toDouble(),
+      price: _parseDouble(json['price']),
     );
 
 Map<String, dynamic> _$SelectedOptionModelToJson(

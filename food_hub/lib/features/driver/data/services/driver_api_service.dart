@@ -192,4 +192,26 @@ class DriverApiService {
       return Failure(ApiError(message: 'Unexpected error: $e'));
     }
   }
+
+  /// Verify pickup PIN
+  Future<ApiResult<OrderModel>> verifyPickupPin(int orderId, String pin) async {
+    try {
+      final response = await _dio.post(
+        '/driver/orders/$orderId/verify-pin',
+        data: {'pin': pin},
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data as Map<String, dynamic>;
+        final order = OrderModel.fromJson(data['order'] as Map<String, dynamic>);
+        return Success(order);
+      }
+
+      return Failure(ApiError.fromResponse(response.statusCode, response.data));
+    } on DioException catch (e) {
+      return Failure(ApiError.fromDioException(e));
+    } catch (e) {
+      return Failure(ApiError(message: 'Unexpected error: $e'));
+    }
+  }
 }

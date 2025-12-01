@@ -7,6 +7,7 @@ import '../../../shared/widgets/error_view.dart';
 import '../../../shared/widgets/confirmation_dialog.dart';
 import '../providers/driver_provider.dart';
 import '../widgets/delivery_status_stepper.dart';
+import '../widgets/pickup_pin_dialog.dart';
 
 class DriverActiveDeliveryScreen extends ConsumerWidget {
   final int orderId;
@@ -303,6 +304,16 @@ class DriverActiveDeliveryScreen extends ConsumerWidget {
   }
 
   Future<void> _handleStartDelivering(BuildContext context, WidgetRef ref) async {
+    // まずPIN入力ダイアログを表示
+    final pinVerified = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => PickupPinDialog(orderId: orderId),
+    );
+
+    if (pinVerified != true) return;
+
+    // PIN確認後、配達開始の確認
     final confirmed = await ConfirmationDialog.show(
       context,
       title: '配達を開始しますか？',

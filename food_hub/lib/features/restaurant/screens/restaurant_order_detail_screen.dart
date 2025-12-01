@@ -228,6 +228,63 @@ class RestaurantOrderDetailScreen extends ConsumerWidget {
               ],
               const SizedBox(height: 24),
 
+              // Pickup PIN (表示: readyステータス時)
+              if (order.status == 'ready' && order.pickupPin != null) ...[
+                Card(
+                  color: Colors.blue[50],
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      children: [
+                        const Text(
+                          'ピックアップPIN',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          order.pickupPin!,
+                          style: TextStyle(
+                            fontSize: 56,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 12,
+                            fontFamily: 'monospace',
+                            color: Colors.blue[900],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.blue[100],
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.info_outline, size: 16, color: Colors.blue[700]),
+                              const SizedBox(width: 8),
+                              Text(
+                                '配達員にこのPINを伝えてください',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.blue[900],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ],
+
               // Action buttons
               _buildActionButtons(context, ref, order.status),
               const SizedBox(height: 24),

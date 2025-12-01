@@ -6,6 +6,7 @@ const MenuItem = require('../models/MenuItem');
 const MenuItemOption = require('../models/MenuItemOption');
 const Customer = require('../models/Customer');
 const CustomerAddress = require('../models/CustomerAddress');
+const { generatePickupPin } = require('../utils/pinGenerator');
 
 /**
  * Get restaurant's orders
@@ -219,11 +220,20 @@ exports.updateOrderStatus = async (req, res) => {
       });
     }
 
-    await order.update({ status });
+    const updateData = { status };
+
+    // ステータスがreadyになった時にピックアップPINを生成
+    if (status === 'ready' && !order.pickup_pin) {
+      updateData.pickup_pin = generatePickupPin();
+      console.log(`📍 Generated pickup PIN for order ${order.order_number}: ${updateData.pickup_pin}`);
+    }
+
+    await order.update(updateData);
 
     res.json({
       message: 'Order status updated successfully',
       order,
+      pickup_pin: updateData.pickup_pin, // PINをレスポンスに含める
     });
   } catch (error) {
     console.error('Update order status error:', error);

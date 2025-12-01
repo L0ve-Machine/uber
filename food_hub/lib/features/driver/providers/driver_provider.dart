@@ -155,6 +155,19 @@ class ActiveDeliveries extends _$ActiveDeliveries {
     );
   }
 
+  Future<bool> verifyPickupPin(int orderId, String pin) async {
+    final repository = ref.read(driverRepositoryProvider);
+    final result = await repository.verifyPickupPin(orderId, pin);
+
+    return result.when(
+      success: (order) {
+        _updateOrderInList(order);
+        return true;
+      },
+      failure: (error) => false,
+    );
+  }
+
   void _updateOrderInList(OrderModel updatedOrder) {
     state.whenData((orders) {
       final updatedOrders = orders.map((order) {

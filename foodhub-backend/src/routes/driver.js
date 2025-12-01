@@ -53,6 +53,17 @@ router.patch(
   driverController.updateDeliveryStatus
 );
 
+/**
+ * @route   POST /api/driver/orders/:id/verify-pin
+ * @desc    Verify pickup PIN
+ * @access  Private (Driver only)
+ */
+router.post(
+  '/orders/:id/verify-pin',
+  [body('pin').isLength({ min: 4, max: 4 }).withMessage('PIN must be 4 digits')],
+  driverController.verifyPickupPin
+);
+
 // ==================== Driver Management ====================
 
 /**
