@@ -203,16 +203,15 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             Text('特別リクエスト（オプション）', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black)),
             const SizedBox(height: 8),
             TextField(
-                controller: _specialInstructionsController,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  hintText: 'アレルギー情報、配達時の注意事項など',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  filled: true,
-                  fillColor: Colors.white,
+              controller: _specialInstructionsController,
+              maxLines: 3,
+              decoration: InputDecoration(
+                hintText: 'アレルギー情報、配達時の注意事項など',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
+                filled: true,
+                fillColor: Colors.white,
               ),
             ),
 
