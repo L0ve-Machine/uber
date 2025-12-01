@@ -110,8 +110,6 @@ class CreateOrder extends _$CreateOrder {
     required String paymentMethod,
     String? specialInstructions,
   }) async {
-    state = const AsyncValue.loading();
-
     final cartItems = ref.read(cartProvider);
     final repository = ref.read(orderRepositoryProvider);
 
@@ -123,15 +121,16 @@ class CreateOrder extends _$CreateOrder {
       specialInstructions: specialInstructions,
     );
 
-    state = result.when(
+    result.when(
       success: (order) {
         // Clear cart on successful order
         ref.read(cartProvider.notifier).clear();
         // Invalidate order history to refresh
         ref.invalidate(orderHistoryProvider());
-        return AsyncValue.data(order);
       },
-      failure: (error) => AsyncValue.error(error, StackTrace.current),
+      failure: (error) {
+        // Handle error if needed
+      },
     );
 
     return result;
