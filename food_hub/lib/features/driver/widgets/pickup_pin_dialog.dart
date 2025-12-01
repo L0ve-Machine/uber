@@ -107,7 +107,7 @@ class _PickupPinDialogState extends ConsumerState<PickupPinDialog> {
               errorText: _errorMessage,
               border: const OutlineInputBorder(),
               focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: AppColors.primary, width: 2),
+                borderSide: BorderSide(color: AppColors.black, width: 2),
               ),
             ),
             onChanged: (value) {

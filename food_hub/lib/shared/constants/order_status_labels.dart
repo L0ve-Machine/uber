@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 /// 注文ステータスの表示ラベル
 /// 各ロール（顧客・レストラン・配達員）ごとに異なる表示を提供
 class OrderStatusLabels {
