@@ -168,6 +168,18 @@ exports.updateDeliveryStatus = async (req, res) => {
 
     await order.update(updateData);
 
+    // Process payouts when delivery is completed
+    if (status === 'delivered' && order.payment_method === 'card') {
+      const { processOrderPayouts } = require('./orderController');
+      try {
+        await processOrderPayouts(order.id);
+        console.log(`[DELIVERY] Payouts processed for order ${order.id}`);
+      } catch (error) {
+        console.error('[DELIVERY] Payout failed:', error);
+        // Continue even if payout fails - can be processed manually later
+      }
+    }
+
     res.json({
       message: 'Delivery status updated successfully',
       order,

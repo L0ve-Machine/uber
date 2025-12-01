@@ -173,6 +173,18 @@ exports.rejectOrder = async (req, res) => {
       special_instructions: reason || order.special_instructions,
     });
 
+    // Refund customer if paid by card
+    if (order.payment_method === 'card' && order.stripe_payment_id) {
+      const stripe = require('../config/stripe');
+      try {
+        await stripe.paymentIntents.cancel(order.stripe_payment_id);
+        console.log(`[REFUND] Restaurant rejected order ${order.id}, payment cancelled: ${order.stripe_payment_id}`);
+      } catch (error) {
+        console.error('[REFUND] Failed to cancel payment:', error);
+        // Continue even if refund fails - can be processed manually later
+      }
+    }
+
     res.json({
       message: 'Order rejected successfully',
       order,
