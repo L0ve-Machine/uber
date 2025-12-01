@@ -485,26 +485,41 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   }
 
   Widget _buildPriceRow(String label, double amount, {bool isTotal = false, Color? color}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: isTotal ? 16 : 14,
-            fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-            color: color ?? (isTotal ? Colors.black : Colors.grey[700]),
+    try {
+      print('[Checkout] _buildPriceRow: label=$label, amount=$amount, amountType=${amount.runtimeType}');
+      final intValue = amount.toInt();
+      print('[Checkout] _buildPriceRow: converted to int=$intValue');
+
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: isTotal ? 16 : 14,
+              fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+              color: color ?? (isTotal ? Colors.black : Colors.grey[700]),
+            ),
           ),
-        ),
-        Text(
-          '¥${amount.toInt()}',
-          style: TextStyle(
-            fontSize: isTotal ? 18 : 14,
-            fontWeight: isTotal ? FontWeight.bold : FontWeight.w600,
-            color: color ?? Colors.black,
+          Text(
+            '¥$intValue',
+            style: TextStyle(
+              fontSize: isTotal ? 18 : 14,
+              fontWeight: isTotal ? FontWeight.bold : FontWeight.w600,
+              color: color ?? Colors.black,
+            ),
           ),
-        ),
-      ],
-    );
+        ],
+      );
+    } catch (e, stack) {
+      print('[Checkout] ❌ ERROR in _buildPriceRow: $e');
+      print('[Checkout] Stack: $stack');
+      return Row(
+        children: [
+          Text('エラー: $label'),
+          Text('$e'),
+        ],
+      );
+    }
   }
 }
