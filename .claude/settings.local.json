@@ -87,7 +87,9 @@
       "Bash(flutter build:*)",
       "Bash(flutter run:*)",
       "Bash(git pull:*)",
-      "Bash(node scripts/add-missing-stripe-columns.js:*)"
+      "Bash(node scripts/add-missing-stripe-columns.js:*)",
+      "Bash(node scripts/add-test-coordinates.js:*)",
+      "Bash(node -e:*)"
     ],
     "deny": [],
     "ask": []
