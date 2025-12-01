@@ -182,12 +182,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(
-              padding: EdgeInsets.all(20),
-              color: Colors.yellow,
-              child: Text('TEST: チェックアウト画面テスト', style: TextStyle(fontSize: 20, color: Colors.black)),
-            ),
-            const SizedBox(height: 16),
             Text('配達先住所', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black)),
             const SizedBox(height: 8),
             _buildAddressSelector(),
@@ -195,10 +189,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             Text('注文内容', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black)),
             const SizedBox(height: 8),
             _buildOrderItems(cartItems),
-            const SizedBox(height: 16),
-            Text('お支払い方法', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black)),
-            const SizedBox(height: 8),
-            _buildPaymentMethod(),
             const SizedBox(height: 16),
             Text('料金詳細', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black)),
             const SizedBox(height: 8),
@@ -245,9 +235,53 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     print('[Checkout] _selectedAddress: $_selectedAddress');
 
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Text('テスト: 住所セクション'),
+      child: InkWell(
+        onTap: () async {
+          final result = await Navigator.of(context).pushNamed(
+            '/customer/addresses/select',
+            arguments: _selectedAddress,
+          );
+          if (result != null && result is AddressModel) {
+            setState(() {
+              _selectedAddress = result;
+            });
+          }
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: _selectedAddress == null
+              ? Row(
+                  children: [
+                    const Icon(Icons.add_location, color: Colors.black),
+                    const SizedBox(width: 12),
+                    const Expanded(child: Text('配達先を選択')),
+                    const Icon(Icons.chevron_right),
+                  ],
+                )
+              : Row(
+                  children: [
+                    const Icon(Icons.location_on, color: Colors.black),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _selectedAddress!.label,
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _selectedAddress!.fullAddress,
+                            style: const TextStyle(fontSize: 14, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Text('変更', style: TextStyle(color: Colors.black)),
+                  ],
+                ),
+        ),
       ),
     );
   }
