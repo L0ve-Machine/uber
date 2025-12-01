@@ -1,9 +1,7 @@
 class AppConstants {
   // API Configuration
-  // For Android Emulator: use 10.0.2.2 to access host machine
-  // For Physical Device: use your Windows machine's IP address (e.g., 192.168.x.x)
-  static const String baseUrl = 'http://10.0.2.2:3000/api';
-  static const String socketUrl = 'http://10.0.2.2:3000';
+  static const String baseUrl = 'https://133-117-77-23.nip.io/api';
+  static const String socketUrl = 'https://133-117-77-23.nip.io';
 
   // Stripe Keys
   static const String stripePublishableKey = 'pk_test_51SPy873YVgEeGmMJqOMOWtcuhsZNybz1yzLPnMPmmUtHOTjbpoPvdNCHaKxm2fO1T4CC5BZYcp6gFKYrWxllTPqf00cRAPEacE';
