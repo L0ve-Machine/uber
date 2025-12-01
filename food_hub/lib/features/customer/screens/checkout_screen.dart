@@ -21,7 +21,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   final _specialInstructionsController = TextEditingController();
   final _couponController = TextEditingController();
   final StripePaymentService _stripeService = StripePaymentService();
-  String _paymentMethod = 'cash';
+  String _paymentMethod = 'card';  // Stripe決済のみ対応
   bool _isPlacingOrder = false;
   AddressModel? _selectedAddress;
 
@@ -80,44 +80,43 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
       await result.when(
         success: (order) async {
-          if (_paymentMethod == 'card') {
-            try {
-              final storageService = ref.read(storageServiceProvider);
-              final token = await storageService.getAuthToken();
+          // Stripe決済処理（常に実行）
+          try {
+            final storageService = ref.read(storageServiceProvider);
+            final token = await storageService.getAuthToken();
 
-              if (token == null) {
-                throw Exception('認証トークンが見つかりません');
-              }
+            if (token == null) {
+              throw Exception('認証トークンが見つかりません');
+            }
 
-              final paymentSuccess = await _stripeService.processPayment(
-                orderId: order.id,
-                token: token,
-              );
+            final paymentSuccess = await _stripeService.processPayment(
+              orderId: order.id,
+              token: token,
+            );
 
-              if (!paymentSuccess) {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('決済がキャンセルされました'),
-                      backgroundColor: Colors.orange,
-                    ),
-                  );
-                }
-                return;
-              }
-
-              print('[Checkout] Payment successful for order: ${order.id}');
-            } catch (e) {
+            if (!paymentSuccess) {
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('決済に失敗しました: ${e.toString()}'),
-                    backgroundColor: Colors.red,
+                  const SnackBar(
+                    content: Text('決済がキャンセルされました'),
+                    backgroundColor: Colors.orange,
                   ),
                 );
               }
               return;
             }
+
+            print('[Checkout] Payment successful for order: ${order.id}');
+          } catch (e) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('決済に失敗しました: ${e.toString()}'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+            return;
           }
 
           if (mounted) {
@@ -410,42 +409,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     );
   }
 
-  Widget _buildPaymentMethod() {
-    print('[Checkout] _buildPaymentMethod() called');
-    return Card(
-      child: Column(
-        children: [
-          RadioListTile<String>(
-            value: 'cash',
-            groupValue: _paymentMethod,
-            onChanged: (value) => setState(() => _paymentMethod = value!),
-            title: const Row(
-              children: [
-                Icon(Icons.money),
-                SizedBox(width: 12),
-                Text('代金引換'),
-              ],
-            ),
-            activeColor: Colors.black,
-          ),
-          const Divider(height: 1),
-          RadioListTile<String>(
-            value: 'card',
-            groupValue: _paymentMethod,
-            onChanged: (value) => setState(() => _paymentMethod = value!),
-            title: const Row(
-              children: [
-                Icon(Icons.credit_card),
-                SizedBox(width: 12),
-                Text('クレジットカード'),
-              ],
-            ),
-            activeColor: Colors.black,
-          ),
-        ],
-      ),
-    );
-  }
+  // 未使用のため削除: Stripe決済のみ対応
 
   Widget _buildPriceSummary(Cart cartNotifier) {
     print('[Checkout] _buildPriceSummary() called');
