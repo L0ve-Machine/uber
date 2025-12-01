@@ -13,17 +13,24 @@ const Driver = require('../models/Driver');
  * Format: ORD-YYYYMMDD-XXXX
  */
 const generateOrderNumber = async () => {
-  const today = new Date();
-  const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '');
+  // Use Japan timezone (UTC+9)
+  const now = new Date();
+  const jstOffset = 9 * 60 * 60 * 1000; // 9 hours in milliseconds
+  const jstDate = new Date(now.getTime() + jstOffset);
 
-  // Count today's orders
-  const todayStart = new Date(today.setHours(0, 0, 0, 0));
-  const todayEnd = new Date(today.setHours(23, 59, 59, 999));
+  const year = jstDate.getUTCFullYear();
+  const month = String(jstDate.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(jstDate.getUTCDate()).padStart(2, '0');
+  const dateStr = `${year}${month}${day}`;
+
+  // Count today's orders (JST-based)
+  const todayStartJST = `${year}-${month}-${day} 00:00:00`;
+  const todayEndJST = `${year}-${month}-${day} 23:59:59`;
 
   const count = await Order.count({
     where: {
       created_at: {
-        [sequelize.Sequelize.Op.between]: [todayStart, todayEnd],
+        [sequelize.Sequelize.Op.between]: [todayStartJST, todayEndJST],
       },
     },
   });

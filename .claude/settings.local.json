@@ -90,7 +90,11 @@
       "Bash(node scripts/add-missing-stripe-columns.js:*)",
       "Bash(node scripts/add-test-coordinates.js:*)",
       "Bash(node -e:*)",
-      "Bash(git -C \"/root/uber\" status)"
+      "Bash(git -C \"/root/uber\" status)",
+      "Bash(lsof:*)",
+      "Bash(pm2 logs:*)",
+      "Bash(pm2 list:*)",
+      "Bash(pm2 restart:*)"
     ],
     "deny": [],
     "ask": []
