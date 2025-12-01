@@ -89,7 +89,8 @@
       "Bash(git pull:*)",
       "Bash(node scripts/add-missing-stripe-columns.js:*)",
       "Bash(node scripts/add-test-coordinates.js:*)",
-      "Bash(node -e:*)"
+      "Bash(node -e:*)",
+      "Bash(git -C \"/root/uber\" status)"
     ],
     "deny": [],
     "ask": []
