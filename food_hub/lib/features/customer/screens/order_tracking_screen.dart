@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/services/socket_service.dart';
+import '../../../shared/constants/order_status_labels.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/loading_indicator.dart';
 import '../providers/order_provider.dart';
@@ -409,39 +410,45 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
 
     switch (status) {
       case 'pending':
-        backgroundColor = Colors.orange[100]!;
-        textColor = Colors.orange[800]!;
-        text = '確認待ち';
+        // 「確認待ち」→「支払い済み」に変更し、色を緑色に
+        backgroundColor = Colors.green[100]!;
+        textColor = Colors.green[800]!;
+        text = OrderStatusLabels.customer[status] ?? '支払い済み';
         break;
       case 'accepted':
         backgroundColor = Colors.blue[100]!;
         textColor = Colors.blue[800]!;
-        text = '確認済み';
+        text = OrderStatusLabels.customer[status] ?? '確認済み';
         break;
       case 'preparing':
         backgroundColor = Colors.purple[100]!;
         textColor = Colors.purple[800]!;
-        text = '調理中';
+        text = OrderStatusLabels.customer[status] ?? '調理中';
         break;
       case 'ready':
         backgroundColor = Colors.teal[100]!;
         textColor = Colors.teal[800]!;
-        text = '準備完了';
+        text = OrderStatusLabels.customer[status] ?? '準備完了';
         break;
       case 'picked_up':
         backgroundColor = Colors.indigo[100]!;
         textColor = Colors.indigo[800]!;
-        text = '配達中';
+        text = OrderStatusLabels.customer[status] ?? '配達中';
+        break;
+      case 'delivering':
+        backgroundColor = Colors.orange[100]!;
+        textColor = Colors.orange[800]!;
+        text = OrderStatusLabels.customer[status] ?? '配達中';
         break;
       case 'delivered':
         backgroundColor = Colors.green[100]!;
         textColor = Colors.green[800]!;
-        text = '配達完了';
+        text = OrderStatusLabels.customer[status] ?? '配達完了';
         break;
       case 'cancelled':
         backgroundColor = Colors.red[100]!;
         textColor = Colors.red[800]!;
-        text = 'キャンセル';
+        text = OrderStatusLabels.customer[status] ?? 'キャンセル';
         break;
       default:
         backgroundColor = Colors.grey[100]!;
