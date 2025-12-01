@@ -2,6 +2,7 @@ const express = require('express');
 const { body } = require('express-validator');
 const restaurantDashboardController = require('../controllers/restaurantDashboardController');
 const restaurantMenuController = require('../controllers/restaurantMenuController');
+const restaurantController = require('../controllers/restaurantController');
 const { authMiddleware, isRestaurant } = require('../middleware/auth');
 
 const router = express.Router();
@@ -9,6 +10,15 @@ const router = express.Router();
 // All routes require restaurant authentication
 router.use(authMiddleware);
 router.use(isRestaurant);
+
+// ==================== Profile ====================
+
+/**
+ * @route   GET /api/restaurant/profile
+ * @desc    Get restaurant profile (with Stripe status)
+ * @access  Private (Restaurant only)
+ */
+router.get('/profile', restaurantController.getProfile);
 
 // ==================== Orders ====================
 

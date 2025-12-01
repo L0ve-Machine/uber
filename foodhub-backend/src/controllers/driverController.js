@@ -295,3 +295,46 @@ exports.getDriverStats = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
+
+/**
+ * Get driver profile (with Stripe status)
+ * GET /api/driver/profile
+ */
+exports.getProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const driver = await Driver.findOne({
+      where: { id: userId },
+      attributes: {
+        exclude: ['password_hash'],
+      },
+    });
+
+    if (!driver) {
+      return res.status(404).json({ error: 'Driver not found' });
+    }
+
+    res.json({
+      id: driver.id,
+      email: driver.email,
+      full_name: driver.full_name,
+      phone: driver.phone,
+      vehicle_type: driver.vehicle_type,
+      license_plate: driver.license_plate,
+      is_online: driver.is_online,
+      is_approved: driver.is_approved,
+      current_latitude: driver.current_latitude,
+      current_longitude: driver.current_longitude,
+      stripe_account_id: driver.stripe_account_id,
+      stripe_onboarding_completed: driver.stripe_onboarding_completed,
+      stripe_payouts_enabled: driver.stripe_payouts_enabled,
+      base_payout_per_delivery: driver.base_payout_per_delivery,
+      created_at: driver.created_at,
+      updated_at: driver.updated_at,
+    });
+  } catch (error) {
+    console.error('Get driver profile error:', error);
+    res.status(500).json({ error: 'Failed to get driver profile' });
+  }
+};

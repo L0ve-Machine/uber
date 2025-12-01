@@ -168,3 +168,50 @@ exports.getMenuItemById = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
+
+/**
+ * Get restaurant profile (with Stripe status)
+ * GET /api/restaurant/profile
+ */
+exports.getProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const restaurant = await Restaurant.findOne({
+      where: { id: userId },
+      attributes: {
+        exclude: ['password_hash'],
+      },
+    });
+
+    if (!restaurant) {
+      return res.status(404).json({ error: 'Restaurant not found' });
+    }
+
+    res.json({
+      id: restaurant.id,
+      email: restaurant.email,
+      name: restaurant.name,
+      description: restaurant.description,
+      category: restaurant.category,
+      address: restaurant.address,
+      phone: restaurant.phone,
+      image_url: restaurant.image_url,
+      latitude: restaurant.latitude,
+      longitude: restaurant.longitude,
+      rating: restaurant.rating,
+      total_reviews: restaurant.total_reviews,
+      is_approved: restaurant.is_approved,
+      stripe_account_id: restaurant.stripe_account_id,
+      stripe_onboarding_completed: restaurant.stripe_onboarding_completed,
+      stripe_charges_enabled: restaurant.stripe_charges_enabled,
+      stripe_payouts_enabled: restaurant.stripe_payouts_enabled,
+      commission_rate: restaurant.commission_rate,
+      created_at: restaurant.created_at,
+      updated_at: restaurant.updated_at,
+    });
+  } catch (error) {
+    console.error('Get restaurant profile error:', error);
+    res.status(500).json({ error: 'Failed to get restaurant profile' });
+  }
+};

@@ -9,6 +9,15 @@ const router = express.Router();
 router.use(authMiddleware);
 router.use(isDriver);
 
+// ==================== Profile ====================
+
+/**
+ * @route   GET /api/driver/profile
+ * @desc    Get driver profile (with Stripe status)
+ * @access  Private (Driver only)
+ */
+router.get('/profile', driverController.getProfile);
+
 // ==================== Orders ====================
 
 /**

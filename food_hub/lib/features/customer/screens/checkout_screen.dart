@@ -182,67 +182,20 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            Container(
+              padding: EdgeInsets.all(20),
+              color: Colors.yellow,
+              child: Text('TEST: チェックアウト画面テスト', style: TextStyle(fontSize: 20, color: Colors.black)),
+            ),
+            const SizedBox(height: 16),
             Text('配達先住所', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black)),
             const SizedBox(height: 8),
             _buildAddressSelector(),
-
             const SizedBox(height: 16),
-
             Text('注文内容', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black)),
             const SizedBox(height: 8),
             _buildOrderItems(cartItems),
-
-            const SizedBox(height: 16),
-
-            Text('クーポン', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black)),
-            const SizedBox(height: 8),
-            _buildCoupon(),
-
-            const SizedBox(height: 16),
-
-            Text('特別リクエスト（オプション）', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black)),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _specialInstructionsController,
-              maxLines: 3,
-              decoration: InputDecoration(
-                hintText: 'アレルギー情報、配達時の注意事項など',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                filled: true,
-                fillColor: Colors.white,
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            Text('お支払い方法', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black)),
-            const SizedBox(height: 8),
-            _buildPaymentMethod(),
-
-            const SizedBox(height: 16),
-
-            Text('料金詳細', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black)),
-            const SizedBox(height: 8),
-            _buildPriceSummary(cartNotifier),
-
-            const SizedBox(height: 24),
-
-            // Place Order Button
-            Consumer(
-              builder: (context, ref, _) {
-                final couponState = ref.watch(appliedCouponProvider);
-                final total = cartNotifier.total - couponState.discount;
-                return CustomButton(
-                  text: '注文を確定する（¥${total.toInt()}）',
-                  onPressed: _isPlacingOrder ? null : _placeOrder,
-                  isLoading: _isPlacingOrder,
-                );
-              },
-            ),
-
-            const SizedBox(height: 16),
+            const SizedBox(height: 200),
           ],
         ),
       ),
@@ -280,6 +233,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   }
 
   Widget _buildOrderItems(List cartItems) {
+    print('[Checkout] _buildOrderItems() called with ${cartItems.length} items');
     return Card(
       child: ListView.separated(
         shrinkWrap: true,
@@ -302,7 +256,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   }
 
   Widget _buildCoupon() {
+    print('[Checkout] _buildCoupon() called');
     final couponState = ref.watch(appliedCouponProvider);
+    print('[Checkout] couponState loaded: ${couponState.coupon}');
 
     if (couponState.coupon != null) {
       return Card(
@@ -388,6 +344,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   }
 
   Widget _buildPaymentMethod() {
+    print('[Checkout] _buildPaymentMethod() called');
     return Card(
       child: Column(
         children: [
@@ -424,7 +381,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   }
 
   Widget _buildPriceSummary(Cart cartNotifier) {
+    print('[Checkout] _buildPriceSummary() called');
     final couponState = ref.watch(appliedCouponProvider);
+    print('[Checkout] discount: ${couponState.discount}');
     final discount = couponState.discount.toDouble();
     final total = cartNotifier.total - discount;
 

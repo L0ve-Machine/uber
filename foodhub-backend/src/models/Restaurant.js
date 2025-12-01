@@ -87,6 +87,26 @@ const Restaurant = sequelize.define('Restaurant', {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   },
+  stripe_account_id: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+  },
+  stripe_onboarding_completed: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
+  stripe_charges_enabled: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
+  stripe_payouts_enabled: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
+  commission_rate: {
+    type: DataTypes.DECIMAL(5, 4),
+    defaultValue: 0.35,
+  },
 }, {
   tableName: 'restaurants',
   timestamps: true,

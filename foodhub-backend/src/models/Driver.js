@@ -71,6 +71,22 @@ const Driver = sequelize.define('Driver', {
     type: DataTypes.JSON,
     allowNull: true,
   },
+  stripe_account_id: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+  },
+  stripe_onboarding_completed: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
+  stripe_payouts_enabled: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
+  base_payout_per_delivery: {
+    type: DataTypes.DECIMAL(10, 2),
+    defaultValue: 400.00,
+  },
 }, {
   tableName: 'drivers',
   timestamps: true,
