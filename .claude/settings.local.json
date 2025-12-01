@@ -84,7 +84,8 @@
       "WebFetch(domain:www.cjav.dev)",
       "Bash(ssh:*)",
       "Bash(git checkout:*)",
-      "Bash(flutter build:*)"
+      "Bash(flutter build:*)",
+      "Bash(flutter run:*)"
     ],
     "deny": [],
     "ask": []

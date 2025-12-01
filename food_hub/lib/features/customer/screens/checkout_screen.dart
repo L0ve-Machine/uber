@@ -294,54 +294,13 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   }
 
   Widget _buildAddressSelector() {
+    print('[Checkout] _buildAddressSelector() called');
+    print('[Checkout] _selectedAddress: $_selectedAddress');
+
     return Card(
-      child: InkWell(
-        onTap: () async {
-          final result = await Navigator.of(context).pushNamed(
-            '/customer/addresses/select',
-            arguments: _selectedAddress,
-          );
-          if (result != null && result is AddressModel) {
-            setState(() {
-              _selectedAddress = result;
-            });
-          }
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: _selectedAddress == null
-              ? Row(
-                  children: [
-                    const Icon(Icons.add_location, color: Colors.black),
-                    const SizedBox(width: 12),
-                    const Expanded(child: Text('配達先を追加')),
-                    const Icon(Icons.chevron_right),
-                  ],
-                )
-              : Row(
-                  children: [
-                    const Icon(Icons.location_on, color: Colors.black),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _selectedAddress!.label,
-                            style: const TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _selectedAddress!.fullAddress,
-                            style: const TextStyle(fontSize: 14, color: Colors.grey),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Text('変更', style: TextStyle(color: Colors.black)),
-                  ],
-                ),
-        ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Text('テスト: 住所セクション'),
       ),
     );
   }
