@@ -482,7 +482,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
   Widget _buildPriceSummary(Cart cartNotifier) {
     final couponState = ref.watch(appliedCouponProvider);
-    final discount = couponState.discount;
+    final discount = couponState.discount.toDouble();
     final total = cartNotifier.total - discount;
 
     return Card(
