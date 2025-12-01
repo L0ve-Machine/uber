@@ -123,18 +123,16 @@ class CreateOrder extends _$CreateOrder {
       specialInstructions: specialInstructions,
     );
 
-    state = await AsyncValue.guard(() async {
-      return result.when(
-        success: (order) {
-          // Clear cart on successful order
-          ref.read(cartProvider.notifier).clear();
-          // Invalidate order history to refresh
-          ref.invalidate(orderHistoryProvider());
-          return order;
-        },
-        failure: (error) => throw error,
-      );
-    });
+    state = result.when(
+      success: (order) {
+        // Clear cart on successful order
+        ref.read(cartProvider.notifier).clear();
+        // Invalidate order history to refresh
+        ref.invalidate(orderHistoryProvider());
+        return AsyncValue.data(order);
+      },
+      failure: (error) => AsyncValue.error(error, StackTrace.current),
+    );
 
     return result;
   }
