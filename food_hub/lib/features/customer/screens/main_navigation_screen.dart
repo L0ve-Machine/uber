@@ -39,7 +39,7 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
     switch (_currentIndex) {
       case 0: // ホーム
         return AppBar(
-          title: const Text('フードハブ'),
+          title: const Text('FoodHub'),
           backgroundColor: Colors.white,
           foregroundColor: Colors.black,
           elevation: 0,
@@ -77,7 +77,7 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
 
       default:
         return AppBar(
-          title: const Text('フードハブ'),
+          title: const Text('FoodHub'),
           backgroundColor: Colors.white,
           foregroundColor: Colors.black,
         );

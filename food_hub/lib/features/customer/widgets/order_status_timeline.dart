@@ -44,15 +44,21 @@ const List<OrderStatusInfo> orderStatuses = [
   ),
   OrderStatusInfo(
     status: 'picked_up',
+    title: '配達員が受け取り',
+    icon: Icons.local_shipping,
+    order: 5,
+  ),
+  OrderStatusInfo(
+    status: 'delivering',
     title: '配達中',
     icon: Icons.delivery_dining,
-    order: 5,
+    order: 6,
   ),
   OrderStatusInfo(
     status: 'delivered',
     title: '配達完了',
     icon: Icons.home,
-    order: 6,
+    order: 7,
   ),
 ];
 
@@ -98,9 +104,11 @@ class OrderStatusTimeline extends StatelessWidget {
         break;
       case 'accepted':
       case 'preparing':
+      case 'ready':
         time = acceptedAt;
         break;
       case 'picked_up':
+      case 'delivering':
         time = pickedUpAt;
         break;
       case 'delivered':
