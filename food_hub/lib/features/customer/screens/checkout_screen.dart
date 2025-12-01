@@ -199,7 +199,23 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             Text('お支払い方法', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black)),
             const SizedBox(height: 8),
             _buildPaymentMethod(),
-            const SizedBox(height: 200),
+            const SizedBox(height: 16),
+            Text('料金詳細', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black)),
+            const SizedBox(height: 8),
+            _buildPriceSummary(cartNotifier),
+            const SizedBox(height: 24),
+            Consumer(
+              builder: (context, ref, _) {
+                final couponState = ref.watch(appliedCouponProvider);
+                final total = cartNotifier.total - couponState.discount;
+                return CustomButton(
+                  text: '注文を確定する（¥${total.toInt()}）',
+                  onPressed: _isPlacingOrder ? null : _placeOrder,
+                  isLoading: _isPlacingOrder,
+                );
+              },
+            ),
+            const SizedBox(height: 16),
           ],
         ),
       ),
