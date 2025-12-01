@@ -449,8 +449,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
   Widget _buildPriceSummary(Cart cartNotifier) {
     print('[Checkout] _buildPriceSummary() called');
+    print('[Checkout] subtotal type: ${cartNotifier.subtotal.runtimeType}, value: ${cartNotifier.subtotal}');
+    print('[Checkout] deliveryFee type: ${cartNotifier.deliveryFee.runtimeType}, value: ${cartNotifier.deliveryFee}');
+    print('[Checkout] serviceFee type: ${cartNotifier.serviceFee.runtimeType}, value: ${cartNotifier.serviceFee}');
+    print('[Checkout] tax type: ${cartNotifier.tax.runtimeType}, value: ${cartNotifier.tax}');
+    print('[Checkout] total type: ${cartNotifier.total.runtimeType}, value: ${cartNotifier.total}');
+
     final couponState = ref.watch(appliedCouponProvider);
-    print('[Checkout] discount: ${couponState.discount}');
+    print('[Checkout] discount type: ${couponState.discount.runtimeType}, value: ${couponState.discount}');
     final discount = couponState.discount.toDouble();
     final total = cartNotifier.total - discount;
 
