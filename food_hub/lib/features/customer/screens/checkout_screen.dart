@@ -239,54 +239,37 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   Widget _buildOrderItems(List cartItems) {
     print('[Checkout] _buildOrderItems() called with ${cartItems.length} items');
 
-    try {
-      print('[Checkout] Creating Card widget');
-      return Card(
-        child: ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: cartItems.length,
-          separatorBuilder: (_, __) {
-            print('[Checkout] Building separator');
-            return const Divider(height: 1);
-          },
-          itemBuilder: (context, index) {
-            print('[Checkout] Building item $index');
-            try {
-              final item = cartItems[index];
-              print('[Checkout] Item type: ${item.runtimeType}');
-              print('[Checkout] Item data: name=${item.menuItem.name}, quantity=${item.quantity}');
-
-              return ListTile(
-                title: Text(item.menuItem.name),
-                subtitle: Text('x${item.quantity}'),
-                trailing: Text(
-                  '¥${item.totalPrice.toInt()}',
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-              );
-            } catch (e, stack) {
-              print('[Checkout] ❌ ERROR in itemBuilder at index $index: $e');
-              print('[Checkout] Stack trace: $stack');
-              return ListTile(
-                title: Text('エラー: $e'),
-                tileColor: Colors.red[100],
-              );
-            }
-          },
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: cartItems.map((item) {
+            print('[Checkout] Mapping item: ${item.menuItem.name}');
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.menuItem.name,
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        Text('x${item.quantity}', style: const TextStyle(color: Colors.grey)),
+                      ],
+                    ),
+                  ),
+                  Text('¥${item.totalPrice.toInt()}', style: const TextStyle(fontWeight: FontWeight.w600)),
+                ],
+              ),
+            );
+          }).toList(),
         ),
-      );
-    } catch (e, stack) {
-      print('[Checkout] ❌ ERROR in _buildOrderItems: $e');
-      print('[Checkout] Stack trace: $stack');
-      return Card(
-        color: Colors.red[100],
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Text('注文内容エラー: $e'),
-        ),
-      );
-    }
+      ),
+    );
   }
 
   Widget _buildCoupon() {
