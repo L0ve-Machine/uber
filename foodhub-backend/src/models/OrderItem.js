@@ -50,4 +50,27 @@ const OrderItem = sequelize.define('OrderItem', {
   underscored: true,
 });
 
+// Override toJSON to convert DECIMAL strings to numbers
+OrderItem.prototype.toJSON = function () {
+  const values = Object.assign({}, this.get());
+
+  // Convert DECIMAL fields to numbers
+  const decimalFields = ['unit_price', 'total_price'];
+  decimalFields.forEach(field => {
+    if (values[field] !== null && values[field] !== undefined) {
+      values[field] = parseFloat(values[field]);
+    }
+  });
+
+  // Handle selected_options price field
+  if (values.selected_options && Array.isArray(values.selected_options)) {
+    values.selected_options = values.selected_options.map(opt => ({
+      ...opt,
+      price: opt.price !== null && opt.price !== undefined ? parseFloat(opt.price) : opt.price
+    }));
+  }
+
+  return values;
+};
+
 module.exports = OrderItem;

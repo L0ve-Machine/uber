@@ -40,7 +40,7 @@ final orderRepositoryProvider = AutoDisposeProvider<OrderRepository>.internal(
 );
 
 typedef OrderRepositoryRef = AutoDisposeProviderRef<OrderRepository>;
-String _$orderHistoryHash() => r'f50b8d785bc76a9310ed441f9000649cb957e797';
+String _$orderHistoryHash() => r'916c994ff43792a4328bef69cf29b17a8ada3b03';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -217,7 +217,7 @@ class _OrderHistoryProviderElement
   String? get status => (origin as OrderHistoryProvider).status;
 }
 
-String _$orderDetailHash() => r'0940be74014357e04ca8a771fbdb1f6d2c51c292';
+String _$orderDetailHash() => r'090a80d4de452d2c332ff4f5900ad47c214569e3';
 
 abstract class _$OrderDetail
     extends BuildlessAutoDisposeAsyncNotifier<OrderModel> {

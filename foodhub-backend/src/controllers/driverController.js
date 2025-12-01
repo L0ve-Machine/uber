@@ -321,7 +321,7 @@ exports.getProfile = async (req, res) => {
       full_name: driver.full_name,
       phone: driver.phone,
       vehicle_type: driver.vehicle_type,
-      license_plate: driver.license_plate,
+      license_number: driver.license_number,
       is_online: driver.is_online,
       is_approved: driver.is_approved,
       current_latitude: driver.current_latitude,

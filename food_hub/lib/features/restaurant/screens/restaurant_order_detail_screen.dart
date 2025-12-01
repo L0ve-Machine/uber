@@ -89,14 +89,6 @@ class RestaurantOrderDetailScreen extends ConsumerWidget {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            const Icon(Icons.label, size: 20, color: Colors.grey),
-                            const SizedBox(width: 8),
-                            Text(order.deliveryAddress!.label),
-                          ],
-                        ),
                       ],
                     ],
                   ),

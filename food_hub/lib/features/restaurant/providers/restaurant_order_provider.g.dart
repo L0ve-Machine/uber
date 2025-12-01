@@ -46,7 +46,7 @@ final restaurantOrderRepositoryProvider =
 
 typedef RestaurantOrderRepositoryRef
     = AutoDisposeProviderRef<RestaurantOrderRepository>;
-String _$restaurantOrdersHash() => r'fc605b9098cf80c51d77b184a1f19fc249b8da67';
+String _$restaurantOrdersHash() => r'69e3b4dae9ff5964c6ccce792f3fa142771ff064';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -225,7 +225,7 @@ class _RestaurantOrdersProviderElement
 }
 
 String _$restaurantOrderDetailHash() =>
-    r'3037a8a70eb7cd7dd16fe0ff763127de0c3a1a20';
+    r'f71d7f83d878fa44c8ccd9ede3a65e8aae451119';
 
 abstract class _$RestaurantOrderDetail
     extends BuildlessAutoDisposeAsyncNotifier<OrderModel> {
@@ -383,7 +383,7 @@ class _RestaurantOrderDetailProviderElement
   int get orderId => (origin as RestaurantOrderDetailProvider).orderId;
 }
 
-String _$restaurantStatsHash() => r'2111f329dbbb3aaa4ab43228e159b7ef8cf5a6c8';
+String _$restaurantStatsHash() => r'2e6526d68e49b1c952b6885cff00e8efbfd38267';
 
 abstract class _$RestaurantStats
     extends BuildlessAutoDisposeAsyncNotifier<RestaurantStatsModel> {

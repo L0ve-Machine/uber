@@ -45,4 +45,16 @@ const MenuItem = sequelize.define('MenuItem', {
   underscored: true,
 });
 
+// Override toJSON to convert DECIMAL strings to numbers
+MenuItem.prototype.toJSON = function () {
+  const values = Object.assign({}, this.get());
+
+  // Convert DECIMAL fields to numbers
+  if (values.price !== null && values.price !== undefined) {
+    values.price = parseFloat(values.price);
+  }
+
+  return values;
+};
+
 module.exports = MenuItem;

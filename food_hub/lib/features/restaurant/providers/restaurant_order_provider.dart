@@ -42,14 +42,26 @@ class RestaurantOrders extends _$RestaurantOrders {
   /// Refresh orders
   Future<void> refresh() async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => build(status: _currentStatus));
+    final repository = ref.read(restaurantOrderRepositoryProvider);
+    state = await AsyncValue.guard(() => repository.getOrders(status: _currentStatus).then(
+      (result) => result.when(
+        success: (orders) => orders,
+        failure: (error) => throw error,
+      ),
+    ));
   }
 
   /// Filter by status
   Future<void> filterByStatus(String? status) async {
     _currentStatus = status;
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => build(status: status));
+    final repository = ref.read(restaurantOrderRepositoryProvider);
+    state = await AsyncValue.guard(() => repository.getOrders(status: status).then(
+      (result) => result.when(
+        success: (orders) => orders,
+        failure: (error) => throw error,
+      ),
+    ));
   }
 
   /// Accept order
@@ -137,7 +149,13 @@ class RestaurantOrderDetail extends _$RestaurantOrderDetail {
   /// Refresh order detail
   Future<void> refresh() async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => build(orderId));
+    final repository = ref.read(restaurantOrderRepositoryProvider);
+    state = await AsyncValue.guard(() => repository.getOrderById(orderId).then(
+      (result) => result.when(
+        success: (order) => order,
+        failure: (error) => throw error,
+      ),
+    ));
   }
 
   /// Accept order
@@ -222,13 +240,25 @@ class RestaurantStats extends _$RestaurantStats {
   /// Refresh stats
   Future<void> refresh() async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => build(period: _currentPeriod));
+    final repository = ref.read(restaurantOrderRepositoryProvider);
+    state = await AsyncValue.guard(() => repository.getStats(period: _currentPeriod).then(
+      (result) => result.when(
+        success: (stats) => stats,
+        failure: (error) => throw error,
+      ),
+    ));
   }
 
   /// Change period
   Future<void> changePeriod(String period) async {
     _currentPeriod = period;
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => build(period: period));
+    final repository = ref.read(restaurantOrderRepositoryProvider);
+    state = await AsyncValue.guard(() => repository.getStats(period: period).then(
+      (result) => result.when(
+        success: (stats) => stats,
+        failure: (error) => throw error,
+      ),
+    ));
   }
 }

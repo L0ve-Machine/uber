@@ -115,4 +115,19 @@ const Order = sequelize.define('Order', {
   underscored: true,
 });
 
+// Override toJSON to convert DECIMAL strings to numbers
+Order.prototype.toJSON = function () {
+  const values = Object.assign({}, this.get());
+
+  // Convert DECIMAL fields to numbers
+  const decimalFields = ['subtotal', 'delivery_fee', 'tax', 'discount', 'total'];
+  decimalFields.forEach(field => {
+    if (values[field] !== null && values[field] !== undefined) {
+      values[field] = parseFloat(values[field]);
+    }
+  });
+
+  return values;
+};
+
 module.exports = Order;

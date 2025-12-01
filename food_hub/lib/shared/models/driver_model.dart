@@ -10,8 +10,8 @@ class DriverModel {
   final String phone;
   @JsonKey(name: 'vehicle_type')
   final String vehicleType;
-  @JsonKey(name: 'license_plate')
-  final String licensePlate;
+  @JsonKey(name: 'license_number')
+  final String? licenseNumber;
   @JsonKey(name: 'is_online')
   final bool isOnline;
   @JsonKey(name: 'stripe_account_id')
@@ -30,7 +30,7 @@ class DriverModel {
     required this.fullName,
     required this.phone,
     required this.vehicleType,
-    required this.licensePlate,
+    this.licenseNumber,
     required this.isOnline,
     this.stripeAccountId,
     required this.stripeOnboardingCompleted,

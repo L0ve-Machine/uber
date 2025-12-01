@@ -41,7 +41,7 @@ final driverRepositoryProvider = AutoDisposeProvider<DriverRepository>.internal(
 
 typedef DriverRepositoryRef = AutoDisposeProviderRef<DriverRepository>;
 String _$driverOnlineStatusHash() =>
-    r'462a982acf64445035fa31b8694bfec6b54b26bd';
+    r'd9de0cd5353f640581851c3050f977cb391ead3c';
 
 /// Driver online status provider
 ///

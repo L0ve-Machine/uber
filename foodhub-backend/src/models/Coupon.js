@@ -54,4 +54,19 @@ const Coupon = sequelize.define('Coupon', {
   underscored: true,
 });
 
+// Override toJSON to convert DECIMAL strings to numbers
+Coupon.prototype.toJSON = function () {
+  const values = Object.assign({}, this.get());
+
+  // Convert DECIMAL fields to numbers
+  const decimalFields = ['discount_value', 'min_order_amount', 'max_discount'];
+  decimalFields.forEach(field => {
+    if (values[field] !== null && values[field] !== undefined) {
+      values[field] = parseFloat(values[field]);
+    }
+  });
+
+  return values;
+};
+
 module.exports = Coupon;

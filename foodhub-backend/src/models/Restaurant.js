@@ -113,4 +113,20 @@ const Restaurant = sequelize.define('Restaurant', {
   underscored: true,
 });
 
+// Override toJSON to convert DECIMAL strings to numbers
+Restaurant.prototype.toJSON = function () {
+  const values = Object.assign({}, this.get());
+
+  // Convert DECIMAL fields to numbers
+  const decimalFields = ['latitude', 'longitude', 'rating', 'min_order_amount',
+                         'delivery_fee', 'delivery_radius_km', 'commission_rate'];
+  decimalFields.forEach(field => {
+    if (values[field] !== null && values[field] !== undefined) {
+      values[field] = parseFloat(values[field]);
+    }
+  });
+
+  return values;
+};
+
 module.exports = Restaurant;

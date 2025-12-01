@@ -43,14 +43,26 @@ class OrderHistory extends _$OrderHistory {
   /// Refresh order history
   Future<void> refresh() async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => build(status: _currentStatus));
+    final repository = ref.read(orderRepositoryProvider);
+    state = await AsyncValue.guard(() => repository.getOrders(status: _currentStatus).then(
+      (result) => result.when(
+        success: (orders) => orders,
+        failure: (error) => throw error,
+      ),
+    ));
   }
 
   /// Filter by status
   Future<void> filterByStatus(String? status) async {
     _currentStatus = status;
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => build(status: status));
+    final repository = ref.read(orderRepositoryProvider);
+    state = await AsyncValue.guard(() => repository.getOrders(status: status).then(
+      (result) => result.when(
+        success: (orders) => orders,
+        failure: (error) => throw error,
+      ),
+    ));
   }
 }
 
@@ -71,7 +83,13 @@ class OrderDetail extends _$OrderDetail {
   /// Refresh order detail
   Future<void> refresh() async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => build(orderId));
+    final repository = ref.read(orderRepositoryProvider);
+    state = await AsyncValue.guard(() => repository.getOrderById(orderId).then(
+      (result) => result.when(
+        success: (order) => order,
+        failure: (error) => throw error,
+      ),
+    ));
   }
 
   /// Cancel order

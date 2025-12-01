@@ -143,8 +143,9 @@ io.on('connection', (socket) => {
 app.set('io', io);
 
 // Start server
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Also accessible on http://0.0.0.0:${PORT}`);
   console.log(`🔌 Socket.IO server ready`);
   console.log(`📝 Environment: ${process.env.NODE_ENV}`);
 });

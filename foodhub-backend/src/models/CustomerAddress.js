@@ -49,4 +49,19 @@ const CustomerAddress = sequelize.define('CustomerAddress', {
   underscored: true,
 });
 
+// Override toJSON to convert DECIMAL strings to numbers
+CustomerAddress.prototype.toJSON = function () {
+  const values = Object.assign({}, this.get());
+
+  // Convert DECIMAL fields to numbers
+  const decimalFields = ['latitude', 'longitude'];
+  decimalFields.forEach(field => {
+    if (values[field] !== null && values[field] !== undefined) {
+      values[field] = parseFloat(values[field]);
+    }
+  });
+
+  return values;
+};
+
 module.exports = CustomerAddress;

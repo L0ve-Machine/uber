@@ -28,7 +28,9 @@ DriverRepository driverRepository(DriverRepositoryRef ref) {
 class DriverOnlineStatus extends _$DriverOnlineStatus {
   @override
   bool build() {
-    return false;
+    // Read initial status from driver profile
+    final driverAsync = ref.watch(driverProfileProvider);
+    return driverAsync.valueOrNull?.isOnline ?? false;
   }
 
   Future<bool> toggleOnline(bool isOnline) async {
@@ -66,6 +68,8 @@ class DriverOnlineStatus extends _$DriverOnlineStatus {
     return result.when(
       success: (newStatus) {
         state = newStatus;
+        // Refresh driver profile to keep it in sync
+        ref.invalidate(driverProfileProvider);
         if (newStatus) {
           // Refresh available orders when coming online
           ref.invalidate(availableOrdersProvider);
