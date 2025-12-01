@@ -182,36 +182,27 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Builder(builder: (context) {
-              print('[Checkout] Rendering Address Section');
-              return _buildSection(
-                title: '配達先住所',
-                child: _buildAddressSelector(),
-              );
-            }),
+            Text('配達先住所', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black)),
+            const SizedBox(height: 8),
+            _buildAddressSelector(),
 
             const SizedBox(height: 16),
 
-            // Order Items
-            _buildSection(
-              title: '注文内容',
-              child: _buildOrderItems(cartItems),
-            ),
+            Text('注文内容', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black)),
+            const SizedBox(height: 8),
+            _buildOrderItems(cartItems),
 
             const SizedBox(height: 16),
 
-            // Coupon
-            _buildSection(
-              title: 'クーポン',
-              child: _buildCoupon(),
-            ),
+            Text('クーポン', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black)),
+            const SizedBox(height: 8),
+            _buildCoupon(),
 
             const SizedBox(height: 16),
 
-            // Special Instructions
-            _buildSection(
-              title: '特別リクエスト（オプション）',
-              child: TextField(
+            Text('特別リクエスト（オプション）', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black)),
+            const SizedBox(height: 8),
+            TextField(
                 controller: _specialInstructionsController,
                 maxLines: 3,
                 decoration: InputDecoration(
@@ -227,19 +218,15 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
             const SizedBox(height: 16),
 
-            // Payment Method
-            _buildSection(
-              title: 'お支払い方法',
-              child: _buildPaymentMethod(),
-            ),
+            Text('お支払い方法', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black)),
+            const SizedBox(height: 8),
+            _buildPaymentMethod(),
 
             const SizedBox(height: 16),
 
-            // Price Summary
-            _buildSection(
-              title: '料金詳細',
-              child: _buildPriceSummary(cartNotifier),
-            ),
+            Text('料金詳細', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black)),
+            const SizedBox(height: 8),
+            _buildPriceSummary(cartNotifier),
 
             const SizedBox(height: 24),
 
