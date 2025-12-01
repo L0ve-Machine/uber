@@ -373,7 +373,7 @@ class _OrderDetailProviderElement
   int get orderId => (origin as OrderDetailProvider).orderId;
 }
 
-String _$createOrderHash() => r'4ad172dca768dc0e2d9291b9b9c906f9e1c40613';
+String _$createOrderHash() => r'6cdc88f807b0ba7308348f76501c486448be4de3';
 
 /// Create order action
 ///

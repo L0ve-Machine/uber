@@ -4,6 +4,15 @@ import 'address_model.dart';
 
 part 'order_model.g.dart';
 
+/// Helper function to parse double values that might come as String from MySQL
+double _parseDouble(dynamic value) {
+  if (value == null) return 0.0;
+  if (value is double) return value;
+  if (value is int) return value.toDouble();
+  if (value is String) return double.tryParse(value) ?? 0.0;
+  return 0.0;
+}
+
 @JsonSerializable()
 class OrderModel {
   final int id;
@@ -18,13 +27,17 @@ class OrderModel {
   @JsonKey(name: 'delivery_address_id')
   final int deliveryAddressId;
   final String status;
+  @JsonKey(fromJson: _parseDouble)
   final double subtotal;
-  @JsonKey(name: 'delivery_fee')
+  @JsonKey(name: 'delivery_fee', fromJson: _parseDouble)
   final double deliveryFee;
-  @JsonKey(name: 'service_fee')
+  @JsonKey(name: 'service_fee', fromJson: _parseDouble)
   final double? serviceFee;
+  @JsonKey(fromJson: _parseDouble)
   final double tax;
+  @JsonKey(fromJson: _parseDouble)
   final double discount;
+  @JsonKey(fromJson: _parseDouble)
   final double total;
   @JsonKey(name: 'payment_method')
   final String paymentMethod;
@@ -93,9 +106,9 @@ class OrderItemModel {
   @JsonKey(name: 'menu_item_id')
   final int menuItemId;
   final int quantity;
-  @JsonKey(name: 'unit_price')
+  @JsonKey(name: 'unit_price', fromJson: _parseDouble)
   final double unitPrice;
-  @JsonKey(name: 'total_price')
+  @JsonKey(name: 'total_price', fromJson: _parseDouble)
   final double totalPrice;
   @JsonKey(name: 'selected_options')
   final List<SelectedOptionModel>? selectedOptions;
