@@ -29,18 +29,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   void initState() {
     super.initState();
     _stripeService.initialize();
-    _loadDefaultAddress();
-  }
-
-  Future<void> _loadDefaultAddress() async {
-    final addressAsync = ref.read(defaultAddressProvider);
-    addressAsync.whenData((address) {
-      if (mounted && address != null) {
-        setState(() {
-          _selectedAddress = address;
-        });
-      }
-    });
   }
 
   @override
