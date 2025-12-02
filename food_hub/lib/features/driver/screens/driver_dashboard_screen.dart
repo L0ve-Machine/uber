@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/network/api_error.dart';
 import '../../../shared/widgets/loading_indicator.dart';
 import '../../../shared/widgets/error_view.dart';
 import '../../../shared/widgets/empty_state.dart';
@@ -406,16 +407,21 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
 
     if (mounted) {
       final success = result['success'] as bool;
-      final errorMessage = result['message'] as String?;
+      final error = result['message'] as ApiError?; // ApiError object or null
 
       String displayMessage;
       if (success) {
         displayMessage = isOnline ? 'オンラインになりました' : 'オフラインになりました';
-      } else if (errorMessage != null && errorMessage.contains('Stripe')) {
-        // Stripeエラーの場合は具体的なメッセージを表示
-        displayMessage = 'Stripe設定を完了してからオンラインにしてください';
+      } else if (error != null) {
+        // ApiErrorオブジェクトからメッセージを取得
+        if (error.message.contains('Stripe')) {
+          // Stripeエラーの場合は具体的なメッセージを表示
+          displayMessage = 'Stripe設定を完了してからオンラインにしてください';
+        } else {
+          displayMessage = error.message;
+        }
       } else {
-        displayMessage = errorMessage ?? '状態の変更に失敗しました';
+        displayMessage = '状態の変更に失敗しました';
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
