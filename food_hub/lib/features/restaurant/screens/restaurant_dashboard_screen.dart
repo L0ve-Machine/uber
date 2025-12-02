@@ -240,26 +240,27 @@ class _RestaurantDashboardScreenState
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey[300]!),
       ),
       child: Column(
         children: [
-          Icon(icon, color: color, size: 28),
+          Icon(icon, color: Colors.black, size: 24),
           const SizedBox(height: 8),
           Text(
             value,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: color,
+              color: Colors.black,
             ),
           ),
           Text(
             label,
             style: TextStyle(
               fontSize: 12,
-              color: AppColors.textSecondary,
+              color: Colors.grey[600],
             ),
           ),
         ],
