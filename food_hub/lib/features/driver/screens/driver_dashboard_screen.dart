@@ -10,6 +10,7 @@ import '../../auth/providers/auth_provider.dart';
 import '../providers/driver_provider.dart';
 import '../providers/driver_profile_provider.dart';
 import '../widgets/driver_order_card.dart';
+import '../widgets/pickup_pin_dialog.dart';
 import 'driver_active_delivery_screen.dart';
 import 'driver_stripe_setup_screen.dart';
 
@@ -460,6 +461,26 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
   }
 
   Future<void> _handleStartDelivering(int orderId) async {
+    // まずPIN入力ダイアログを表示
+    final pinVerified = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => PickupPinDialog(orderId: orderId),
+    );
+
+    if (pinVerified != true) return;
+
+    // PIN確認後、配達開始の確認
+    final confirmed = await ConfirmationDialog.show(
+      context,
+      title: '配達を開始しますか？',
+      message: '商品をピックアップし、配達先に向かいます。',
+      confirmText: '開始する',
+      confirmColor: Colors.orange,
+    );
+
+    if (confirmed != true) return;
+
     final success = await ref
         .read(activeDeliveriesProvider.notifier)
         .startDelivering(orderId);
