@@ -8,8 +8,8 @@ const router = express.Router();
 
 // Validation rules
 const addressValidation = [
-  body('address_line').notEmpty().withMessage('Address line is required'),
-  body('city').notEmpty().withMessage('City is required'),
+  body('address_line_1').notEmpty().withMessage('Address line 1 is required'),
+  // address_line_2 is optional, no validation
   body('postal_code').notEmpty().withMessage('Postal code is required'),
 ];
 
