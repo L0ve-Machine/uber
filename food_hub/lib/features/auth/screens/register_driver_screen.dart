@@ -19,8 +19,6 @@ class _RegisterDriverScreenState extends ConsumerState<RegisterDriverScreen> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  final _vehicleTypeController = TextEditingController();
-  final _licenseNumberController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
@@ -31,8 +29,6 @@ class _RegisterDriverScreenState extends ConsumerState<RegisterDriverScreen> {
     _phoneController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
-    _vehicleTypeController.dispose();
-    _licenseNumberController.dispose();
     super.dispose();
   }
 
@@ -46,8 +42,8 @@ class _RegisterDriverScreenState extends ConsumerState<RegisterDriverScreen> {
           password: _passwordController.text,
           fullName: _fullNameController.text.trim(),
           phone: _phoneController.text.trim(),
-          vehicleType: _vehicleTypeController.text.trim(),
-          licenseNumber: _licenseNumberController.text.trim(),
+          vehicleType: 'Bicycle', // デフォルト値
+          licenseNumber: 'N/A', // デフォルト値
         );
 
     final authState = ref.read(authProvider);
@@ -146,32 +142,6 @@ class _RegisterDriverScreenState extends ConsumerState<RegisterDriverScreen> {
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return '電話番号を入力してください';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                CustomTextField(
-                  controller: _vehicleTypeController,
-                  label: '車両タイプ (例: バイク, 自転車)',
-                  prefixIcon: const Icon(Icons.directions_bike),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return '車両タイプを入力してください';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                CustomTextField(
-                  controller: _licenseNumberController,
-                  label: '免許番号',
-                  prefixIcon: const Icon(Icons.badge),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return '免許番号を入力してください';
                     }
                     return null;
                   },
