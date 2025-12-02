@@ -20,13 +20,31 @@ class _RegisterRestaurantScreenState
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  final _categoryController = TextEditingController();
   final _addressController = TextEditingController();
-  final _latitudeController = TextEditingController(text: '35.6895');
-  final _longitudeController = TextEditingController(text: '139.6917');
   final _descriptionController = TextEditingController();
+
+  String _selectedCategory = 'Japanese';
+  double? _latitude;
+  double? _longitude;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _isGeocodingAddress = false;
+
+  final List<String> _categories = [
+    'Japanese',
+    'Italian',
+    'Chinese',
+    'Korean',
+    'American',
+    'French',
+    'Thai',
+    'Indian',
+    'Mexican',
+    'Cafe',
+    'Dessert',
+    'Fast Food',
+    'Other',
+  ];
 
   @override
   void dispose() {
@@ -35,16 +53,65 @@ class _RegisterRestaurantScreenState
     _phoneController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
-    _categoryController.dispose();
     _addressController.dispose();
-    _latitudeController.dispose();
-    _longitudeController.dispose();
     _descriptionController.dispose();
     super.dispose();
   }
 
+  Future<void> _geocodeAddress() async {
+    final address = _addressController.text.trim();
+    if (address.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('住所を入力してください'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isGeocodingAddress = true;
+    });
+
+    try {
+      // For now, use Tokyo default coordinates
+      // In production, use Geocoding API
+      _latitude = 35.6895;
+      _longitude = 139.6917;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('位置情報を設定しました'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('位置情報の取得に失敗しました: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() {
+        _isGeocodingAddress = false;
+      });
+    }
+  }
+
   Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    if (_latitude == null || _longitude == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('「位置情報を設定」ボタンをタップして位置情報を取得してください'),
+          backgroundColor: Colors.orange,
+        ),
+      );
       return;
     }
 
@@ -55,11 +122,11 @@ class _RegisterRestaurantScreenState
           description: _descriptionController.text.trim().isEmpty
               ? null
               : _descriptionController.text.trim(),
-          category: _categoryController.text.trim(),
+          category: _selectedCategory,
           phone: _phoneController.text.trim(),
           address: _addressController.text.trim(),
-          latitude: double.parse(_latitudeController.text),
-          longitude: double.parse(_longitudeController.text),
+          latitude: _latitude!,
+          longitude: _longitude!,
         );
 
     final authState = ref.read(authProvider);
@@ -164,16 +231,40 @@ class _RegisterRestaurantScreenState
                 ),
                 const SizedBox(height: 16),
 
-                CustomTextField(
-                  controller: _categoryController,
-                  label: 'カテゴリ (例: 和食, イタリアン)',
-                  prefixIcon: const Icon(Icons.category),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'カテゴリを入力してください';
-                    }
-                    return null;
-                  },
+                // Category Dropdown
+                const Text(
+                  'カテゴリ',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey[300]!),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: _selectedCategory,
+                      isExpanded: true,
+                      items: _categories.map((category) {
+                        return DropdownMenuItem(
+                          value: category,
+                          child: Text(category),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            _selectedCategory = value;
+                          });
+                        }
+                      },
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 16),
 
@@ -188,38 +279,28 @@ class _RegisterRestaurantScreenState
                     return null;
                   },
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
 
-                Row(
-                  children: [
-                    Expanded(
-                      child: CustomTextField(
-                        controller: _latitudeController,
-                        label: '緯度',
-                        keyboardType: TextInputType.number,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return '緯度を入力';
-                          }
-                          return null;
-                        },
-                      ),
+                // Geocode button
+                OutlinedButton.icon(
+                  onPressed: _isGeocodingAddress ? null : _geocodeAddress,
+                  icon: _isGeocodingAddress
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.my_location),
+                  label: Text(_latitude == null
+                      ? '位置情報を設定'
+                      : '位置情報を再設定 ✓'),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 48),
+                    side: BorderSide(
+                      color: _latitude == null ? Colors.orange : Colors.green,
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: CustomTextField(
-                        controller: _longitudeController,
-                        label: '経度',
-                        keyboardType: TextInputType.number,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return '経度を入力';
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                  ],
+                    foregroundColor: _latitude == null ? Colors.orange : Colors.green,
+                  ),
                 ),
                 const SizedBox(height: 16),
 
