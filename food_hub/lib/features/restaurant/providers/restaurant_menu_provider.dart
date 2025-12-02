@@ -73,7 +73,8 @@ class RestaurantMenu extends _$RestaurantMenu {
   }
 
   /// Delete menu item
-  Future<bool> deleteMenuItem(int menuItemId) async {
+  /// Returns (success, errorMessage)
+  Future<(bool, String?)> deleteMenuItem(int menuItemId) async {
     final repository = ref.read(restaurantMenuRepositoryProvider);
     final result = await repository.deleteMenuItem(menuItemId);
 
@@ -84,9 +85,9 @@ class RestaurantMenu extends _$RestaurantMenu {
           final updatedItems = items.where((item) => item.id != menuItemId).toList();
           state = AsyncValue.data(updatedItems);
         });
-        return true;
+        return (true, null);
       },
-      failure: (error) => false,
+      failure: (error) => (false, error.message),
     );
   }
 }

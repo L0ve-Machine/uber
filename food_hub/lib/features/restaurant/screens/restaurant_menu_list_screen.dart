@@ -175,15 +175,16 @@ class _RestaurantMenuListScreenState extends ConsumerState<RestaurantMenuListScr
     );
 
     if (confirmed == true) {
-      final success = await ref
+      final (success, errorMessage) = await ref
           .read(restaurantMenuProvider(category: _selectedCategory).notifier)
           .deleteMenuItem(menuItemId);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(success ? 'メニューを削除しました' : '削除に失敗しました'),
+            content: Text(success ? 'メニューを削除しました' : (errorMessage ?? '削除に失敗しました')),
             backgroundColor: success ? Colors.orange : Colors.red,
+            duration: Duration(seconds: success ? 2 : 4),
           ),
         );
       }

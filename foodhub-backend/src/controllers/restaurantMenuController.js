@@ -164,6 +164,14 @@ exports.deleteMenuItem = async (req, res) => {
     });
   } catch (error) {
     console.error('Delete menu item error:', error);
+
+    // Check for foreign key constraint error
+    if (error.name === 'SequelizeForeignKeyConstraintError') {
+      return res.status(400).json({
+        error: 'このメニューは過去の注文で使用されているため削除できません。提供停止にすることをおすすめします。'
+      });
+    }
+
     res.status(500).json({ error: 'Server error' });
   }
 };
