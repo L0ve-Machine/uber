@@ -167,7 +167,7 @@ exports.updateDeliveryStatus = async (req, res) => {
         where: {
           driver_id: order.driver_id,
           status: 'delivering',
-          id: { [sequelize.Sequelize.Op.ne]: order.id }
+          id: { [Op.ne]: order.id }
         }
       });
 
