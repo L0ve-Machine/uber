@@ -355,10 +355,25 @@ exports.cancelOrder = async (req, res) => {
     if (order.payment_method === 'card' && order.stripe_payment_id) {
       const stripe = require('../config/stripe');
       try {
-        await stripe.paymentIntents.cancel(order.stripe_payment_id);
-        console.log(`[REFUND] Customer cancelled order ${order.id}, payment cancelled: ${order.stripe_payment_id}`);
+        // Check Payment Intent status first
+        const paymentIntent = await stripe.paymentIntents.retrieve(order.stripe_payment_id);
+
+        if (paymentIntent.status === 'succeeded') {
+          // Payment completed - create refund
+          const refund = await stripe.refunds.create({
+            payment_intent: order.stripe_payment_id,
+          });
+          console.log(`[REFUND] Customer cancelled order ${order.id}, refund created: ${refund.id}`);
+        } else if (paymentIntent.status === 'requires_payment_method' ||
+                   paymentIntent.status === 'requires_confirmation') {
+          // Payment not completed - cancel
+          await stripe.paymentIntents.cancel(order.stripe_payment_id);
+          console.log(`[REFUND] Customer cancelled order ${order.id}, payment cancelled: ${order.stripe_payment_id}`);
+        } else {
+          console.log(`[REFUND] Payment Intent status is ${paymentIntent.status}, no action needed`);
+        }
       } catch (error) {
-        console.error('[REFUND] Failed to cancel payment:', error);
+        console.error('[REFUND] Failed to process refund:', error);
         // Continue even if refund fails - can be processed manually later
       }
     }
