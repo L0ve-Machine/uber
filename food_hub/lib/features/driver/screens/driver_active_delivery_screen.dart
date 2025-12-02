@@ -177,14 +177,14 @@ class DriverActiveDeliveryScreen extends ConsumerWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '${order.deliveryAddress!.addressLine}, ${order.deliveryAddress!.city} ${order.deliveryAddress!.postalCode}',
+                            order.deliveryAddress!.fullAddress,
                           ),
                           const SizedBox(height: 12),
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton.icon(
                               onPressed: () => _openMaps(
-                                '${order.deliveryAddress!.addressLine}, ${order.deliveryAddress!.city}',
+                                order.deliveryAddress!.fullAddress,
                               ),
                               icon: const Icon(Icons.navigation),
                               label: const Text('ナビ'),

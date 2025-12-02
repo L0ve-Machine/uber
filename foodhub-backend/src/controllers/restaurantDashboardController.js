@@ -6,6 +6,7 @@ const MenuItem = require('../models/MenuItem');
 const MenuItemOption = require('../models/MenuItemOption');
 const Customer = require('../models/Customer');
 const CustomerAddress = require('../models/CustomerAddress');
+const Restaurant = require('../models/Restaurant');
 const { generatePickupPin } = require('../utils/pinGenerator');
 
 /**

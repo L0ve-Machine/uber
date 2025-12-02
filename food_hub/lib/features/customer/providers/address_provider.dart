@@ -49,8 +49,8 @@ class AddressList extends _$AddressList {
 
   /// Add new address
   Future<ApiResult<AddressModel>> addAddress({
-    required String addressLine,
-    required String city,
+    required String addressLine1,
+    String? addressLine2,
     required String postalCode,
     double? latitude,
     double? longitude,
@@ -65,8 +65,8 @@ class AddressList extends _$AddressList {
     final repository = ref.read(addressRepositoryProvider);
     final result = await repository.addAddress(
       customerId: user.id,
-      addressLine: addressLine,
-      city: city,
+      addressLine1: addressLine1,
+      addressLine2: addressLine2,
       postalCode: postalCode,
       latitude: latitude,
       longitude: longitude,

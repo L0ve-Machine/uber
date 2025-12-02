@@ -14,9 +14,9 @@ class AddAddressScreen extends ConsumerStatefulWidget {
 
 class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _addressLineController = TextEditingController();
-  final _cityController = TextEditingController();
   final _postalCodeController = TextEditingController();
+  final _addressLine1Controller = TextEditingController();
+  final _addressLine2Controller = TextEditingController();
 
   String _selectedLabel = 'Home';
   bool _isDefault = false;
@@ -30,9 +30,9 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
 
   @override
   void dispose() {
-    _addressLineController.dispose();
-    _cityController.dispose();
     _postalCodeController.dispose();
+    _addressLine1Controller.dispose();
+    _addressLine2Controller.dispose();
     super.dispose();
   }
 
@@ -47,9 +47,11 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
 
     try {
       final result = await ref.read(addressListProvider.notifier).addAddress(
-            addressLine: _addressLineController.text.trim(),
-            city: _cityController.text.trim(),
             postalCode: _postalCodeController.text.trim(),
+            addressLine1: _addressLine1Controller.text.trim(),
+            addressLine2: _addressLine2Controller.text.trim().isEmpty
+                ? null
+                : _addressLine2Controller.text.trim(),
             isDefault: _isDefault,
             label: _selectedLabel,
           );
@@ -170,11 +172,28 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
 
               const SizedBox(height: 24),
 
-              // Address line
+              // Postal code (FIRST - Japanese standard)
               CustomTextField(
-                controller: _addressLineController,
-                labelText: '住所',
-                hintText: '例: 東京都渋谷区神南1-2-3',
+                controller: _postalCodeController,
+                labelText: '郵便番号',
+                hintText: '例: 150-0001',
+                prefixIcon: const Icon(Icons.markunread_mailbox_outlined),
+                keyboardType: TextInputType.text,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return '郵便番号を入力してください';
+                  }
+                  return null;
+                },
+              ),
+
+              const SizedBox(height: 16),
+
+              // Address line 1 (Main address)
+              CustomTextField(
+                controller: _addressLine1Controller,
+                labelText: '住所1',
+                hintText: '例: 東京都渋谷区神宮前3-15-8',
                 prefixIcon: const Icon(Icons.location_on_outlined),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
@@ -186,35 +205,13 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
 
               const SizedBox(height: 16),
 
-              // City
+              // Address line 2 (Building/Apartment - Optional)
               CustomTextField(
-                controller: _cityController,
-                labelText: '市区町村',
-                hintText: '例: 渋谷区',
-                prefixIcon: const Icon(Icons.location_city),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return '市区町村を入力してください';
-                  }
-                  return null;
-                },
-              ),
-
-              const SizedBox(height: 16),
-
-              // Postal code
-              CustomTextField(
-                controller: _postalCodeController,
-                labelText: '郵便番号',
-                hintText: '例: 150-0041',
-                prefixIcon: const Icon(Icons.markunread_mailbox_outlined),
-                keyboardType: TextInputType.text,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return '郵便番号を入力してください';
-                  }
-                  return null;
-                },
+                controller: _addressLine2Controller,
+                labelText: '住所2 (建物名・部屋番号)',
+                hintText: '例: グランドメゾン青山 402号室',
+                prefixIcon: const Icon(Icons.apartment_outlined),
+                validator: null, // Optional field
               ),
 
               const SizedBox(height: 24),

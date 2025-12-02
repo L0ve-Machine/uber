@@ -287,18 +287,10 @@ class _AddressCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      address.addressLine,
+                      address.fullAddress,
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey[700],
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${address.city} ${address.postalCode}',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey[500],
                       ),
                     ),
                   ],

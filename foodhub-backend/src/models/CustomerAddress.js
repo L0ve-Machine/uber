@@ -15,13 +15,13 @@ const CustomerAddress = sequelize.define('CustomerAddress', {
       key: 'id',
     },
   },
-  address_line: {
+  address_line_1: {
     type: DataTypes.STRING(255),
     allowNull: false,
   },
-  city: {
-    type: DataTypes.STRING(100),
-    allowNull: false,
+  address_line_2: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
   },
   postal_code: {
     type: DataTypes.STRING(20),

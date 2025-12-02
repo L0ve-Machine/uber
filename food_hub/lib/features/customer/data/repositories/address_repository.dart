@@ -17,8 +17,8 @@ class AddressRepository {
   /// Add new address
   Future<ApiResult<AddressModel>> addAddress({
     required int customerId,
-    required String addressLine,
-    required String city,
+    required String addressLine1,
+    String? addressLine2,
     required String postalCode,
     double? latitude,
     double? longitude,
@@ -27,8 +27,8 @@ class AddressRepository {
   }) async {
     return await _apiService.addAddress(
       customerId: customerId,
-      addressLine: addressLine,
-      city: city,
+      addressLine1: addressLine1,
+      addressLine2: addressLine2,
       postalCode: postalCode,
       latitude: latitude,
       longitude: longitude,
@@ -40,8 +40,8 @@ class AddressRepository {
   /// Update address
   Future<ApiResult<AddressModel>> updateAddress({
     required int addressId,
-    required String addressLine,
-    required String city,
+    required String addressLine1,
+    String? addressLine2,
     required String postalCode,
     double? latitude,
     double? longitude,
@@ -49,8 +49,8 @@ class AddressRepository {
   }) async {
     return await _apiService.updateAddress(
       addressId: addressId,
-      addressLine: addressLine,
-      city: city,
+      addressLine1: addressLine1,
+      addressLine2: addressLine2,
       postalCode: postalCode,
       latitude: latitude,
       longitude: longitude,

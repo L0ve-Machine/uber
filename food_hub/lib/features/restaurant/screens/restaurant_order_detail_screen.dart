@@ -85,7 +85,7 @@ class RestaurantOrderDetailScreen extends ConsumerWidget {
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                '${order.deliveryAddress!.addressLine}, ${order.deliveryAddress!.city} ${order.deliveryAddress!.postalCode}',
+                                order.deliveryAddress!.fullAddress,
                               ),
                             ),
                           ],

@@ -16,9 +16,10 @@ class AddressModel {
   final int id;
   @JsonKey(name: 'customer_id')
   final int customerId;
-  @JsonKey(name: 'address_line')
-  final String addressLine;
-  final String city;
+  @JsonKey(name: 'address_line_1')
+  final String addressLine1;
+  @JsonKey(name: 'address_line_2')
+  final String? addressLine2;
   @JsonKey(name: 'postal_code')
   final String postalCode;
   @JsonKey(fromJson: _parseDoubleNullable)
@@ -36,8 +37,8 @@ class AddressModel {
   AddressModel({
     required this.id,
     required this.customerId,
-    required this.addressLine,
-    required this.city,
+    required this.addressLine1,
+    this.addressLine2,
     required this.postalCode,
     this.latitude,
     this.longitude,
@@ -53,5 +54,10 @@ class AddressModel {
   Map<String, dynamic> toJson() => _$AddressModelToJson(this);
 
   /// Full address string
-  String get fullAddress => '$addressLine, $city $postalCode';
+  String get fullAddress {
+    if (addressLine2 != null && addressLine2!.isNotEmpty) {
+      return '〒$postalCode $addressLine1 $addressLine2';
+    }
+    return '〒$postalCode $addressLine1';
+  }
 }

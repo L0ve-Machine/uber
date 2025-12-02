@@ -52,8 +52,8 @@ exports.addAddress = async (req, res) => {
     }
 
     const {
-      address_line,
-      city,
+      address_line_1,
+      address_line_2,
       postal_code,
       latitude,
       longitude,
@@ -71,8 +71,8 @@ exports.addAddress = async (req, res) => {
 
     const address = await CustomerAddress.create({
       customer_id,
-      address_line,
-      city,
+      address_line_1,
+      address_line_2,
       postal_code,
       latitude,
       longitude,
@@ -113,8 +113,8 @@ exports.updateAddress = async (req, res) => {
     }
 
     const {
-      address_line,
-      city,
+      address_line_1,
+      address_line_2,
       postal_code,
       latitude,
       longitude,
@@ -122,8 +122,8 @@ exports.updateAddress = async (req, res) => {
     } = req.body;
 
     await address.update({
-      address_line,
-      city,
+      address_line_1,
+      address_line_2,
       postal_code,
       latitude,
       longitude,

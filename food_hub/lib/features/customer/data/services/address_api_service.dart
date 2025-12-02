@@ -42,8 +42,8 @@ class AddressApiService {
   /// Add new address
   Future<ApiResult<AddressModel>> addAddress({
     required int customerId,
-    required String addressLine,
-    required String city,
+    required String addressLine1,
+    String? addressLine2,
     required String postalCode,
     double? latitude,
     double? longitude,
@@ -54,8 +54,8 @@ class AddressApiService {
       final response = await _dio.post(
         '/customers/$customerId/addresses',
         data: {
-          'address_line': addressLine,
-          'city': city,
+          'address_line_1': addressLine1,
+          if (addressLine2 != null && addressLine2.isNotEmpty) 'address_line_2': addressLine2,
           'postal_code': postalCode,
           if (latitude != null) 'latitude': latitude,
           if (longitude != null) 'longitude': longitude,
@@ -81,8 +81,8 @@ class AddressApiService {
   /// Update address
   Future<ApiResult<AddressModel>> updateAddress({
     required int addressId,
-    required String addressLine,
-    required String city,
+    required String addressLine1,
+    String? addressLine2,
     required String postalCode,
     double? latitude,
     double? longitude,
@@ -92,8 +92,8 @@ class AddressApiService {
       final response = await _dio.put(
         '/addresses/$addressId',
         data: {
-          'address_line': addressLine,
-          'city': city,
+          'address_line_1': addressLine1,
+          if (addressLine2 != null && addressLine2.isNotEmpty) 'address_line_2': addressLine2,
           'postal_code': postalCode,
           if (latitude != null) 'latitude': latitude,
           if (longitude != null) 'longitude': longitude,

@@ -94,7 +94,7 @@ class DriverOrderCard extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        '${order.deliveryAddress!.addressLine}, ${order.deliveryAddress!.city}',
+                        order.deliveryAddress!.fullAddress,
                         style: const TextStyle(fontWeight: FontWeight.w500),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,

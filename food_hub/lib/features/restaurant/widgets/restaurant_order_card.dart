@@ -59,7 +59,7 @@ class RestaurantOrderCard extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        '${order.deliveryAddress!.addressLine}, ${order.deliveryAddress!.city}',
+                        order.deliveryAddress!.fullAddress,
                         style: TextStyle(color: AppColors.textSecondary),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
