@@ -11,6 +11,8 @@ class OrderTrackingMap extends StatefulWidget {
   final double deliveryLatitude;
   final double deliveryLongitude;
   final bool showDriverLocation;
+  final String orderStatus;
+  final bool hasDriver;
   final String? restaurantName;
 
   const OrderTrackingMap({
@@ -22,6 +24,8 @@ class OrderTrackingMap extends StatefulWidget {
     required this.deliveryLatitude,
     required this.deliveryLongitude,
     this.showDriverLocation = false,
+    required this.orderStatus,
+    required this.hasDriver,
     this.restaurantName,
   });
 
@@ -172,8 +176,8 @@ class _OrderTrackingMapState extends State<OrderTrackingMap> {
                 ),
               ),
             ),
-            // プライバシーメッセージ（配達員位置非表示時）
-            if (!widget.showDriverLocation)
+            // ステータスメッセージ
+            if (_getStatusMessage() != null)
               Positioned(
                 bottom: 12,
                 left: 12,
@@ -181,20 +185,20 @@ class _OrderTrackingMapState extends State<OrderTrackingMap> {
                 child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.black87,
+                    color: _getStatusMessageColor(),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
                     children: [
-                      const Icon(
-                        Icons.info_outline,
+                      Icon(
+                        _getStatusMessageIcon(),
                         color: Colors.white,
                         size: 20,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          '配達員が他の配送先へ配達中です',
+                          _getStatusMessage()!,
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 12,
@@ -223,5 +227,89 @@ class _OrderTrackingMapState extends State<OrderTrackingMap> {
         ),
       ],
     );
+  }
+
+  /// ステータスに応じたメッセージを取得
+  String? _getStatusMessage() {
+    switch (widget.orderStatus) {
+      case 'pending':
+        return '店舗の承認待ちです';
+      case 'accepted':
+        return '調理準備中';
+      case 'preparing':
+        return '調理中';
+      case 'ready':
+        if (!widget.hasDriver) {
+          return '配達員を探しています';
+        }
+        return null; // 配達員割り当て済みなら非表示
+      case 'picked_up':
+        if (!widget.showDriverLocation) {
+          return 'レストランから配達先に向かっています';
+        }
+        return _isDriverNearDelivery() ? 'もうすぐ到着します' : '配達中です';
+      case 'delivering':
+        return _isDriverNearDelivery() ? 'もうすぐ到着します' : '配達中です';
+      case 'delivered':
+      case 'cancelled':
+        return null; // 完了・キャンセル時は非表示
+      default:
+        return null;
+    }
+  }
+
+  /// 配達員が配達先に近いか判定（100m以内）
+  bool _isDriverNearDelivery() {
+    if (widget.driverLatitude == null || widget.driverLongitude == null) {
+      return false;
+    }
+
+    final distance = const Distance().as(
+      LengthUnit.Meter,
+      LatLng(widget.driverLatitude!, widget.driverLongitude!),
+      LatLng(widget.deliveryLatitude, widget.deliveryLongitude),
+    );
+
+    return distance < 100; // 100m以内なら「もうすぐ到着」
+  }
+
+  /// ステータスメッセージの背景色
+  Color _getStatusMessageColor() {
+    switch (widget.orderStatus) {
+      case 'pending':
+      case 'accepted':
+        return Colors.orange.withOpacity(0.9);
+      case 'preparing':
+        return Colors.purple.withOpacity(0.9);
+      case 'ready':
+        return Colors.blue.withOpacity(0.9);
+      case 'picked_up':
+      case 'delivering':
+        return _isDriverNearDelivery()
+            ? Colors.green.withOpacity(0.9)
+            : Colors.black.withOpacity(0.9);
+      default:
+        return Colors.black87;
+    }
+  }
+
+  /// ステータスメッセージのアイコン
+  IconData _getStatusMessageIcon() {
+    switch (widget.orderStatus) {
+      case 'pending':
+      case 'accepted':
+        return Icons.schedule;
+      case 'preparing':
+        return Icons.restaurant;
+      case 'ready':
+        return Icons.search;
+      case 'picked_up':
+      case 'delivering':
+        return _isDriverNearDelivery()
+            ? Icons.near_me
+            : Icons.delivery_dining;
+      default:
+        return Icons.info_outline;
+    }
   }
 }

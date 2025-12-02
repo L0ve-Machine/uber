@@ -204,6 +204,8 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
                           order.driverId != null &&
                           _realtimeDriverLat != null &&
                           _realtimeDriverLng != null,
+                      orderStatus: order.status,
+                      hasDriver: order.driverId != null,
                       restaurantName: order.restaurant?.name,
                     ),
                     const SizedBox(height: 24),
