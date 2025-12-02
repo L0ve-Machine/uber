@@ -68,9 +68,22 @@ exports.addFavorite = async (req, res) => {
       restaurant_id,
     });
 
+    // Fetch favorite with restaurant data
+    const favoriteWithRestaurant = await Favorite.findByPk(favorite.id, {
+      include: [
+        {
+          model: Restaurant,
+          as: 'restaurant',
+          attributes: {
+            exclude: ['password_hash'],
+          },
+        },
+      ],
+    });
+
     res.status(201).json({
       message: 'Restaurant added to favorites',
-      favorite,
+      favorite: favoriteWithRestaurant,
     });
   } catch (error) {
     console.error('Add favorite error:', error);
