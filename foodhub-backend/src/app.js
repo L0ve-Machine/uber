@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const http = require('http');
+const path = require('path');
 const { Server } = require('socket.io');
 const sequelize = require('./config/database');
 
@@ -23,6 +24,9 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Static files - serve uploaded images
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -62,6 +66,7 @@ app.use('/api/customers', require('./routes/customers')); // Customer profile ma
 app.use('/api/restaurant', require('./routes/restaurant')); // Restaurant dashboard & menu management
 app.use('/api/driver', require('./routes/driver')); // Driver delivery management
 app.use('/api/stripe', require('./routes/stripeConnect')); // Stripe Connect integration
+app.use('/api/upload', require('./routes/upload')); // Image uploads
 
 // Error handling middleware
 app.use((err, req, res, next) => {
