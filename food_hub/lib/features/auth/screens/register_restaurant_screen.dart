@@ -83,8 +83,9 @@ class _RegisterRestaurantScreenState
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('入力された住所が見つかりませんでした。正しい住所を入力してください'),
+              content: Text('存在しない住所です'),
               backgroundColor: Colors.red,
+              duration: Duration(seconds: 3),
             ),
           );
         }
