@@ -15,47 +15,52 @@ exports.createRestaurantAccount = async (req, res) => {
       return res.status(404).json({ error: 'Restaurant not found' });
     }
 
+    let accountId;
+
     // Check if account already exists
     if (restaurant.stripe_account_id) {
-      return res.status(400).json({
-        error: 'Stripe account already exists',
-        account_id: restaurant.stripe_account_id,
+      // Account exists - regenerate onboarding link for continuation
+      accountId = restaurant.stripe_account_id;
+      console.log(`[STRIPE] Restaurant ${restaurant_id} already has account: ${accountId}, generating new onboarding link`);
+    } else {
+      // Create new Stripe Connected Account
+      const account = await stripe.accounts.create({
+        type: 'express',
+        country: 'JP',
+        email: restaurant.email,
+        capabilities: {
+          card_payments: { requested: true },
+          transfers: { requested: true },
+        },
+        business_type: 'company',
+        business_profile: {
+          name: restaurant.name,
+          product_description: 'Restaurant food service',
+        },
       });
+
+      accountId = account.id;
+
+      // Save to database
+      await restaurant.update({
+        stripe_account_id: account.id,
+      });
+
+      console.log(`[STRIPE] Created new account for restaurant ${restaurant_id}: ${accountId}`);
     }
 
-    // Create Stripe Connected Account
-    const account = await stripe.accounts.create({
-      type: 'express',
-      country: 'JP',
-      email: restaurant.email,
-      capabilities: {
-        card_payments: { requested: true },
-        transfers: { requested: true },
-      },
-      business_type: 'company',
-      business_profile: {
-        name: restaurant.name,
-        product_description: 'Restaurant food service',
-      },
-    });
-
-    // Save to database
-    await restaurant.update({
-      stripe_account_id: account.id,
-    });
-
-    // Create onboarding link
+    // Create onboarding link (works for both new and existing accounts)
     const accountLink = await stripe.accountLinks.create({
-      account: account.id,
+      account: accountId,
       refresh_url: `${process.env.APP_URL || 'https://133-117-77-23.nip.io'}/restaurant/stripe/refresh`,
       return_url: `${process.env.APP_URL || 'https://133-117-77-23.nip.io'}/restaurant/stripe/return`,
       type: 'account_onboarding',
     });
 
     res.json({
-      account_id: account.id,
+      account_id: accountId,
       onboarding_url: accountLink.url,
-      message: 'Please complete Stripe onboarding',
+      message: restaurant.stripe_account_id ? 'Continue Stripe onboarding' : 'Please complete Stripe onboarding',
     });
   } catch (error) {
     console.error('Create restaurant Stripe account error:', error);
@@ -76,41 +81,46 @@ exports.createDriverAccount = async (req, res) => {
       return res.status(404).json({ error: 'Driver not found' });
     }
 
+    let accountId;
+
     if (driver.stripe_account_id) {
-      return res.status(400).json({
-        error: 'Stripe account already exists',
-        account_id: driver.stripe_account_id,
+      // Account exists - regenerate onboarding link for continuation
+      accountId = driver.stripe_account_id;
+      console.log(`[STRIPE] Driver ${driver_id} already has account: ${accountId}, generating new onboarding link`);
+    } else {
+      // Create new Stripe Connected Account
+      const account = await stripe.accounts.create({
+        type: 'express',
+        country: 'JP',
+        email: driver.email,
+        capabilities: {
+          transfers: { requested: true },
+        },
+        business_type: 'individual',
       });
+
+      accountId = account.id;
+
+      // Save to database
+      await driver.update({
+        stripe_account_id: account.id,
+      });
+
+      console.log(`[STRIPE] Created new account for driver ${driver_id}: ${accountId}`);
     }
 
-    // Create Stripe Connected Account
-    const account = await stripe.accounts.create({
-      type: 'express',
-      country: 'JP',
-      email: driver.email,
-      capabilities: {
-        transfers: { requested: true },
-      },
-      business_type: 'individual',
-    });
-
-    // Save to database
-    await driver.update({
-      stripe_account_id: account.id,
-    });
-
-    // Create onboarding link
+    // Create onboarding link (works for both new and existing accounts)
     const accountLink = await stripe.accountLinks.create({
-      account: account.id,
+      account: accountId,
       refresh_url: `${process.env.APP_URL || 'https://133-117-77-23.nip.io'}/driver/stripe/refresh`,
       return_url: `${process.env.APP_URL || 'https://133-117-77-23.nip.io'}/driver/stripe/return`,
       type: 'account_onboarding',
     });
 
     res.json({
-      account_id: account.id,
+      account_id: accountId,
       onboarding_url: accountLink.url,
-      message: 'Please complete Stripe onboarding',
+      message: driver.stripe_account_id ? 'Continue Stripe onboarding' : 'Please complete Stripe onboarding',
     });
   } catch (error) {
     console.error('Create driver Stripe account error:', error);
