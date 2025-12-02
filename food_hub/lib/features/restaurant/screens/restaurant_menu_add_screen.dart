@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/network/dio_client.dart';
 import '../../../shared/widgets/custom_text_field.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../providers/restaurant_menu_provider.dart';
+import '../data/services/image_upload_service.dart';
 import 'restaurant_stripe_setup_screen.dart';
 
 class RestaurantMenuAddScreen extends ConsumerStatefulWidget {
@@ -20,10 +22,11 @@ class _RestaurantMenuAddScreenState extends ConsumerState<RestaurantMenuAddScree
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _priceController = TextEditingController();
-  final _imageUrlController = TextEditingController();
 
   String _selectedCategory = 'メイン';
   bool _isLoading = false;
+  final List<XFile> _selectedImages = [];
+  final ImagePicker _picker = ImagePicker();
 
   final List<String> _categories = ['メイン', 'サイド', 'ドリンク', 'デザート', 'その他'];
 
@@ -32,8 +35,31 @@ class _RestaurantMenuAddScreenState extends ConsumerState<RestaurantMenuAddScree
     _nameController.dispose();
     _descriptionController.dispose();
     _priceController.dispose();
-    _imageUrlController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImages() async {
+    try {
+      final List<XFile> images = await _picker.pickMultiImage(
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+
+      if (images.isNotEmpty) {
+        setState(() {
+          _selectedImages.addAll(images.take(10 - _selectedImages.length));
+        });
+      }
+    } catch (e) {
+      print('画像選択エラー: $e');
+    }
+  }
+
+  void _removeImage(int index) {
+    setState(() {
+      _selectedImages.removeAt(index);
+    });
   }
 
   @override
@@ -132,14 +158,16 @@ class _RestaurantMenuAddScreenState extends ConsumerState<RestaurantMenuAddScree
               ),
               const SizedBox(height: 16),
 
-              // Image URL
-              CustomTextField(
-                controller: _imageUrlController,
-                labelText: '画像URL',
-                hintText: 'https://example.com/image.jpg',
-                keyboardType: TextInputType.url,
-                prefixIcon: const Icon(Icons.image),
+              // Image picker
+              const Text(
+                '商品画像',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
+              const SizedBox(height: 8),
+              _buildImagePicker(),
               const SizedBox(height: 32),
 
               // Submit button
@@ -158,12 +186,112 @@ class _RestaurantMenuAddScreenState extends ConsumerState<RestaurantMenuAddScree
     );
   }
 
+  Widget _buildImagePicker() {
+    return Column(
+      children: [
+        // Add image button
+        if (_selectedImages.length < 10)
+          OutlinedButton.icon(
+            onPressed: _pickImages,
+            icon: const Icon(Icons.add_photo_alternate),
+            label: Text(_selectedImages.isEmpty ? '画像を選択' : '画像を追加（${_selectedImages.length}/10）'),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(double.infinity, 50),
+              side: BorderSide(color: Colors.grey[400]!),
+            ),
+          ),
+
+        // Selected images preview
+        if (_selectedImages.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 100,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: _selectedImages.length,
+              itemBuilder: (context, index) {
+                return Container(
+                  margin: const EdgeInsets.only(right: 8),
+                  width: 100,
+                  child: Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.file(
+                          File(_selectedImages[index].path),
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: GestureDetector(
+                          onTap: () => _removeImage(index),
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
   Future<void> _handleSubmit() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() {
       _isLoading = true;
     });
+
+    // Upload images first if any selected
+    String? imageUrl;
+    if (_selectedImages.isNotEmpty) {
+      final uploadService = ImageUploadService(ref.read(dioProvider));
+      final result = await uploadService.uploadMenuImages(_selectedImages);
+
+      final uploadSuccess = result.when(
+        success: (urls) {
+          if (urls.isNotEmpty) {
+            imageUrl = urls[0]; // Use first image as primary
+          }
+          return true;
+        },
+        failure: (error) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('画像アップロードに失敗しました: ${error.message}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return false;
+        },
+      );
+
+      if (!uploadSuccess) {
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+    }
 
     final (success, errorMessage) = await ref.read(addMenuItemProvider.notifier).add(
       name: _nameController.text,
@@ -172,9 +300,7 @@ class _RestaurantMenuAddScreenState extends ConsumerState<RestaurantMenuAddScree
           : null,
       price: double.parse(_priceController.text),
       category: _selectedCategory,
-      imageUrl: _imageUrlController.text.isNotEmpty
-          ? _imageUrlController.text
-          : null,
+      imageUrl: imageUrl,
     );
 
     setState(() {
