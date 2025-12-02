@@ -207,6 +207,22 @@ class DriverOrderCard extends StatelessWidget {
   Widget _buildActionButtons() {
     switch (order.status) {
       case 'ready':
+        // If driver already accepted (onStartDelivering provided), show pickup verification
+        // Otherwise show accept button (onAccept provided)
+        if (onStartDelivering != null) {
+          return SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: onStartDelivering,
+              icon: const Icon(Icons.pin),
+              label: const Text('受け取り確認'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          );
+        }
         return SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(

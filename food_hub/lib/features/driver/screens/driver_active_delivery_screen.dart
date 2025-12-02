@@ -270,11 +270,27 @@ class DriverActiveDeliveryScreen extends ConsumerWidget {
 
   Widget _buildActionButton(BuildContext context, WidgetRef ref, String status) {
     switch (status) {
-      case 'picked_up':
+      case 'ready':
+        // Driver has accepted, needs to verify PIN at restaurant
         return SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
             onPressed: () => _handleStartDelivering(context, ref),
+            icon: const Icon(Icons.pin),
+            label: const Text('受け取り確認'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+          ),
+        );
+      case 'picked_up':
+        // PIN already verified, just need confirmation to start delivery
+        return SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: () => _handleStartDeliveryWithoutPin(context, ref),
             icon: const Icon(Icons.directions_bike),
             label: const Text('配達開始'),
             style: ElevatedButton.styleFrom(
@@ -314,6 +330,32 @@ class DriverActiveDeliveryScreen extends ConsumerWidget {
     if (pinVerified != true) return;
 
     // PIN確認後、配達開始の確認
+    final confirmed = await ConfirmationDialog.show(
+      context,
+      title: '配達を開始しますか？',
+      message: '商品をピックアップし、配達先に向かいます。',
+      confirmText: '開始する',
+      confirmColor: Colors.orange,
+    );
+
+    if (confirmed != true) return;
+
+    final success = await ref
+        .read(activeDeliveriesProvider.notifier)
+        .startDelivering(orderId);
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(success ? '配達を開始しました' : '更新に失敗しました'),
+          backgroundColor: success ? Colors.blue : Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _handleStartDeliveryWithoutPin(BuildContext context, WidgetRef ref) async {
+    // PIN already verified, just show confirmation
     final confirmed = await ConfirmationDialog.show(
       context,
       title: '配達を開始しますか？',

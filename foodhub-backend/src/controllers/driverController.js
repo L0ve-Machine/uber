@@ -109,10 +109,9 @@ exports.acceptDelivery = async (req, res) => {
       });
     }
 
+    // Just assign driver, status stays 'ready' until PIN verification
     await order.update({
       driver_id,
-      status: 'picked_up',
-      picked_up_at: new Date(),
     });
 
     res.json({
@@ -394,7 +393,7 @@ exports.verifyPickupPin = async (req, res) => {
     }
 
     const order = await Order.findOne({
-      where: { id, driver_id, status: 'picked_up' },
+      where: { id, driver_id, status: 'ready' },
     });
 
     if (!order) {
@@ -410,8 +409,10 @@ exports.verifyPickupPin = async (req, res) => {
       });
     }
 
-    // PIN確認成功
+    // PIN確認成功 - ステータスを picked_up に変更
     await order.update({
+      status: 'picked_up',
+      picked_up_at: new Date(),
       pin_verified_at: new Date(),
     });
 
