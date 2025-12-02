@@ -29,7 +29,6 @@ class _RegisterRestaurantScreenState
   double? _longitude;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
-  bool _isGeocodingAddress = false;
 
   // Category mapping: English value (for DB) -> Japanese label (for UI)
   final Map<String, String> _categoryMap = {
@@ -60,88 +59,54 @@ class _RegisterRestaurantScreenState
     super.dispose();
   }
 
-  Future<void> _geocodeAddress() async {
-    final address = _addressController.text.trim();
-    if (address.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('住所を入力してください'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
-    setState(() {
-      _isGeocodingAddress = true;
-    });
-
-    try {
-      // Use Geocoding API to get coordinates from address
-      final locations = await locationFromAddress(address);
-
-      if (locations.isNotEmpty) {
-        final location = locations.first;
-        _latitude = location.latitude;
-        _longitude = location.longitude;
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('位置情報を設定しました (${_latitude!.toStringAsFixed(4)}, ${_longitude!.toStringAsFixed(4)})'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
-      } else {
-        // Fallback to Tokyo default if geocoding fails
-        _latitude = 35.6895;
-        _longitude = 139.6917;
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('住所が見つかりませんでした。デフォルト位置を使用します'),
-              backgroundColor: Colors.orange,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      // Fallback to Tokyo default on error
-      _latitude = 35.6895;
-      _longitude = 139.6917;
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('位置情報の取得に失敗しました。デフォルト位置を使用します: $e'),
-            backgroundColor: Colors.orange,
-          ),
-        );
-      }
-    } finally {
-      setState(() {
-        _isGeocodingAddress = false;
-      });
-    }
-  }
-
   Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    if (_latitude == null || _longitude == null) {
+    // Show loading
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('「位置情報を設定」ボタンをタップして位置情報を取得してください'),
-          backgroundColor: Colors.orange,
+          content: Text('住所を確認しています...'),
+          duration: Duration(seconds: 2),
         ),
       );
+    }
+
+    // Geocode address automatically
+    final address = _addressController.text.trim();
+    try {
+      final locations = await locationFromAddress(address);
+
+      if (locations.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('入力された住所が見つかりませんでした。正しい住所を入力してください'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
+      }
+
+      final location = locations.first;
+      _latitude = location.latitude;
+      _longitude = location.longitude;
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('住所の確認に失敗しました: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
       return;
     }
 
+    // Proceed with registration
     await ref.read(authProvider.notifier).registerRestaurant(
           email: _emailController.text.trim(),
           password: _passwordController.text,
@@ -305,29 +270,6 @@ class _RegisterRestaurantScreenState
                     }
                     return null;
                   },
-                ),
-                const SizedBox(height: 12),
-
-                // Geocode button
-                OutlinedButton.icon(
-                  onPressed: _isGeocodingAddress ? null : _geocodeAddress,
-                  icon: _isGeocodingAddress
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.my_location),
-                  label: Text(_latitude == null
-                      ? '位置情報を設定'
-                      : '位置情報を再設定 ✓'),
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 48),
-                    side: BorderSide(
-                      color: _latitude == null ? Colors.orange : Colors.green,
-                    ),
-                    foregroundColor: _latitude == null ? Colors.orange : Colors.green,
-                  ),
                 ),
                 const SizedBox(height: 16),
 
