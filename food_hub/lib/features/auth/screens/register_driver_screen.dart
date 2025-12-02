@@ -111,7 +111,7 @@ class _RegisterDriverScreenState extends ConsumerState<RegisterDriverScreen> {
                 CustomTextField(
                   controller: _fullNameController,
                   label: '氏名',
-                  prefixIcon: Icons.person,
+                  prefixIcon: const Icon(Icons.person),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return '氏名を入力してください';
@@ -124,7 +124,7 @@ class _RegisterDriverScreenState extends ConsumerState<RegisterDriverScreen> {
                 CustomTextField(
                   controller: _emailController,
                   label: 'メールアドレス',
-                  prefixIcon: Icons.email,
+                  prefixIcon: const Icon(Icons.email),
                   keyboardType: TextInputType.emailAddress,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -141,7 +141,7 @@ class _RegisterDriverScreenState extends ConsumerState<RegisterDriverScreen> {
                 CustomTextField(
                   controller: _phoneController,
                   label: '電話番号',
-                  prefixIcon: Icons.phone,
+                  prefixIcon: const Icon(Icons.phone),
                   keyboardType: TextInputType.phone,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -155,7 +155,7 @@ class _RegisterDriverScreenState extends ConsumerState<RegisterDriverScreen> {
                 CustomTextField(
                   controller: _vehicleTypeController,
                   label: '車両タイプ (例: バイク, 自転車)',
-                  prefixIcon: Icons.directions_bike,
+                  prefixIcon: const Icon(Icons.directions_bike),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return '車両タイプを入力してください';
@@ -168,7 +168,7 @@ class _RegisterDriverScreenState extends ConsumerState<RegisterDriverScreen> {
                 CustomTextField(
                   controller: _licenseNumberController,
                   label: '免許番号',
-                  prefixIcon: Icons.badge,
+                  prefixIcon: const Icon(Icons.badge),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return '免許番号を入力してください';
@@ -181,7 +181,7 @@ class _RegisterDriverScreenState extends ConsumerState<RegisterDriverScreen> {
                 CustomTextField(
                   controller: _passwordController,
                   label: 'パスワード',
-                  prefixIcon: Icons.lock,
+                  prefixIcon: const Icon(Icons.lock),
                   obscureText: _obscurePassword,
                   suffixIcon: IconButton(
                     icon: Icon(
@@ -208,7 +208,7 @@ class _RegisterDriverScreenState extends ConsumerState<RegisterDriverScreen> {
                 CustomTextField(
                   controller: _confirmPasswordController,
                   label: 'パスワード確認',
-                  prefixIcon: Icons.lock_outline,
+                  prefixIcon: const Icon(Icons.lock_outline),
                   obscureText: _obscureConfirmPassword,
                   suffixIcon: IconButton(
                     icon: Icon(

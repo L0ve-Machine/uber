@@ -123,7 +123,7 @@ class _RegisterRestaurantScreenState
                 CustomTextField(
                   controller: _nameController,
                   label: '店舗名',
-                  prefixIcon: Icons.store,
+                  prefixIcon: const Icon(Icons.store),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return '店舗名を入力してください';
@@ -136,7 +136,7 @@ class _RegisterRestaurantScreenState
                 CustomTextField(
                   controller: _emailController,
                   label: 'メールアドレス',
-                  prefixIcon: Icons.email,
+                  prefixIcon: const Icon(Icons.email),
                   keyboardType: TextInputType.emailAddress,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -153,7 +153,7 @@ class _RegisterRestaurantScreenState
                 CustomTextField(
                   controller: _phoneController,
                   label: '電話番号',
-                  prefixIcon: Icons.phone,
+                  prefixIcon: const Icon(Icons.phone),
                   keyboardType: TextInputType.phone,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -167,7 +167,7 @@ class _RegisterRestaurantScreenState
                 CustomTextField(
                   controller: _categoryController,
                   label: 'カテゴリ (例: 和食, イタリアン)',
-                  prefixIcon: Icons.category,
+                  prefixIcon: const Icon(Icons.category),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'カテゴリを入力してください';
@@ -180,7 +180,7 @@ class _RegisterRestaurantScreenState
                 CustomTextField(
                   controller: _addressController,
                   label: '住所',
-                  prefixIcon: Icons.location_on,
+                  prefixIcon: const Icon(Icons.location_on),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return '住所を入力してください';
@@ -226,7 +226,7 @@ class _RegisterRestaurantScreenState
                 CustomTextField(
                   controller: _descriptionController,
                   label: '説明 (任意)',
-                  prefixIcon: Icons.description,
+                  prefixIcon: const Icon(Icons.description),
                   maxLines: 3,
                 ),
                 const SizedBox(height: 16),
@@ -234,7 +234,7 @@ class _RegisterRestaurantScreenState
                 CustomTextField(
                   controller: _passwordController,
                   label: 'パスワード',
-                  prefixIcon: Icons.lock,
+                  prefixIcon: const Icon(Icons.lock),
                   obscureText: _obscurePassword,
                   suffixIcon: IconButton(
                     icon: Icon(
@@ -261,7 +261,7 @@ class _RegisterRestaurantScreenState
                 CustomTextField(
                   controller: _confirmPasswordController,
                   label: 'パスワード確認',
-                  prefixIcon: Icons.lock_outline,
+                  prefixIcon: const Icon(Icons.lock_outline),
                   obscureText: _obscureConfirmPassword,
                   suffixIcon: IconButton(
                     icon: Icon(
