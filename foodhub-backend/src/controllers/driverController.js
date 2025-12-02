@@ -403,7 +403,7 @@ exports.verifyPickupPin = async (req, res) => {
 
     // PIN照合
     if (order.pickup_pin !== pin) {
-      console.log(`❌ Incorrect PIN for order ${order.order_number}: entered=${pin}, expected=${order.pickup_pin}`);
+      console.log(`Incorrect PIN for order ${order.order_number}: entered=${pin}, expected=${order.pickup_pin}`);
       return res.status(400).json({
         error: 'Incorrect PIN',
         message: 'ピックアップPINが正しくありません。レストランに確認してください。',
@@ -415,7 +415,7 @@ exports.verifyPickupPin = async (req, res) => {
       pin_verified_at: new Date(),
     });
 
-    console.log(`✅ PIN verified for order ${order.order_number}`);
+    console.log(`PIN verified for order ${order.order_number}`);
 
     res.json({
       message: 'PIN verified successfully',

@@ -52,7 +52,7 @@ class _PickupPinDialogState extends ConsumerState<PickupPinDialog> {
           Navigator.of(context).pop(true);
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('✅ ピックアップが確認されました'),
+              content: Text('ピックアップが確認されました'),
               backgroundColor: Colors.green,
             ),
           );

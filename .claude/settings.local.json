@@ -95,7 +95,8 @@
       "Bash(pm2 logs:*)",
       "Bash(pm2 list:*)",
       "Bash(pm2 restart:*)",
-      "Bash(echo \"現在の設定:\" echo \"APP_URL: $APP_URL:-https://133-117-77-23.nip.io\" echo \"\" echo \"オンボーディングURLの設定:\" grep -A 2 \"refresh_url\\|return_url\" /root/uber/foodhub-backend/src/controllers/stripeConnectController.js)"
+      "Bash(echo \"現在の設定:\" echo \"APP_URL: $APP_URL:-https://133-117-77-23.nip.io\" echo \"\" echo \"オンボーディングURLの設定:\" grep -A 2 \"refresh_url\\|return_url\" /root/uber/foodhub-backend/src/controllers/stripeConnectController.js)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []

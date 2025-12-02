@@ -87,12 +87,12 @@ const Driver = require('./models/Driver');
 const activeDrivers = new Map(); // driverId -> socketId
 
 io.on('connection', (socket) => {
-  console.log(`🔌 Client connected: ${socket.id}`);
+  console.log(`Client connected: ${socket.id}`);
 
   // Driver connects and registers
   socket.on('driver:register', async (data) => {
     const { driverId, token } = data;
-    console.log(`👤 Driver ${driverId} registered with socket ${socket.id}`);
+    console.log(`Driver ${driverId} registered with socket ${socket.id}`);
 
     activeDrivers.set(driverId, socket.id);
     socket.driverId = driverId;
@@ -115,7 +115,7 @@ io.on('connection', (socket) => {
         { where: { id: driverId } }
       );
 
-      console.log(`📍 Driver ${driverId} location updated: ${latitude}, ${longitude}`);
+      console.log(`Driver ${driverId} location updated: ${latitude}, ${longitude}`);
 
       // Broadcast to all customers tracking this driver
       io.emit('driver:location-changed', {
@@ -133,9 +133,9 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     if (socket.driverId) {
       activeDrivers.delete(socket.driverId);
-      console.log(`👋 Driver ${socket.driverId} disconnected`);
+      console.log(`Driver ${socket.driverId} disconnected`);
     }
-    console.log(`🔌 Client disconnected: ${socket.id}`);
+    console.log(`Client disconnected: ${socket.id}`);
   });
 });
 
@@ -144,10 +144,10 @@ app.set('io', io);
 
 // Start server
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`🚀 Also accessible on http://0.0.0.0:${PORT}`);
-  console.log(`🔌 Socket.IO server ready`);
-  console.log(`📝 Environment: ${process.env.NODE_ENV}`);
+  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Also accessible on http://0.0.0.0:${PORT}`);
+  console.log(`Socket.IO server ready`);
+  console.log(`Environment: ${process.env.NODE_ENV}`);
 });
 
 module.exports = { app, server, io };

@@ -38,17 +38,17 @@ class SocketService {
 
     // 接続成功
     _socket!.on('connect', (_) {
-      print('[SocketService] ✅ Connected to server');
+      print('[SocketService] Connected to server');
     });
 
     // 切断
     _socket!.on('disconnect', (_) {
-      print('[SocketService] ❌ Disconnected from server');
+      print('[SocketService] Disconnected from server');
     });
 
     // 接続エラー
     _socket!.on('connect_error', (error) {
-      print('[SocketService] ❌ Connection error: $error');
+      print('[SocketService] Connection error: $error');
     });
 
     // 配達員位置更新イベント

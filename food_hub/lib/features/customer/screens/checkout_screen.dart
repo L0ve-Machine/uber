@@ -476,7 +476,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         ],
       );
     } catch (e, stack) {
-      print('[Checkout] ❌ ERROR in _buildPriceRow: $e');
+      print('[Checkout] ERROR in _buildPriceRow: $e');
       print('[Checkout] Stack: $stack');
       return Row(
         children: [

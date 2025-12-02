@@ -72,17 +72,17 @@ class LoggingInterceptor extends Interceptor {
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
-    print('✅ RESPONSE[${response.statusCode}] <= ${response.requestOptions.uri}');
-    print('📥 Data: ${response.data}');
+    print('RESPONSE[${response.statusCode}] <= ${response.requestOptions.uri}');
+    print('Data: ${response.data}');
     handler.next(response);
   }
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    print('❌ ERROR[${err.response?.statusCode}] => ${err.requestOptions.uri}');
-    print('💥 Message: ${err.message}');
+    print('ERROR[${err.response?.statusCode}] => ${err.requestOptions.uri}');
+    print('Message: ${err.message}');
     if (err.response?.data != null) {
-      print('📛 Error Data: ${err.response?.data}');
+      print('Error Data: ${err.response?.data}');
     }
     handler.next(err);
   }
