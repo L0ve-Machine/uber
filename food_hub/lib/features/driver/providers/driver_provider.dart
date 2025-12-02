@@ -95,7 +95,7 @@ class AvailableOrders extends _$AvailableOrders {
   }
 }
 
-/// Active deliveries provider (picked_up, delivering)
+/// Active deliveries provider (ready with driver, picked_up, delivering)
 @riverpod
 class ActiveDeliveries extends _$ActiveDeliveries {
   @override
@@ -103,10 +103,16 @@ class ActiveDeliveries extends _$ActiveDeliveries {
     final repository = ref.read(driverRepositoryProvider);
 
     // Get orders in active delivery states
+    final readyResult = await repository.getDriverOrders(status: 'ready');
     final pickedUpResult = await repository.getDriverOrders(status: 'picked_up');
     final deliveringResult = await repository.getDriverOrders(status: 'delivering');
 
     final List<OrderModel> activeOrders = [];
+
+    readyResult.when(
+      success: (orders) => activeOrders.addAll(orders),
+      failure: (_) {},
+    );
 
     pickedUpResult.when(
       success: (orders) => activeOrders.addAll(orders),
