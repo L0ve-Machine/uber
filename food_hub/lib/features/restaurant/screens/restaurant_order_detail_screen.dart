@@ -228,8 +228,8 @@ class RestaurantOrderDetailScreen extends ConsumerWidget {
               ],
               const SizedBox(height: 24),
 
-              // Pickup PIN (表示: readyステータス時)
-              if (order.status == 'ready' && order.pickupPin != null) ...[
+              // Pickup PIN (表示: PIN未確認時)
+              if (order.pickupPin != null && order.pinVerifiedAt == null) ...[
                 Card(
                   color: Colors.blue[50],
                   child: Padding(
