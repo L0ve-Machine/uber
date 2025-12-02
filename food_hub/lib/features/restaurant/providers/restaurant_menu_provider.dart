@@ -113,23 +113,12 @@ class AddMenuItem extends _$AddMenuItem {
     final restaurant = restaurantAsync.valueOrNull;
 
     if (restaurant == null) {
-      state = AsyncValue.error(
-        Exception('レストラン情報の取得に失敗しました'),
-        StackTrace.current,
-      );
       return false;
     }
 
     if (!restaurant.isStripeFullySetup) {
-      state = AsyncValue.error(
-        Exception(restaurant.stripeSetupIssue ?? 'Stripe設定が必要です'),
-        StackTrace.current,
-      );
       return false;
     }
-
-    // 既存の処理
-    state = const AsyncValue.loading();
 
     final repository = ref.read(restaurantMenuRepositoryProvider);
     final result = await repository.addMenuItem(
@@ -141,18 +130,18 @@ class AddMenuItem extends _$AddMenuItem {
       options: options,
     );
 
-    return result.when(
+    final success = result.when(
       success: (menuItem) {
-        state = AsyncValue.data(menuItem);
         // Invalidate menu list to refresh
         ref.invalidate(restaurantMenuProvider());
         return true;
       },
       failure: (error) {
-        state = AsyncValue.error(error, StackTrace.current);
         return false;
       },
     );
+
+    return success;
   }
 }
 
@@ -174,8 +163,6 @@ class UpdateMenuItem extends _$UpdateMenuItem {
     String? imageUrl,
     bool? isAvailable,
   }) async {
-    state = const AsyncValue.loading();
-
     final repository = ref.read(restaurantMenuRepositoryProvider);
     final result = await repository.updateMenuItem(
       id: id,
@@ -187,17 +174,17 @@ class UpdateMenuItem extends _$UpdateMenuItem {
       isAvailable: isAvailable,
     );
 
-    return result.when(
+    final success = result.when(
       success: (menuItem) {
-        state = AsyncValue.data(menuItem);
         // Invalidate menu list to refresh
         ref.invalidate(restaurantMenuProvider());
         return true;
       },
       failure: (error) {
-        state = AsyncValue.error(error, StackTrace.current);
         return false;
       },
     );
+
+    return success;
   }
 }
