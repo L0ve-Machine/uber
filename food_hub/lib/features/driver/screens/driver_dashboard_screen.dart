@@ -12,7 +12,7 @@ import '../providers/driver_provider.dart';
 import '../providers/driver_profile_provider.dart';
 import '../widgets/driver_order_card.dart';
 import '../widgets/pickup_pin_dialog.dart';
-import '../services/driver_socket_service.dart';
+import '../services/background_location_service.dart';
 import '../services/location_service.dart';
 import 'driver_active_delivery_screen.dart';
 import 'driver_stripe_setup_screen.dart';
@@ -27,23 +27,17 @@ class DriverDashboardScreen extends ConsumerStatefulWidget {
 
 class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
   int _currentIndex = 0;
-  DriverSocketService? _socketService;
   bool _locationPermissionGranted = false;
+  bool _backgroundServiceInitialized = false;
 
   @override
   void initState() {
     super.initState();
-    _initializeLocationTracking();
+    _initializeBackgroundService();
   }
 
-  @override
-  void dispose() {
-    _socketService?.disconnect();
-    super.dispose();
-  }
-
-  /// 位置情報追跡を初期化
-  Future<void> _initializeLocationTracking() async {
+  /// バックグラウンドサービスを初期化
+  Future<void> _initializeBackgroundService() async {
     // 権限チェック
     final hasPermission = await LocationService.checkAndRequestPermission();
     setState(() {
@@ -55,44 +49,22 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
       return;
     }
 
-    // ユーザー情報とオンライン状態を取得
-    final user = ref.read(authProvider).value;
-    final isOnline = ref.read(driverOnlineStatusProvider);
-
-    if (user != null && isOnline) {
-      await _startLocationTracking(user.id);
-    }
-  }
-
-  /// 位置情報追跡を開始
-  Future<void> _startLocationTracking(int driverId) async {
-    if (_socketService != null) {
-      return; // 既に開始済み
-    }
-
+    // バックグラウンドサービスを初期化
     try {
-      final token = await SecureStorage.getToken();
-      if (token == null) {
-        print('[DriverDashboard] No auth token found');
-        return;
+      await BackgroundLocationService.initialize();
+      setState(() {
+        _backgroundServiceInitialized = true;
+      });
+      print('[DriverDashboard] Background service initialized');
+
+      // オンライン状態ならサービスを開始
+      final isOnline = ref.read(driverOnlineStatusProvider);
+      if (isOnline) {
+        await BackgroundLocationService.start();
       }
-
-      _socketService = DriverSocketService(
-        driverId: driverId,
-        authToken: token,
-      );
-      _socketService!.connect();
-      print('[DriverDashboard] Location tracking started');
     } catch (e) {
-      print('[DriverDashboard] Error starting location tracking: $e');
+      print('[DriverDashboard] Error initializing background service: $e');
     }
-  }
-
-  /// 位置情報追跡を停止
-  void _stopLocationTracking() {
-    _socketService?.disconnect();
-    _socketService = null;
-    print('[DriverDashboard] Location tracking stopped');
   }
 
   @override
@@ -484,13 +456,14 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
       if (success) {
         displayMessage = isOnline ? 'オンラインになりました' : 'オフラインになりました';
 
-        // Socket.IO連携: オンライン状態に応じて接続/切断
-        final user = ref.read(authProvider).value;
-        if (user != null) {
+        // バックグラウンドサービス: オンライン状態に応じて開始/停止
+        if (_backgroundServiceInitialized) {
           if (isOnline) {
-            await _startLocationTracking(user.id);
+            await BackgroundLocationService.start();
+            print('[DriverDashboard] Background location service started');
           } else {
-            _stopLocationTracking();
+            await BackgroundLocationService.stop();
+            print('[DriverDashboard] Background location service stopped');
           }
         }
       } else if (error != null) {

@@ -52,5 +52,12 @@
 	<string>配達中にあなたの位置情報を使用して、お客様に配達状況をお知らせします</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>配達中にあなたの位置情報を使用して、お客様に配達状況をお知らせします</string>
+	<!-- Background modes for location tracking -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+		<string>fetch</string>
+		<string>processing</string>
+	</array>
 </dict>
 </plist>

@@ -56,6 +56,13 @@ class AuthRepository {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('user_type', userType);
 
+        // Save for background service (driver only)
+        if (userType == 'driver') {
+          await prefs.setInt('driver_id', userWithType.id);
+          await prefs.setString('auth_token', token);
+          await prefs.setString('socket_url', 'https://133-117-77-23.nip.io');
+        }
+
         return Success(userWithType);
       },
       failure: (error) => Failure(error),
