@@ -85,6 +85,38 @@ const Order = sequelize.define('Order', {
     type: DataTypes.STRING(255),
     allowNull: true,
   },
+  service_fee: {
+    type: DataTypes.DECIMAL(10, 2),
+    defaultValue: 0.00,
+  },
+  restaurant_commission_rate: {
+    type: DataTypes.DECIMAL(5, 4),
+    defaultValue: 0.35,
+  },
+  restaurant_payout: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+  },
+  driver_payout: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+  },
+  platform_revenue: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+  },
+  payout_completed: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
+  stripe_restaurant_transfer_id: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+  },
+  stripe_driver_transfer_id: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+  },
   special_instructions: {
     type: DataTypes.TEXT,
     allowNull: true,
@@ -130,7 +162,8 @@ Order.prototype.toJSON = function () {
   const values = Object.assign({}, this.get());
 
   // Convert DECIMAL fields to numbers
-  const decimalFields = ['subtotal', 'delivery_fee', 'tax', 'discount', 'total'];
+  const decimalFields = ['subtotal', 'delivery_fee', 'service_fee', 'tax', 'discount', 'total',
+                         'restaurant_commission_rate', 'restaurant_payout', 'driver_payout', 'platform_revenue'];
   decimalFields.forEach(field => {
     if (values[field] !== null && values[field] !== undefined) {
       values[field] = parseFloat(values[field]);

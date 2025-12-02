@@ -179,15 +179,15 @@ exports.createOrder = async (req, res) => {
       status: 'pending',
       subtotal,
       delivery_fee,
-      // service_fee,  // TODO: Add after DB migration
+      service_fee,
       tax,
       discount: 0,
       total,
       payment_method,
-      // restaurant_commission_rate,  // TODO: Add after DB migration
-      // restaurant_payout,  // TODO: Add after DB migration
-      // driver_payout,  // TODO: Add after DB migration
-      // platform_revenue,  // TODO: Add after DB migration
+      restaurant_commission_rate,
+      restaurant_payout,
+      driver_payout,
+      platform_revenue,
       special_instructions,
       scheduled_at: scheduled_at || null,
     }, { transaction });
@@ -605,10 +605,10 @@ async function processOrderPayouts(orderId) {
     }
 
     // Check if already processed
-    // if (order.payout_completed) {  // TODO: Uncomment after DB migration
-    //   console.log(`[PAYOUT] Already completed for order ${orderId}`);
-    //   return;
-    // }
+    if (order.payout_completed) {
+      console.log(`[PAYOUT] Already completed for order ${orderId}`);
+      return;
+    }
 
     if (!order.stripe_payment_id) {
       throw new Error(`No Stripe payment ID for order ${orderId}`);
@@ -645,9 +645,9 @@ async function processOrderPayouts(orderId) {
         console.log(`[PAYOUT] Restaurant transfer: ${restaurantTransfer.id}`);
 
         // Update order
-        // await order.update({  // TODO: Uncomment after DB migration
-        //   stripe_restaurant_transfer_id: restaurantTransfer.id,
-        // });
+        await order.update({
+          stripe_restaurant_transfer_id: restaurantTransfer.id,
+        });
       }
     } else {
       console.warn(`[PAYOUT] Restaurant ${order.restaurant_id} has no Stripe account`);
@@ -674,18 +674,18 @@ async function processOrderPayouts(orderId) {
         console.log(`[PAYOUT] Driver transfer: ${driverTransfer.id}`);
 
         // Update order
-        // await order.update({  // TODO: Uncomment after DB migration
-        //   stripe_driver_transfer_id: driverTransfer.id,
-        // });
+        await order.update({
+          stripe_driver_transfer_id: driverTransfer.id,
+        });
       }
     } else {
       console.warn(`[PAYOUT] Driver ${order.driver_id} has no Stripe account`);
     }
 
     // Mark as completed
-    // await order.update({  // TODO: Uncomment after DB migration
-    //   payout_completed: true,
-    // });
+    await order.update({
+      payout_completed: true,
+    });
 
     console.log(`[PAYOUT] Completed for order ${orderId}`);
   } catch (error) {
