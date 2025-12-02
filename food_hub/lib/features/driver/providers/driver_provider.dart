@@ -33,7 +33,7 @@ class DriverOnlineStatus extends _$DriverOnlineStatus {
     return driverAsync.valueOrNull?.isOnline ?? false;
   }
 
-  Future<bool> toggleOnline(bool isOnline) async {
+  Future<Map<String, dynamic>> toggleOnline(bool isOnline) async {
     // Temporarily disabled all Stripe checks for testing
     final repository = ref.read(driverRepositoryProvider);
     final result = await repository.toggleOnlineStatus(isOnline);
@@ -45,9 +45,12 @@ class DriverOnlineStatus extends _$DriverOnlineStatus {
           // Refresh available orders when coming online
           ref.invalidate(availableOrdersProvider);
         }
-        return true;
+        return {'success': true, 'message': null};
       },
-      failure: (error) => false,
+      failure: (error) {
+        // サーバーからのエラーメッセージを返す
+        return {'success': false, 'message': error};
+      },
     );
   }
 }

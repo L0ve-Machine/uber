@@ -400,17 +400,29 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
 
   Future<void> _handleToggleOnline(bool isOnline) async {
     // Temporarily disabled Stripe check for testing
-    final success = await ref
+    final result = await ref
         .read(driverOnlineStatusProvider.notifier)
         .toggleOnline(isOnline);
 
     if (mounted) {
+      final success = result['success'] as bool;
+      final errorMessage = result['message'] as String?;
+
+      String displayMessage;
+      if (success) {
+        displayMessage = isOnline ? 'オンラインになりました' : 'オフラインになりました';
+      } else if (errorMessage != null && errorMessage.contains('Stripe')) {
+        // Stripeエラーの場合は具体的なメッセージを表示
+        displayMessage = 'Stripe設定を完了してからオンラインにしてください';
+      } else {
+        displayMessage = errorMessage ?? '状態の変更に失敗しました';
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(success
-            ? (isOnline ? 'オンラインになりました' : 'オフラインになりました')
-            : '状態の変更に失敗しました'),
+          content: Text(displayMessage),
           backgroundColor: success ? AppColors.success : Colors.red,
+          duration: success ? const Duration(seconds: 2) : const Duration(seconds: 4),
         ),
       );
     }
