@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geolocator/geolocator.dart';
@@ -6,12 +7,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 /// バックグラウンド位置情報追跡サービス
+@pragma('vm:entry-point')
 class BackgroundLocationService {
   static const String _notificationChannelId = 'driver_location_tracking';
   static const String _notificationChannelName = '配達追跡';
   static const int _notificationId = 888;
 
   /// サービスの初期化
+  @pragma('vm:entry-point')
   static Future<void> initialize() async {
     final service = FlutterBackgroundService();
 
@@ -52,6 +55,7 @@ class BackgroundLocationService {
   }
 
   /// サービス開始
+  @pragma('vm:entry-point')
   static Future<void> start() async {
     final service = FlutterBackgroundService();
     await service.startService();
@@ -59,6 +63,7 @@ class BackgroundLocationService {
   }
 
   /// サービス停止
+  @pragma('vm:entry-point')
   static Future<void> stop() async {
     final service = FlutterBackgroundService();
     service.invoke('stop');
@@ -150,6 +155,7 @@ class BackgroundLocationService {
   }
 
   /// 位置情報を取得して送信
+  @pragma('vm:entry-point')
   static Future<void> _sendLocation(
     IO.Socket socket,
     int driverId,
