@@ -11,6 +11,7 @@ import '../widgets/restaurant_order_card.dart';
 import 'restaurant_order_detail_screen.dart';
 import 'restaurant_menu_list_screen.dart';
 import 'restaurant_stripe_setup_screen.dart';
+import 'restaurant_image_settings_screen.dart';
 
 class RestaurantDashboardScreen extends ConsumerStatefulWidget {
   const RestaurantDashboardScreen({super.key});
@@ -418,6 +419,20 @@ class _RestaurantDashboardScreenState
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Column(
             children: [
+              ListTile(
+                leading: const Icon(Icons.image, color: Colors.black),
+                title: const Text('お店の写真設定'),
+                subtitle: const Text('カバー画像・ロゴ'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const RestaurantImageSettingsScreen(),
+                    ),
+                  );
+                },
+              ),
+              const Divider(height: 1),
               ListTile(
                 leading: const Icon(Icons.account_balance, color: Colors.black),
                 title: const Text('振込先設定'),
