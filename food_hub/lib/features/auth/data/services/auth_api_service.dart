@@ -62,6 +62,56 @@ class AuthApiService {
     }
   }
 
+  /// Register restaurant
+  Future<ApiResult<RegisterResponse>> registerRestaurant(
+    RegisterRestaurantRequest request,
+  ) async {
+    try {
+      final response = await _dio.post(
+        '/auth/register/restaurant',
+        data: request.toJson(),
+      );
+
+      if (response.statusCode == 201) {
+        final registerResponse = RegisterResponse.fromJson(
+          response.data as Map<String, dynamic>,
+        );
+        return Success(registerResponse);
+      }
+
+      return Failure(ApiError.fromResponse(response.statusCode, response.data));
+    } on DioException catch (e) {
+      return Failure(ApiError.fromDioException(e));
+    } catch (e) {
+      return Failure(ApiError(message: 'Unexpected error: $e'));
+    }
+  }
+
+  /// Register driver
+  Future<ApiResult<RegisterResponse>> registerDriver(
+    RegisterDriverRequest request,
+  ) async {
+    try {
+      final response = await _dio.post(
+        '/auth/register/driver',
+        data: request.toJson(),
+      );
+
+      if (response.statusCode == 201) {
+        final registerResponse = RegisterResponse.fromJson(
+          response.data as Map<String, dynamic>,
+        );
+        return Success(registerResponse);
+      }
+
+      return Failure(ApiError.fromResponse(response.statusCode, response.data));
+    } on DioException catch (e) {
+      return Failure(ApiError.fromDioException(e));
+    } catch (e) {
+      return Failure(ApiError(message: 'Unexpected error: $e'));
+    }
+  }
+
   /// Get current user
   Future<ApiResult<Map<String, dynamic>>> getCurrentUser() async {
     try {

@@ -1,5 +1,7 @@
 const { validationResult } = require('express-validator');
 const { Op } = require('sequelize');
+const sequelize = require('../config/database');
+const { hashPassword, comparePassword } = require('../utils/auth');
 const Order = require('../models/Order');
 const OrderItem = require('../models/OrderItem');
 const MenuItem = require('../models/MenuItem');
@@ -95,30 +97,40 @@ exports.getDriverOrders = async (req, res) => {
  * POST /api/driver/orders/:id/accept
  */
 exports.acceptDelivery = async (req, res) => {
+  const transaction = await sequelize.transaction();
+
   try {
     const { id } = req.params;
     const driver_id = req.user.id;
 
+    // Lock the order to prevent race conditions
     const order = await Order.findOne({
       where: { id, status: 'ready', driver_id: null },
+      lock: transaction.LOCK.UPDATE,
+      transaction,
     });
 
     if (!order) {
+      await transaction.rollback();
       return res.status(404).json({
         error: 'Order not found or already assigned',
       });
     }
 
     // Just assign driver, status stays 'ready' until PIN verification
-    await order.update({
-      driver_id,
-    });
+    await order.update(
+      { driver_id },
+      { transaction }
+    );
+
+    await transaction.commit();
 
     res.json({
       message: 'Delivery accepted successfully',
       order,
     });
   } catch (error) {
+    await transaction.rollback();
     console.error('Accept delivery error:', error);
     res.status(500).json({ error: 'Server error' });
   }
@@ -424,6 +436,80 @@ exports.verifyPickupPin = async (req, res) => {
     });
   } catch (error) {
     console.error('Verify pickup PIN error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+/**
+ * Change driver password
+ * PATCH /api/driver/password
+ */
+exports.changePassword = async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const driver_id = req.user.id;
+    const { current_password, new_password } = req.body;
+
+    const driver = await Driver.findByPk(driver_id);
+
+    if (!driver) {
+      return res.status(404).json({ error: 'Driver not found' });
+    }
+
+    // Verify current password
+    const isPasswordValid = await comparePassword(current_password, driver.password_hash);
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: 'Current password is incorrect' });
+    }
+
+    // Hash new password and update
+    const new_password_hash = await hashPassword(new_password);
+    await driver.update({ password_hash: new_password_hash });
+
+    res.json({ message: 'Password changed successfully' });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+/**
+ * Change driver password
+ * PATCH /api/driver/password
+ */
+exports.changePassword = async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const driver_id = req.user.id;
+    const { current_password, new_password } = req.body;
+
+    const driver = await Driver.findByPk(driver_id);
+
+    if (!driver) {
+      return res.status(404).json({ error: 'Driver not found' });
+    }
+
+    // Verify current password
+    const isPasswordValid = await comparePassword(current_password, driver.password_hash);
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: 'Current password is incorrect' });
+    }
+
+    // Hash new password and update
+    const new_password_hash = await hashPassword(new_password);
+    await driver.update({ password_hash: new_password_hash });
+
+    res.json({ message: 'Password changed successfully' });
+  } catch (error) {
+    console.error('Change password error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };

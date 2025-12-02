@@ -20,6 +20,20 @@ router.use(isRestaurant);
  */
 router.get('/profile', restaurantController.getProfile);
 
+/**
+ * @route   PATCH /api/restaurant/password
+ * @desc    Change restaurant password
+ * @access  Private (Restaurant only)
+ */
+router.patch(
+  '/password',
+  [
+    body('current_password').notEmpty().withMessage('Current password is required'),
+    body('new_password').isLength({ min: 8 }).withMessage('New password must be at least 8 characters'),
+  ],
+  restaurantController.changePassword
+);
+
 // ==================== Orders ====================
 
 /**

@@ -18,6 +18,20 @@ router.use(isDriver);
  */
 router.get('/profile', driverController.getProfile);
 
+/**
+ * @route   PATCH /api/driver/password
+ * @desc    Change driver password
+ * @access  Private (Driver only)
+ */
+router.patch(
+  '/password',
+  [
+    body('current_password').notEmpty().withMessage('Current password is required'),
+    body('new_password').isLength({ min: 8 }).withMessage('New password must be at least 8 characters'),
+  ],
+  driverController.changePassword
+);
+
 // ==================== Orders ====================
 
 /**

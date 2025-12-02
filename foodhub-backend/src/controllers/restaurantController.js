@@ -1,5 +1,6 @@
 const { validationResult } = require('express-validator');
 const { Op } = require('sequelize');
+const { hashPassword, comparePassword } = require('../utils/auth');
 const Restaurant = require('../models/Restaurant');
 const MenuItem = require('../models/MenuItem');
 const MenuItemOption = require('../models/MenuItemOption');
@@ -214,5 +215,42 @@ exports.getProfile = async (req, res) => {
   } catch (error) {
     console.error('Get restaurant profile error:', error);
     res.status(500).json({ error: 'Failed to get restaurant profile' });
+  }
+};
+
+/**
+ * Change restaurant password
+ * PATCH /api/restaurant/password
+ */
+exports.changePassword = async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const restaurant_id = req.user.id;
+    const { current_password, new_password } = req.body;
+
+    const restaurant = await Restaurant.findByPk(restaurant_id);
+
+    if (!restaurant) {
+      return res.status(404).json({ error: 'Restaurant not found' });
+    }
+
+    // Verify current password
+    const isPasswordValid = await comparePassword(current_password, restaurant.password_hash);
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: 'Current password is incorrect' });
+    }
+
+    // Hash new password and update
+    const new_password_hash = await hashPassword(new_password);
+    await restaurant.update({ password_hash: new_password_hash });
+
+    res.json({ message: 'Password changed successfully' });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({ error: 'Server error' });
   }
 };

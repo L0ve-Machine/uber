@@ -59,5 +59,58 @@ class RegisterCustomerRequest {
   Map<String, dynamic> toJson() => _$RegisterCustomerRequestToJson(this);
 }
 
+/// Register restaurant request
+@JsonSerializable()
+class RegisterRestaurantRequest {
+  final String email;
+  final String password;
+  final String name;
+  final String? description;
+  final String category;
+  final String phone;
+  final String address;
+  final double latitude;
+  final double longitude;
+
+  RegisterRestaurantRequest({
+    required this.email,
+    required this.password,
+    required this.name,
+    this.description,
+    required this.category,
+    required this.phone,
+    required this.address,
+    required this.latitude,
+    required this.longitude,
+  });
+
+  Map<String, dynamic> toJson() => _$RegisterRestaurantRequestToJson(this);
+}
+
+/// Register driver request
+@JsonSerializable()
+class RegisterDriverRequest {
+  final String email;
+  final String password;
+  @JsonKey(name: 'full_name')
+  final String fullName;
+  final String phone;
+  @JsonKey(name: 'vehicle_type')
+  final String vehicleType;
+  @JsonKey(name: 'license_number')
+  final String licenseNumber;
+
+  RegisterDriverRequest({
+    required this.email,
+    required this.password,
+    required this.fullName,
+    required this.phone,
+    required this.vehicleType,
+    required this.licenseNumber,
+  });
+
+  Map<String, dynamic> toJson() => _$RegisterDriverRequestToJson(this);
+}
+
 /// Register response (same as login response)
 typedef RegisterResponse = LoginResponse;
