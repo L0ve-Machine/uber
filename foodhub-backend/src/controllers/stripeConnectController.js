@@ -201,6 +201,34 @@ exports.getAccountStatus = async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
+    // If Stripe account exists, fetch latest status from Stripe API and update database
+    if (user.stripe_account_id) {
+      try {
+        const account = await stripe.accounts.retrieve(user.stripe_account_id);
+
+        // Update database with latest Stripe status
+        await user.update({
+          stripe_onboarding_completed: account.details_submitted,
+          stripe_charges_enabled: account.charges_enabled,
+          stripe_payouts_enabled: account.payouts_enabled,
+        });
+
+        console.log(`[STRIPE] Updated ${userType} ${userId} status from Stripe API`);
+
+        // Return updated status
+        return res.json({
+          stripe_account_id: user.stripe_account_id,
+          stripe_onboarding_completed: account.details_submitted,
+          stripe_charges_enabled: account.charges_enabled,
+          stripe_payouts_enabled: account.payouts_enabled,
+        });
+      } catch (stripeError) {
+        console.error(`[STRIPE] Failed to fetch account status from Stripe:`, stripeError.message);
+        // Fall back to database values if Stripe API fails
+      }
+    }
+
+    // Return database values (if no Stripe account or API call failed)
     res.json({
       stripe_account_id: user.stripe_account_id,
       stripe_onboarding_completed: user.stripe_onboarding_completed,
