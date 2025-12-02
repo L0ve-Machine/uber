@@ -49,7 +49,13 @@ class _RestaurantMenuEditScreenState extends ConsumerState<RestaurantMenuEditScr
       _descriptionController.text = menuItem.description ?? '';
       _priceController.text = menuItem.price.toStringAsFixed(0);
       _imageUrlController.text = menuItem.imageUrl ?? '';
+
+      // カテゴリがリストに存在しない場合は追加
+      if (!_categories.contains(menuItem.category)) {
+        _categories.add(menuItem.category);
+      }
       _selectedCategory = menuItem.category;
+
       _isAvailable = menuItem.isAvailable;
       _initialized = true;
     }

@@ -94,7 +94,8 @@
       "Bash(lsof:*)",
       "Bash(pm2 logs:*)",
       "Bash(pm2 list:*)",
-      "Bash(pm2 restart:*)"
+      "Bash(pm2 restart:*)",
+      "Bash(value: Pizza. Either zero or 2 or more [DropdownMenuItem]s were detected\"\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
     ],
     "deny": [],
     "ask": []
