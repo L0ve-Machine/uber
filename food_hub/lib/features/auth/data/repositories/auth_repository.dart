@@ -112,6 +112,106 @@ class AuthRepository {
     );
   }
 
+  /// Register restaurant
+  Future<ApiResult<UserModel>> registerRestaurant({
+    required String email,
+    required String password,
+    required String name,
+    String? description,
+    required String category,
+    required String phone,
+    required String address,
+    required double latitude,
+    required double longitude,
+  }) async {
+    final request = RegisterRestaurantRequest(
+      email: email,
+      password: password,
+      name: name,
+      description: description,
+      category: category,
+      phone: phone,
+      address: address,
+      latitude: latitude,
+      longitude: longitude,
+    );
+
+    final result = await _apiService.registerRestaurant(request);
+
+    return result.when(
+      success: (registerResponse) async {
+        final userWithType = UserModel(
+          id: registerResponse.user.id,
+          email: registerResponse.user.email,
+          fullName: registerResponse.user.fullName,
+          phone: registerResponse.user.phone,
+          userType: registerResponse.userType,
+          profileImageUrl: registerResponse.user.profileImageUrl,
+          isActive: registerResponse.user.isActive,
+          createdAt: registerResponse.user.createdAt,
+        );
+
+        await _storageService.saveAuthToken(registerResponse.token);
+        await _storageService.saveUser(userWithType);
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user_type', registerResponse.userType);
+
+        return Success(userWithType);
+      },
+      failure: (error) => Failure(error),
+    );
+  }
+
+  /// Register driver
+  Future<ApiResult<UserModel>> registerDriver({
+    required String email,
+    required String password,
+    required String fullName,
+    required String phone,
+    required String vehicleType,
+    required String licenseNumber,
+  }) async {
+    final request = RegisterDriverRequest(
+      email: email,
+      password: password,
+      fullName: fullName,
+      phone: phone,
+      vehicleType: vehicleType,
+      licenseNumber: licenseNumber,
+    );
+
+    final result = await _apiService.registerDriver(request);
+
+    return result.when(
+      success: (registerResponse) async {
+        final userWithType = UserModel(
+          id: registerResponse.user.id,
+          email: registerResponse.user.email,
+          fullName: registerResponse.user.fullName,
+          phone: registerResponse.user.phone,
+          userType: registerResponse.userType,
+          profileImageUrl: registerResponse.user.profileImageUrl,
+          isActive: registerResponse.user.isActive,
+          createdAt: registerResponse.user.createdAt,
+        );
+
+        await _storageService.saveAuthToken(registerResponse.token);
+        await _storageService.saveUser(userWithType);
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user_type', registerResponse.userType);
+
+        if (registerResponse.userType == 'driver') {
+          await prefs.setInt('driver_id', userWithType.id);
+          await prefs.setString('auth_token', registerResponse.token);
+          await prefs.setString('socket_url', 'https://133-117-77-23.nip.io');
+        }
+
+        return Success(userWithType);
+      },
+      failure: (error) => Failure(error),
+    );
+  }
+
   /// Get current user from storage
   Future<UserModel?> getCurrentUserFromStorage() async {
     return await _storageService.getUser();

@@ -46,7 +46,7 @@ final restaurantMenuRepositoryProvider =
 
 typedef RestaurantMenuRepositoryRef
     = AutoDisposeProviderRef<RestaurantMenuRepository>;
-String _$restaurantMenuHash() => r'c8df6f1946c189fec02529719e73abcefa1619fc';
+String _$restaurantMenuHash() => r'c38679d57fd019a076cd077d6af8686bcefd9b3e';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -224,7 +224,7 @@ class _RestaurantMenuProviderElement
   String? get category => (origin as RestaurantMenuProvider).category;
 }
 
-String _$addMenuItemHash() => r'c62a805a259a69f3209e7c7e65358923b0b3afac';
+String _$addMenuItemHash() => r'9d695b7c563e17593b64de909d5097daf4d95552';
 
 /// Add menu item action provider
 ///
@@ -241,7 +241,7 @@ final addMenuItemProvider =
 );
 
 typedef _$AddMenuItem = AutoDisposeAsyncNotifier<MenuItemModel?>;
-String _$updateMenuItemHash() => r'aa3143bb07bbdc99b97d5cfe59953b373b361eb7';
+String _$updateMenuItemHash() => r'13e001e7b6051a3d9b9fe959f8ea53e5bfd2d574';
 
 /// Update menu item action provider
 ///

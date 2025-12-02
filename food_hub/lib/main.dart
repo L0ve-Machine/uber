@@ -7,6 +7,8 @@ import 'core/storage/storage_service.dart';
 import 'core/services/stripe_payment_service.dart';
 import 'features/auth/screens/login_screen.dart';
 import 'features/auth/screens/register_screen.dart';
+import 'features/auth/screens/register_restaurant_screen.dart';
+import 'features/auth/screens/register_driver_screen.dart';
 import 'features/customer/screens/main_navigation_screen.dart';
 import 'features/customer/screens/home_screen.dart';
 import 'features/customer/screens/restaurant_detail_screen.dart';
@@ -77,6 +79,9 @@ class MyApp extends ConsumerWidget {
         AppRoutes.splash: (context) => const SplashScreen(),
         AppRoutes.login: (context) => const LoginScreen(),
         AppRoutes.register: (context) => const RegisterScreen(),
+        AppRoutes.registerCustomer: (context) => const RegisterScreen(),
+        AppRoutes.registerRestaurant: (context) => const RegisterRestaurantScreen(),
+        AppRoutes.registerDriver: (context) => const RegisterDriverScreen(),
         // Customer routes
         AppRoutes.customerHome: (context) => const MainNavigationScreen(),
         // Restaurant routes

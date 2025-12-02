@@ -4,6 +4,9 @@ class AppRoutes {
   static const String onboarding = '/onboarding';
   static const String login = '/login';
   static const String register = '/register';
+  static const String registerCustomer = '/register/customer';
+  static const String registerRestaurant = '/register/restaurant';
+  static const String registerDriver = '/register/driver';
   static const String selectUserType = '/select-user-type';
 
   // Customer Routes

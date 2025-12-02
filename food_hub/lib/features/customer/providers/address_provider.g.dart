@@ -60,7 +60,7 @@ final defaultAddressProvider =
 );
 
 typedef DefaultAddressRef = AutoDisposeFutureProviderRef<AddressModel?>;
-String _$addressListHash() => r'4a4aa4fc386396a4770b2dcef4223fcc812351d9';
+String _$addressListHash() => r'059d635d236916270f31ec010c773d243665e98b';
 
 /// Address list provider
 ///

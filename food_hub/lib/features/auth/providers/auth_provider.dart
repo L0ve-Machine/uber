@@ -82,6 +82,70 @@ class Auth extends _$Auth {
     });
   }
 
+  /// Register restaurant
+  Future<void> registerRestaurant({
+    required String email,
+    required String password,
+    required String name,
+    String? description,
+    required String category,
+    required String phone,
+    required String address,
+    required double latitude,
+    required double longitude,
+  }) async {
+    state = const AsyncValue.loading();
+
+    final repository = ref.read(authRepositoryProvider);
+    final result = await repository.registerRestaurant(
+      email: email,
+      password: password,
+      name: name,
+      description: description,
+      category: category,
+      phone: phone,
+      address: address,
+      latitude: latitude,
+      longitude: longitude,
+    );
+
+    state = await AsyncValue.guard(() async {
+      return result.when(
+        success: (user) => user,
+        failure: (error) => throw error,
+      );
+    });
+  }
+
+  /// Register driver
+  Future<void> registerDriver({
+    required String email,
+    required String password,
+    required String fullName,
+    required String phone,
+    required String vehicleType,
+    required String licenseNumber,
+  }) async {
+    state = const AsyncValue.loading();
+
+    final repository = ref.read(authRepositoryProvider);
+    final result = await repository.registerDriver(
+      email: email,
+      password: password,
+      fullName: fullName,
+      phone: phone,
+      vehicleType: vehicleType,
+      licenseNumber: licenseNumber,
+    );
+
+    state = await AsyncValue.guard(() async {
+      return result.when(
+        success: (user) => user,
+        failure: (error) => throw error,
+      );
+    });
+  }
+
   /// Logout
   Future<void> logout() async {
     final repository = ref.read(authRepositoryProvider);

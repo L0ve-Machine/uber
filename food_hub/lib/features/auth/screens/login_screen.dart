@@ -236,32 +236,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     error: (_, __) => _buildLoginButton(),
                   ),
 
-                  // Register link (only for customer)
-                  if (_selectedUserType == AppConstants.userTypeCustomer) ...[
-                    const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'アカウントをお持ちでないですか？',
+                  // Register link (for all user types)
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'アカウントをお持ちでないですか？',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 14,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          final routeName = _selectedUserType == AppConstants.userTypeCustomer
+                              ? '/register/customer'
+                              : _selectedUserType == AppConstants.userTypeRestaurant
+                              ? '/register/restaurant'
+                              : '/register/driver';
+                          Navigator.of(context).pushNamed(routeName);
+                        },
+                        child: const Text(
+                          '新規登録',
                           style: TextStyle(
-                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w600,
                             fontSize: 14,
                           ),
                         ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pushNamed('/register');
-                          },
-                          child: const Text(
-                            '新規登録',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
+                    ],
                     ),
                   ],
 
