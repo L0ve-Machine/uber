@@ -52,8 +52,8 @@ exports.createRestaurantAccount = async (req, res) => {
     // Create onboarding link (works for both new and existing accounts)
     const accountLink = await stripe.accountLinks.create({
       account: accountId,
-      refresh_url: `${process.env.APP_URL || 'https://133-117-77-23.nip.io'}/restaurant/stripe/refresh`,
-      return_url: `${process.env.APP_URL || 'https://133-117-77-23.nip.io'}/restaurant/stripe/return`,
+      refresh_url: `${process.env.APP_URL || 'https://133-117-77-23.nip.io'}/api/stripe/restaurant/refresh`,
+      return_url: `${process.env.APP_URL || 'https://133-117-77-23.nip.io'}/api/stripe/restaurant/return`,
       type: 'account_onboarding',
     });
 
@@ -112,8 +112,8 @@ exports.createDriverAccount = async (req, res) => {
     // Create onboarding link (works for both new and existing accounts)
     const accountLink = await stripe.accountLinks.create({
       account: accountId,
-      refresh_url: `${process.env.APP_URL || 'https://133-117-77-23.nip.io'}/driver/stripe/refresh`,
-      return_url: `${process.env.APP_URL || 'https://133-117-77-23.nip.io'}/driver/stripe/return`,
+      refresh_url: `${process.env.APP_URL || 'https://133-117-77-23.nip.io'}/api/stripe/driver/refresh`,
+      return_url: `${process.env.APP_URL || 'https://133-117-77-23.nip.io'}/api/stripe/driver/return`,
       type: 'account_onboarding',
     });
 
