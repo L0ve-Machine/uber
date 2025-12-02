@@ -45,5 +45,12 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<!-- Location permissions for driver tracking -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>配達中にあなたの位置情報を使用して、お客様に配達状況をお知らせします</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>配達中にあなたの位置情報を使用して、お客様に配達状況をお知らせします</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>配達中にあなたの位置情報を使用して、お客様に配達状況をお知らせします</string>
 </dict>
 </plist>

@@ -106,7 +106,7 @@ io.on('connection', (socket) => {
     const { driverId, latitude, longitude } = data;
 
     try {
-      // Update driver location in database
+      // Update driver location in database (正確な位置を保存)
       await Driver.update(
         {
           current_latitude: latitude,
@@ -117,11 +117,25 @@ io.on('connection', (socket) => {
 
       console.log(`Driver ${driverId} location updated: ${latitude}, ${longitude}`);
 
-      // Broadcast to all customers tracking this driver
+      // ===== Privacy: ぼかし処理 (200m範囲でランダム化) =====
+      const BLUR_RADIUS_METERS = 200;
+
+      // 緯度のオフセット (1度 ≈ 111km)
+      const latOffset = (Math.random() - 0.5) * (BLUR_RADIUS_METERS / 111000);
+
+      // 経度のオフセット (緯度による補正)
+      const lngOffset = (Math.random() - 0.5) * (BLUR_RADIUS_METERS / (111000 * Math.cos(latitude * Math.PI / 180)));
+
+      const blurredLat = latitude + latOffset;
+      const blurredLng = longitude + lngOffset;
+
+      console.log(`[PRIVACY] Blurred location: ${blurredLat}, ${blurredLng} (offset: ~${BLUR_RADIUS_METERS}m)`);
+
+      // Broadcast to all customers tracking this driver (ぼかした位置情報)
       io.emit('driver:location-changed', {
         driverId,
-        latitude,
-        longitude,
+        latitude: blurredLat,
+        longitude: blurredLng,
         timestamp: new Date().toISOString(),
       });
     } catch (error) {

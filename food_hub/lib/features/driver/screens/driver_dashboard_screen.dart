@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/network/api_error.dart';
+import '../../../core/storage/secure_storage.dart';
 import '../../../shared/widgets/loading_indicator.dart';
 import '../../../shared/widgets/error_view.dart';
 import '../../../shared/widgets/empty_state.dart';
@@ -11,6 +12,8 @@ import '../providers/driver_provider.dart';
 import '../providers/driver_profile_provider.dart';
 import '../widgets/driver_order_card.dart';
 import '../widgets/pickup_pin_dialog.dart';
+import '../services/driver_socket_service.dart';
+import '../services/location_service.dart';
 import 'driver_active_delivery_screen.dart';
 import 'driver_stripe_setup_screen.dart';
 
@@ -24,6 +27,73 @@ class DriverDashboardScreen extends ConsumerStatefulWidget {
 
 class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
   int _currentIndex = 0;
+  DriverSocketService? _socketService;
+  bool _locationPermissionGranted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeLocationTracking();
+  }
+
+  @override
+  void dispose() {
+    _socketService?.disconnect();
+    super.dispose();
+  }
+
+  /// 位置情報追跡を初期化
+  Future<void> _initializeLocationTracking() async {
+    // 権限チェック
+    final hasPermission = await LocationService.checkAndRequestPermission();
+    setState(() {
+      _locationPermissionGranted = hasPermission;
+    });
+
+    if (!hasPermission) {
+      print('[DriverDashboard] Location permission not granted');
+      return;
+    }
+
+    // ユーザー情報とオンライン状態を取得
+    final user = ref.read(authProvider).value;
+    final isOnline = ref.read(driverOnlineStatusProvider);
+
+    if (user != null && isOnline) {
+      await _startLocationTracking(user.id);
+    }
+  }
+
+  /// 位置情報追跡を開始
+  Future<void> _startLocationTracking(int driverId) async {
+    if (_socketService != null) {
+      return; // 既に開始済み
+    }
+
+    try {
+      final token = await SecureStorage.getToken();
+      if (token == null) {
+        print('[DriverDashboard] No auth token found');
+        return;
+      }
+
+      _socketService = DriverSocketService(
+        driverId: driverId,
+        authToken: token,
+      );
+      _socketService!.connect();
+      print('[DriverDashboard] Location tracking started');
+    } catch (e) {
+      print('[DriverDashboard] Error starting location tracking: $e');
+    }
+  }
+
+  /// 位置情報追跡を停止
+  void _stopLocationTracking() {
+    _socketService?.disconnect();
+    _socketService = null;
+    print('[DriverDashboard] Location tracking stopped');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -413,6 +483,16 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
       String displayMessage;
       if (success) {
         displayMessage = isOnline ? 'オンラインになりました' : 'オフラインになりました';
+
+        // Socket.IO連携: オンライン状態に応じて接続/切断
+        final user = ref.read(authProvider).value;
+        if (user != null) {
+          if (isOnline) {
+            await _startLocationTracking(user.id);
+          } else {
+            _stopLocationTracking();
+          }
+        }
       } else if (error != null) {
         // ApiErrorオブジェクトからメッセージを取得
         if (error.message.contains('Stripe')) {
