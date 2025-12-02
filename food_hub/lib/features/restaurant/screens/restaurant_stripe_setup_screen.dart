@@ -209,12 +209,16 @@ class _RestaurantStripeSetupScreenState extends ConsumerState<RestaurantStripeSe
                   const SizedBox(height: 24),
 
                   // アクションボタン
-                  if (!_onboardingComplete)
+                  if (!_payoutsEnabled)
                     ElevatedButton.icon(
                       onPressed: _startOnboarding,
                       icon: const Icon(Icons.launch),
                       label: Text(
-                        _hasAccount ? 'オンボーディング続行' : 'Stripe登録を開始',
+                        !_hasAccount
+                            ? 'Stripe登録を開始'
+                            : !_onboardingComplete
+                                ? 'オンボーディング続行'
+                                : '本人確認を完了',
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black,
