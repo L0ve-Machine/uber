@@ -559,7 +559,7 @@ exports.createPaymentIntent = async (req, res) => {
 
     // Create Payment Intent
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(order.total * 100),  // JPY to cents
+      amount: Math.round(order.total),  // JPY is zero-decimal currency (no cents)
       currency: 'jpy',
       payment_method_types: ['card'],
       transfer_group: order.order_number,
@@ -629,7 +629,7 @@ async function processOrderPayouts(orderId) {
 
       if (restaurant_payout > 0) {
         const restaurantTransfer = await stripe.transfers.create({
-          amount: Math.round(restaurant_payout * 100),
+          amount: Math.round(restaurant_payout),  // JPY is zero-decimal currency
           currency: 'jpy',
           destination: order.restaurant.stripe_account_id,
           transfer_group: order.order_number,
@@ -659,7 +659,7 @@ async function processOrderPayouts(orderId) {
 
       if (driver_payout > 0) {
         const driverTransfer = await stripe.transfers.create({
-          amount: Math.round(driver_payout * 100),
+          amount: Math.round(driver_payout),  // JPY is zero-decimal currency
           currency: 'jpy',
           destination: order.driver.stripe_account_id,
           transfer_group: order.order_number,
