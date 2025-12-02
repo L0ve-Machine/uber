@@ -114,6 +114,15 @@ exports.acceptOrder = async (req, res) => {
     const { id } = req.params;
     const restaurant_id = req.user.id;
 
+    // Check if restaurant has completed Stripe setup
+    const restaurant = await Restaurant.findByPk(restaurant_id);
+    if (!restaurant.stripe_payouts_enabled) {
+      return res.status(403).json({
+        error: 'Stripe setup required',
+        message: 'Stripe支払い設定を完了してから注文を受け付けてください'
+      });
+    }
+
     const order = await Order.findOne({
       where: { id, restaurant_id },
     });

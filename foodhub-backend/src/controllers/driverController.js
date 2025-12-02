@@ -237,6 +237,15 @@ exports.toggleOnlineStatus = async (req, res) => {
       return res.status(404).json({ error: 'Driver not found' });
     }
 
+    // Check if driver has completed Stripe setup before going online
+    if (is_online && !driver.stripe_payouts_enabled) {
+      return res.status(403).json({
+        error: 'Stripe setup required',
+        message: 'Stripe設定を完了してからオンラインにしてください',
+        canGoOnline: false
+      });
+    }
+
     await driver.update({ is_online });
 
     res.json({

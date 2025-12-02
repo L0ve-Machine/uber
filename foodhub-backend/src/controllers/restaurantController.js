@@ -15,6 +15,7 @@ exports.getRestaurants = async (req, res) => {
     // Build where clause
     const where = {
       is_approved: true, // Only approved restaurants
+      stripe_payouts_enabled: true, // Only restaurants with Stripe setup completed
     };
 
     if (category) {
