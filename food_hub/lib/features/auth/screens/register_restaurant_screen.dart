@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geocoding/geocoding.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_text_field.dart';
 import '../providers/auth_provider.dart';
@@ -30,21 +31,22 @@ class _RegisterRestaurantScreenState
   bool _obscureConfirmPassword = true;
   bool _isGeocodingAddress = false;
 
-  final List<String> _categories = [
-    'Japanese',
-    'Italian',
-    'Chinese',
-    'Korean',
-    'American',
-    'French',
-    'Thai',
-    'Indian',
-    'Mexican',
-    'Cafe',
-    'Dessert',
-    'Fast Food',
-    'Other',
-  ];
+  // Category mapping: English value (for DB) -> Japanese label (for UI)
+  final Map<String, String> _categoryMap = {
+    'Japanese': '和食',
+    'Italian': 'イタリアン',
+    'Chinese': '中華',
+    'Korean': '韓国料理',
+    'American': 'アメリカン',
+    'French': 'フレンチ',
+    'Thai': 'タイ料理',
+    'Indian': 'インド料理',
+    'Mexican': 'メキシカン',
+    'Cafe': 'カフェ',
+    'Dessert': 'デザート',
+    'Fast Food': 'ファストフード',
+    'Other': 'その他',
+  };
 
   @override
   void dispose() {
@@ -75,24 +77,49 @@ class _RegisterRestaurantScreenState
     });
 
     try {
-      // For now, use Tokyo default coordinates
-      // In production, use Geocoding API
+      // Use Geocoding API to get coordinates from address
+      final locations = await locationFromAddress(address);
+
+      if (locations.isNotEmpty) {
+        final location = locations.first;
+        _latitude = location.latitude;
+        _longitude = location.longitude;
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('位置情報を設定しました (${_latitude!.toStringAsFixed(4)}, ${_longitude!.toStringAsFixed(4)})'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        // Fallback to Tokyo default if geocoding fails
+        _latitude = 35.6895;
+        _longitude = 139.6917;
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('住所が見つかりませんでした。デフォルト位置を使用します'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // Fallback to Tokyo default on error
       _latitude = 35.6895;
       _longitude = 139.6917;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('位置情報を設定しました'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('位置情報の取得に失敗しました: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('位置情報の取得に失敗しました。デフォルト位置を使用します: $e'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
     } finally {
       setState(() {
         _isGeocodingAddress = false;
@@ -250,10 +277,10 @@ class _RegisterRestaurantScreenState
                     child: DropdownButton<String>(
                       value: _selectedCategory,
                       isExpanded: true,
-                      items: _categories.map((category) {
+                      items: _categoryMap.entries.map((entry) {
                         return DropdownMenuItem(
-                          value: category,
-                          child: Text(category),
+                          value: entry.key,
+                          child: Text(entry.value),
                         );
                       }).toList(),
                       onChanged: (value) {
