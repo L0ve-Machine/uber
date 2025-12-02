@@ -41,7 +41,7 @@ final driverRepositoryProvider = AutoDisposeProvider<DriverRepository>.internal(
 
 typedef DriverRepositoryRef = AutoDisposeProviderRef<DriverRepository>;
 String _$driverOnlineStatusHash() =>
-    r'358a4f1bad53db5e334e0043465406d809c3b884';
+    r'99c9604f722c804c7305563d10f355249f336d02';
 
 /// Driver online status provider
 ///
@@ -77,9 +77,9 @@ final availableOrdersProvider = AutoDisposeAsyncNotifierProvider<
 );
 
 typedef _$AvailableOrders = AutoDisposeAsyncNotifier<List<OrderModel>>;
-String _$activeDeliveriesHash() => r'a5a2a59b5898c8df130da4c78b11814ffe2dd6c6';
+String _$activeDeliveriesHash() => r'9a8bfe8370e3e912368c17651c754ae53614d487';
 
-/// Active deliveries provider (picked_up, delivering)
+/// Active deliveries provider (ready with driver, picked_up, delivering)
 ///
 /// Copied from [ActiveDeliveries].
 @ProviderFor(ActiveDeliveries)

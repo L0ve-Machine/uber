@@ -1,0 +1,32 @@
+  1. Install Flutter
+
+  - Download from https://docs.flutter.dev/get-started/install/windows
+  - Extract to C:\flutter
+  - Add C:\flutter\bin to your PATH
+  - Restart terminal
+
+  2. Install Android Studio
+
+  - Needed for Android SDK & emulator
+  - Download from https://developer.android.com/studio
+
+  3. Verify Setup
+
+  flutter doctor
+  Fix any issues it reports.
+
+  4. Run the App
+
+  # Terminal 1 - Backend
+  cd C:\Users\masam\prodivant_project\uber\foodhub-backend
+  npm run dev
+
+  # Terminal 2 - Flutter
+  cd C:\Users\masam\prodivant_project\uber\food_hub
+  flutter pub get
+  flutter run
+
+  ---
+  Already done:
+  - ✅ Database created & configured
+  - ✅ Backend ready to run
