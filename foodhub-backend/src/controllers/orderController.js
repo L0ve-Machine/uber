@@ -460,8 +460,15 @@ exports.getOrderTracking = async (req, res) => {
 
     // Find position of this order in driver's queue
     const myIndex = driverOrders.findIndex(o => o.id === order.id);
-    const isCurrentlyDeliveringToMe = myIndex === 0;  // First in queue = currently delivering
-    const remainingDeliveries = Math.max(0, myIndex);  // How many before me
+
+    // Determine if driver is currently delivering to this customer
+    // Use 'delivering' status for accurate detection (only one order can be 'delivering' at a time)
+    const isCurrentlyDeliveringToMe = (order.status === 'delivering');
+
+    // Calculate remaining deliveries before this order
+    // Count orders with 'delivering' status that come before this order
+    const deliveringOrders = driverOrders.filter(o => o.status === 'delivering');
+    const remainingDeliveries = isCurrentlyDeliveringToMe ? 0 : deliveringOrders.length;
 
     // *** PRIVACY PROTECTION: Only show driver location if delivering to current customer ***
     const driverLocation = (isCurrentlyDeliveringToMe && order.driver) ? {

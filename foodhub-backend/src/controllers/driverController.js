@@ -161,6 +161,25 @@ exports.updateDeliveryStatus = async (req, res) => {
       });
     }
 
+    // Ensure only one order is 'delivering' at a time
+    if (status === 'delivering') {
+      const otherDelivering = await Order.findOne({
+        where: {
+          driver_id: order.driver_id,
+          status: 'delivering',
+          id: { [sequelize.Sequelize.Op.ne]: order.id }
+        }
+      });
+
+      if (otherDelivering) {
+        return res.status(400).json({
+          error: 'Another delivery is already in progress',
+          message: `注文 #${otherDelivering.order_number} を完了してから開始してください`,
+          currentDeliveryOrderNumber: otherDelivering.order_number
+        });
+      }
+    }
+
     const updateData = { status };
     if (status === 'delivered') {
       updateData.delivered_at = new Date();
