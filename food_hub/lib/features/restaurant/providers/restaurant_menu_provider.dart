@@ -101,7 +101,8 @@ class AddMenuItem extends _$AddMenuItem {
   }
 
   /// Add new menu item
-  Future<bool> add({
+  /// Returns (success, errorMessage)
+  Future<(bool, String?)> add({
     required String name,
     String? description,
     required double price,
@@ -109,18 +110,6 @@ class AddMenuItem extends _$AddMenuItem {
     String? imageUrl,
     List<Map<String, dynamic>>? options,
   }) async {
-    // Stripe設定チェック
-    final restaurantAsync = ref.read(restaurantProfileProvider);
-    final restaurant = restaurantAsync.valueOrNull;
-
-    if (restaurant == null) {
-      return false;
-    }
-
-    if (!restaurant.isStripeFullySetup) {
-      return false;
-    }
-
     final repository = ref.read(restaurantMenuRepositoryProvider);
     final result = await repository.addMenuItem(
       name: name,
@@ -131,18 +120,16 @@ class AddMenuItem extends _$AddMenuItem {
       options: options,
     );
 
-    final success = result.when(
+    return result.when(
       success: (menuItem) {
         // Invalidate menu list to refresh
         ref.invalidate(restaurantMenuProvider());
-        return true;
+        return (true, null);
       },
       failure: (error) {
-        return false;
+        return (false, error.message);
       },
     );
-
-    return success;
   }
 }
 

@@ -163,7 +163,7 @@ class _RestaurantMenuAddScreenState extends ConsumerState<RestaurantMenuAddScree
       _isLoading = true;
     });
 
-    final success = await ref.read(addMenuItemProvider.notifier).add(
+    final (success, errorMessage) = await ref.read(addMenuItemProvider.notifier).add(
       name: _nameController.text,
       description: _descriptionController.text.isNotEmpty
           ? _descriptionController.text
@@ -190,8 +190,7 @@ class _RestaurantMenuAddScreenState extends ConsumerState<RestaurantMenuAddScree
         Navigator.of(context).pop();
       } else {
         // エラーハンドリング拡張
-        final error = ref.read(addMenuItemProvider).error;
-        final isStripeError = error.toString().contains('Stripe');
+        final isStripeError = errorMessage?.contains('Stripe') ?? false;
 
         showDialog(
           context: context,
@@ -199,9 +198,9 @@ class _RestaurantMenuAddScreenState extends ConsumerState<RestaurantMenuAddScree
             title: Text(isStripeError ? 'Stripe設定が必要です' : 'エラー'),
             content: Text(
               isStripeError
-                  ? error.toString().replaceAll('Exception: ', '') +
+                  ? (errorMessage ?? 'Stripe設定が必要です') +
                       '\n\n設定画面からStripe登録を完了してください。'
-                  : 'メニューの追加に失敗しました',
+                  : (errorMessage ?? 'メニューの追加に失敗しました'),
             ),
             actions: [
               if (isStripeError)
