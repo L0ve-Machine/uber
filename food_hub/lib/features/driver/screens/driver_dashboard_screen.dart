@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/network/api_error.dart';
 import '../../../core/storage/secure_storage.dart';
@@ -47,6 +48,24 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
     if (!hasPermission) {
       print('[DriverDashboard] Location permission not granted');
       return;
+    }
+
+    // SharedPreferencesに認証情報を保存（既存セッション対応）
+    final user = ref.read(authProvider).value;
+    if (user != null && user.userType == 'driver') {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final token = await SecureStorage.getToken();
+
+        await prefs.setInt('driver_id', user.id);
+        if (token != null) {
+          await prefs.setString('auth_token', token);
+        }
+        await prefs.setString('socket_url', 'https://133-117-77-23.nip.io');
+        print('[DriverDashboard] Saved credentials to SharedPreferences');
+      } catch (e) {
+        print('[DriverDashboard] Error saving credentials: $e');
+      }
     }
 
     // バックグラウンドサービスを初期化
