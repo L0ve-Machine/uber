@@ -147,10 +147,15 @@ class BackgroundLocationService {
     Timer.periodic(const Duration(seconds: 30), (timer) {
       if (service is! AndroidServiceInstance) return;
 
-      service.setForegroundNotificationInfo(
-        title: '配達中',
-        content: '位置情報を送信中... (更新回数: $updateCount)',
-      );
+      try {
+        service.setForegroundNotificationInfo(
+          title: '配達中',
+          content: '位置情報を送信中... (更新回数: $updateCount)',
+        );
+      } catch (e) {
+        // Android 12+ でバックグラウンドから通知更新できない場合は無視
+        print('[BackgroundLocation] Notification update skipped: $e');
+      }
     });
   }
 
@@ -178,10 +183,14 @@ class BackgroundLocationService {
 
       // 通知を更新（Android）
       if (service is AndroidServiceInstance) {
-        service.setForegroundNotificationInfo(
-          title: '配達中',
-          content: '位置情報を送信中... (最終更新: ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')})',
-        );
+        try {
+          service.setForegroundNotificationInfo(
+            title: '配達中',
+            content: '位置情報を送信中... (最終更新: ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')})',
+          );
+        } catch (e) {
+          // Android 12+ でバックグラウンドから通知更新できない場合は無視
+        }
       }
     } catch (e) {
       print('[BackgroundLocation] ⚠️ Error getting/sending location: $e');
