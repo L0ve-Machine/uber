@@ -24,8 +24,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   final _searchController = TextEditingController();
   String? _selectedCategory;
   String _sortBy = 'distance'; // 'distance', 'price', 'rating'
-  double? _maxDistance; // null = no limit, 5, 10, 20
+  String _maxDistanceFilter = 'all'; // 'all', '5', '10', '20'
   bool _showFilters = false;
+
+  double? get _maxDistance {
+    if (_maxDistanceFilter == 'all') return null;
+    return double.parse(_maxDistanceFilter);
+  }
 
   @override
   void dispose() {
@@ -159,7 +164,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       Expanded(
                         child: _buildCompactDropdown(
                           label: '距離',
-                          value: _maxDistance?.toString() ?? 'all',
+                          value: _maxDistanceFilter,
                           items: const {
                             'all': 'すべて',
                             '5': '5km以内',
@@ -168,7 +173,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           },
                           onChanged: (value) {
                             setState(() {
-                              _maxDistance = value == 'all' ? null : double.parse(value!);
+                              _maxDistanceFilter = value!;
                             });
                           },
                         ),
