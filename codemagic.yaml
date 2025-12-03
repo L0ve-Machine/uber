@@ -1,0 +1,89 @@
+workflows:
+  ios-workflow:
+    name: iOS Workflow
+    max_build_duration: 120
+    instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: codemagic
+    environment:
+      groups:
+        - app_store_credentials
+      vars:
+        XCODE_WORKSPACE: "food_hub/ios/Runner.xcworkspace"
+        XCODE_SCHEME: "Runner"
+        BUNDLE_ID: "com.foodhub.food_hub"
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Set up code signing settings on Xcode project
+        script: |
+          xcode-project use-profiles
+      - name: Get Flutter packages
+        script: |
+          cd food_hub
+          flutter packages pub get
+      - name: Install pods
+        script: |
+          cd food_hub/ios
+          pod install
+      - name: Flutter build ipa
+        script: |
+          cd food_hub
+          flutter build ipa --release \
+            --export-options-plist=/Users/builder/export_options.plist
+    artifacts:
+      - food_hub/build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - food_hub/flutter_drive.log
+    publishing:
+      email:
+        recipients:
+          - your-email@example.com
+        notify:
+          success: true
+          failure: true
+
+  android-workflow:
+    name: Android Workflow
+    max_build_duration: 120
+    instance_type: linux_x2
+    environment:
+      groups:
+        - google_play_credentials
+      vars:
+        PACKAGE_NAME: "com.foodhub.food_hub"
+      flutter: stable
+      java: 17
+    scripts:
+      - name: Set up local.properties
+        script: |
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > "$CM_BUILD_DIR/food_hub/android/local.properties"
+      - name: Get Flutter packages
+        script: |
+          cd food_hub
+          flutter packages pub get
+      - name: Build APK
+        script: |
+          cd food_hub
+          flutter build apk --release
+      - name: Build App Bundle
+        script: |
+          cd food_hub
+          flutter build appbundle --release
+    artifacts:
+      - food_hub/build/app/outputs/**/*.apk
+      - food_hub/build/app/outputs/**/*.aab
+      - food_hub/build/app/outputs/**/mapping.txt
+      - food_hub/flutter_drive.log
+    publishing:
+      email:
+        recipients:
+          - your-email@example.com
+        notify:
+          success: true
+          failure: true
+      google_play:
+        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+        track: internal
+        submit_as_draft: true
