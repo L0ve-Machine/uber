@@ -219,6 +219,47 @@ exports.getProfile = async (req, res) => {
 };
 
 /**
+ * Update restaurant profile
+ * PATCH /api/restaurant/profile
+ */
+exports.updateProfile = async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const restaurant_id = req.user.id;
+    const { delivery_time_minutes, cover_image_url, logo_url } = req.body;
+
+    const restaurant = await Restaurant.findByPk(restaurant_id);
+
+    if (!restaurant) {
+      return res.status(404).json({ error: 'Restaurant not found' });
+    }
+
+    // Update fields
+    const updates = {};
+    if (delivery_time_minutes !== undefined) updates.delivery_time_minutes = delivery_time_minutes;
+    if (cover_image_url !== undefined) updates.cover_image_url = cover_image_url;
+    if (logo_url !== undefined) updates.logo_url = logo_url;
+
+    await restaurant.update(updates);
+
+    const updatedRestaurant = restaurant.toJSON();
+    delete updatedRestaurant.password_hash;
+
+    res.json({
+      message: 'Profile updated successfully',
+      restaurant: updatedRestaurant,
+    });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+/**
  * Change restaurant password
  * PATCH /api/restaurant/password
  */

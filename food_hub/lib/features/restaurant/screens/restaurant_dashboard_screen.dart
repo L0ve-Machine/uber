@@ -420,9 +420,9 @@ class _RestaurantDashboardScreenState
           child: Column(
             children: [
               ListTile(
-                leading: const Icon(Icons.image, color: Colors.black),
-                title: const Text('お店の写真設定'),
-                subtitle: const Text('カバー画像・ロゴ'),
+                leading: const Icon(Icons.settings, color: Colors.black),
+                title: const Text('店舗設定'),
+                subtitle: const Text('カバー画像・配達時間'),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
                   Navigator.of(context).push(

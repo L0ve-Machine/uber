@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../shared/widgets/custom_button.dart';
+import '../../../shared/widgets/custom_text_field.dart';
 import '../data/services/image_upload_service.dart';
 import '../providers/restaurant_profile_provider.dart';
 
@@ -19,10 +20,16 @@ class RestaurantImageSettingsScreen extends ConsumerStatefulWidget {
 class _RestaurantImageSettingsScreenState
     extends ConsumerState<RestaurantImageSettingsScreen> {
   XFile? _selectedCoverImage;
-  XFile? _selectedLogoImage;
   bool _isUploading = false;
+  final _deliveryTimeController = TextEditingController();
 
   final ImagePicker _picker = ImagePicker();
+
+  @override
+  void dispose() {
+    _deliveryTimeController.dispose();
+    super.dispose();
+  }
 
   Future<void> _pickCoverImage() async {
     final image = await _picker.pickImage(
@@ -39,80 +46,69 @@ class _RestaurantImageSettingsScreenState
     }
   }
 
-  Future<void> _pickLogoImage() async {
-    final image = await _picker.pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 512,
-      maxHeight: 512,
-      imageQuality: 85,
-    );
-
-    if (image != null) {
-      setState(() {
-        _selectedLogoImage = image;
-      });
-    }
-  }
-
   Future<void> _uploadImages() async {
-    if (_selectedCoverImage == null && _selectedLogoImage == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('画像を選択してください'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
     setState(() {
       _isUploading = true;
     });
 
     try {
-      final uploadService = ImageUploadService(ref.read(dioProvider));
-      final imagesToUpload = <XFile>[];
+      final dio = ref.read(dioProvider);
+      final deliveryTime = int.tryParse(_deliveryTimeController.text.trim());
 
-      if (_selectedCoverImage != null) imagesToUpload.add(_selectedCoverImage!);
-      if (_selectedLogoImage != null) imagesToUpload.add(_selectedLogoImage!);
+      String? coverImageUrl;
 
-      final result = await uploadService.uploadRestaurantImages(imagesToUpload);
+      // Upload image if selected
+      if (_selectedCoverImage != null) {
+        final uploadService = ImageUploadService(dio);
+        final result = await uploadService.uploadRestaurantImages([_selectedCoverImage!]);
 
-      await result.when(
-        success: (urls) async {
-          // Update restaurant profile with new image URLs
-          // For now, just show success message
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('画像をアップロードしました'),
-                backgroundColor: Colors.green,
-              ),
-            );
+        final uploadSuccess = await result.when(
+          success: (urls) {
+            if (urls.isNotEmpty) {
+              coverImageUrl = urls.first;
+            }
+            return true;
+          },
+          failure: (error) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('画像アップロードに失敗しました: ${error.message}'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+            return false;
+          },
+        );
 
-            // Refresh profile
-            ref.invalidate(restaurantProfileProvider);
+        if (!uploadSuccess) {
+          return;
+        }
+      }
 
-            // Go back
-            Navigator.of(context).pop();
-          }
-        },
-        failure: (error) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('アップロードに失敗しました: ${error.message}'),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
-        },
-      );
+      // Update profile (image URL and/or delivery time)
+      await dio.patch('/restaurant/profile', data: {
+        if (coverImageUrl != null) 'cover_image_url': coverImageUrl,
+        if (deliveryTime != null) 'delivery_time_minutes': deliveryTime,
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('設定を保存しました'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        ref.invalidate(restaurantProfileProvider);
+        Navigator.of(context).pop();
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('エラーが発生しました: $e'),
+            content: Text('設定の保存に失敗しました: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -135,7 +131,7 @@ class _RestaurantImageSettingsScreenState
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: const Text('お店の写真設定'),
+        title: const Text('店舗設定'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
@@ -224,9 +220,9 @@ class _RestaurantImageSettingsScreenState
 
             const SizedBox(height: 32),
 
-            // Logo Image Section
+            // Delivery Time Section
             const Text(
-              'ロゴ画像 (任意)',
+              '配達時間',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -234,76 +230,32 @@ class _RestaurantImageSettingsScreenState
             ),
             const SizedBox(height: 8),
             const Text(
-              '店舗のロゴやアイコン',
+              '通常の配達にかかる時間（分）',
               style: TextStyle(fontSize: 12, color: Colors.grey),
             ),
             const SizedBox(height: 12),
 
-            GestureDetector(
-              onTap: _pickLogoImage,
-              child: Container(
-                height: 120,
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey[300]!),
-                ),
-                child: _selectedLogoImage != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.file(
-                          File(_selectedLogoImage!.path),
-                          fit: BoxFit.contain,
-                        ),
-                      )
-                    : profileAsync.when(
-                        data: (profile) {
-                          if (profile.logoUrl != null) {
-                            return ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: CachedNetworkImage(
-                                imageUrl: profile.logoUrl!,
-                                fit: BoxFit.contain,
-                              ),
-                            );
-                          }
-                          return Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.add_photo_alternate,
-                                  size: 32, color: Colors.grey[400]),
-                              const SizedBox(height: 8),
-                              Text(
-                                'タップして画像を選択',
-                                style: TextStyle(
-                                    fontSize: 12, color: Colors.grey[600]),
-                              ),
-                            ],
-                          );
-                        },
-                        loading: () => const Center(
-                            child: CircularProgressIndicator()),
-                        error: (_, __) => Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.add_photo_alternate,
-                                size: 32, color: Colors.grey[400]),
-                            const SizedBox(height: 8),
-                            Text(
-                              'タップして画像を選択',
-                              style: TextStyle(
-                                  fontSize: 12, color: Colors.grey[600]),
-                            ),
-                          ],
-                        ),
-                      ),
-              ),
+            CustomTextField(
+              controller: _deliveryTimeController,
+              label: '配達時間（分）',
+              keyboardType: TextInputType.number,
+              hintText: '例: 30',
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return '配達時間を入力してください';
+                }
+                final minutes = int.tryParse(value);
+                if (minutes == null || minutes < 10 || minutes > 120) {
+                  return '10〜120分の範囲で入力してください';
+                }
+                return null;
+              },
             ),
 
             const SizedBox(height: 32),
 
             CustomButton(
-              text: 'アップロード',
+              text: '保存',
               onPressed: _isUploading ? null : _uploadImages,
               isLoading: _isUploading,
             ),

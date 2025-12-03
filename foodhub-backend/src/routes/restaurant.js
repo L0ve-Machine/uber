@@ -21,6 +21,13 @@ router.use(isRestaurant);
 router.get('/profile', restaurantController.getProfile);
 
 /**
+ * @route   PATCH /api/restaurant/profile
+ * @desc    Update restaurant profile
+ * @access  Private (Restaurant only)
+ */
+router.patch('/profile', restaurantController.updateProfile);
+
+/**
  * @route   PATCH /api/restaurant/password
  * @desc    Change restaurant password
  * @access  Private (Restaurant only)
