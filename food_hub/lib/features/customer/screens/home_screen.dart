@@ -23,6 +23,9 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final _searchController = TextEditingController();
   String? _selectedCategory;
+  String _sortBy = 'distance'; // 'distance', 'price', 'rating'
+  double? _maxDistance; // null = no limit, 5, 10, 20
+  bool _showFilters = false;
 
   @override
   void dispose() {
@@ -93,20 +96,96 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
 
 
-          // Search bar
+          // Search bar with filter toggle
           Container(
             color: Colors.white,
             padding: const EdgeInsets.all(16),
-            child: CustomTextField(
-              controller: _searchController,
-              hintText: 'レストランを検索...',
-              prefixIcon: const Icon(Icons.search),
-              onChanged: _onSearch,
+            child: Row(
+              children: [
+                Expanded(
+                  child: CustomTextField(
+                    controller: _searchController,
+                    hintText: 'レストランを検索...',
+                    prefixIcon: const Icon(Icons.search),
+                    onChanged: _onSearch,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: Icon(
+                    _showFilters ? Icons.filter_list_off : Icons.filter_list,
+                    color: _showFilters ? Colors.black : Colors.grey,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _showFilters = !_showFilters;
+                    });
+                  },
+                ),
+              ],
             ),
           ),
 
-          // Category filter
-          _buildCategoryFilter(),
+          // Collapsible filters
+          if (_showFilters) ...[
+            Container(
+              color: Colors.white,
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Sort and Distance filter in one row
+                  Row(
+                    children: [
+                      // Sort dropdown
+                      Expanded(
+                        child: _buildCompactDropdown(
+                          label: '並び替え',
+                          value: _sortBy,
+                          items: const {
+                            'distance': '近い順',
+                            'price': '安い順',
+                            'rating': '評価順',
+                          },
+                          onChanged: (value) {
+                            setState(() {
+                              _sortBy = value!;
+                            });
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Distance filter dropdown
+                      Expanded(
+                        child: _buildCompactDropdown(
+                          label: '距離',
+                          value: _maxDistance?.toString() ?? 'all',
+                          items: const {
+                            'all': 'すべて',
+                            '5': '5km以内',
+                            '10': '10km以内',
+                            '20': '20km以内',
+                          },
+                          onChanged: (value) {
+                            setState(() {
+                              _maxDistance = value == 'all' ? null : double.parse(value!);
+                            });
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  // Category chips
+                  _buildCategoryChips(),
+                ],
+              ),
+            ),
+          ]
+          else ...[
+            // Compact category filter when filters hidden
+            _buildCategoryFilter(),
+          ],
 
           // Restaurant list
           Expanded(
@@ -144,10 +223,35 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         };
                       }).toList();
 
-                      // Sort by distance
-                      restaurantsWithDistance.sort((a, b) =>
-                        (a['distance'] as double).compareTo(b['distance'] as double)
-                      );
+                      // Apply distance filter
+                      if (_maxDistance != null) {
+                        restaurantsWithDistance = restaurantsWithDistance
+                          .where((item) => (item['distance'] as double) <= _maxDistance!)
+                          .toList();
+                      }
+
+                      // Sort by selected criteria
+                      switch (_sortBy) {
+                        case 'distance':
+                          restaurantsWithDistance.sort((a, b) =>
+                            (a['distance'] as double).compareTo(b['distance'] as double)
+                          );
+                          break;
+                        case 'price':
+                          restaurantsWithDistance.sort((a, b) =>
+                            (a['restaurant'] as dynamic).deliveryFee.compareTo(
+                              (b['restaurant'] as dynamic).deliveryFee
+                            )
+                          );
+                          break;
+                        case 'rating':
+                          restaurantsWithDistance.sort((a, b) =>
+                            (b['restaurant'] as dynamic).rating.compareTo(
+                              (a['restaurant'] as dynamic).rating
+                            )
+                          );
+                          break;
+                      }
                     } else {
                       // No address, no distance calculation
                       restaurantsWithDistance = restaurants.map((r) => {
@@ -270,6 +374,74 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           }),
         ],
       ),
+    );
+  }
+
+  Widget _buildCompactDropdown({
+    required String label,
+    required String value,
+    required Map<String, String> items,
+    required void Function(String?) onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(height: 4),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey[300]!),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: value,
+              isExpanded: true,
+              isDense: true,
+              items: items.entries.map((entry) {
+                return DropdownMenuItem(
+                  value: entry.key,
+                  child: Text(
+                    entry.value,
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                );
+              }).toList(),
+              onChanged: onChanged,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCategoryChips() {
+    final categories = ['和食', '中華', 'イタリアン', '韓国料理', 'アメリカン', 'タイ料理'];
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: categories.map((category) {
+        final isSelected = _selectedCategory == category;
+        return FilterChip(
+          label: Text(category),
+          selected: isSelected,
+          onSelected: (selected) {
+            _onCategorySelected(selected ? category : null);
+          },
+          selectedColor: Colors.black,
+          backgroundColor: Colors.white,
+          side: BorderSide(color: isSelected ? Colors.black : Colors.grey[300]!),
+          labelStyle: TextStyle(
+            color: isSelected ? Colors.white : Colors.black,
+            fontSize: 13,
+          ),
+        );
+      }).toList(),
     );
   }
 }
