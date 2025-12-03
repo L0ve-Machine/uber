@@ -6,11 +6,13 @@ import '../../shared/models/restaurant_model.dart';
 class RestaurantCard extends StatelessWidget {
   final RestaurantModel restaurant;
   final VoidCallback onTap;
+  final double? distance;
 
   const RestaurantCard({
     super.key,
     required this.restaurant,
     required this.onTap,
+    this.distance,
   });
 
   @override
@@ -113,7 +115,7 @@ class RestaurantCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
 
-                  // Rating and Reviews
+                  // Rating, Reviews, and Distance
                   Row(
                     children: [
                       const Icon(
@@ -137,6 +139,25 @@ class RestaurantCard extends StatelessWidget {
                           color: AppColors.textSecondary,
                         ),
                       ),
+
+                      // Distance
+                      if (distance != null) ...[
+                        const SizedBox(width: 12),
+                        Icon(
+                          Icons.location_on,
+                          size: 16,
+                          color: AppColors.textSecondary,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${distance!.toStringAsFixed(1)}km',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+
                       const Spacer(),
 
                       // Delivery fee
