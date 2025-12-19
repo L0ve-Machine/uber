@@ -38,17 +38,10 @@ class CartScreen extends ConsumerWidget {
         ],
       ),
       body: cartItems.isEmpty
-          ? EmptyState(
+          ? const EmptyState(
               icon: Icons.shopping_cart_outlined,
               title: 'カートは空です',
               message: 'お好きな料理を追加してください',
-              action: CustomButton(
-                text: 'レストランを探す',
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                width: 200,
-              ),
             )
           : Column(
               children: [

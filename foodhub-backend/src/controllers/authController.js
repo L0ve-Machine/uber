@@ -68,6 +68,12 @@ exports.login = async (req, res) => {
     const userData = user.toJSON();
     delete userData.password_hash;
 
+    // UserModel compatibility for restaurants
+    if (user_type === 'restaurant') {
+      userData.full_name = userData.name;
+      userData.is_active = true;  // Always true; approval is handled by is_approved
+    }
+
     // Send response
     res.json({
       message: 'Login successful',
@@ -190,6 +196,12 @@ exports.registerRestaurant = async (req, res) => {
     // Prepare response
     const userData = restaurant.toJSON();
     delete userData.password_hash;
+
+    // UserModel compatibility layer for restaurants
+    // Restaurants use 'name' (business name) but UserModel expects 'full_name'
+    // Restaurants use 'is_approved' but UserModel expects 'is_active'
+    userData.full_name = userData.name;
+    userData.is_active = true;  // Always true; approval is handled by is_approved
 
     res.status(201).json({
       message: 'Restaurant registered successfully. Pending approval.',

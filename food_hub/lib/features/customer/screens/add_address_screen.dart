@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geocoding/geocoding.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_text_field.dart';
@@ -46,12 +47,37 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
     });
 
     try {
+      // 自動ジオコーディング処理
+      double? latitude;
+      double? longitude;
+
+      final fullAddress = '${_postalCodeController.text.trim()} '
+                          '${_addressLine1Controller.text.trim()}';
+
+      try {
+        print('[AddAddress] Geocoding address: $fullAddress');
+        final locations = await locationFromAddress(fullAddress);
+
+        if (locations.isNotEmpty) {
+          latitude = locations.first.latitude;
+          longitude = locations.first.longitude;
+          print('[AddAddress] Geocoded successfully: lat=$latitude, lng=$longitude');
+        } else {
+          print('[AddAddress] No locations found for address');
+        }
+      } catch (e) {
+        print('[AddAddress] Geocoding error: $e');
+        // エラーでも続行（latitude/longitudeはNULL）
+      }
+
       final result = await ref.read(addressListProvider.notifier).addAddress(
             postalCode: _postalCodeController.text.trim(),
             addressLine1: _addressLine1Controller.text.trim(),
             addressLine2: _addressLine2Controller.text.trim().isEmpty
                 ? null
                 : _addressLine2Controller.text.trim(),
+            latitude: latitude,
+            longitude: longitude,
             isDefault: _isDefault,
             label: _selectedLabel,
           );

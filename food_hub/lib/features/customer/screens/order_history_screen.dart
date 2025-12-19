@@ -39,15 +39,6 @@ class _OrderHistoryScreenState extends ConsumerState<OrderHistoryScreen> {
                     message: _selectedStatus != null
                         ? 'このステータスの注文がありません'
                         : 'まだ注文をしていません',
-                    action: _selectedStatus == null
-                        ? CustomButton(
-                            text: 'レストランを探す',
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            width: 200,
-                          )
-                        : null,
                   );
                 }
 
