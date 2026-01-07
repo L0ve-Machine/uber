@@ -65,8 +65,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           // Address warning if no default address
           addressesAsync.when(
             data: (addresses) {
-              final hasDefaultAddress = addresses.any((a) => a.isDefault && a.latitude != null && a.longitude != null);
-              if (!hasDefaultAddress) {
+              final defaultAddress = addresses.where((a) => a.isDefault).firstOrNull;
+
+              if (defaultAddress == null) {
+                // デフォルト住所なし → 警告表示
                 return Container(
                   color: Colors.orange[50],
                   padding: const EdgeInsets.all(12),
@@ -76,7 +78,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          '先に住所登録してください',
+                          '先に住所を登録してください',
                           style: TextStyle(
                             color: Colors.orange[900],
                             fontSize: 14,
@@ -86,9 +88,37 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                       TextButton(
                         onPressed: () {
-                          Navigator.of(context).pushNamed('/customer/addresses');
+                          Navigator.of(context).pushNamed('/customer/addresses/add');
                         },
                         child: const Text('登録する'),
+                      ),
+                    ],
+                  ),
+                );
+              } else if (defaultAddress.latitude == null || defaultAddress.longitude == null) {
+                // デフォルト住所あるが座標なし → 警告表示
+                return Container(
+                  color: Colors.orange[50],
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      Icon(Icons.warning, color: Colors.orange[700], size: 20),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          '住所の位置情報が不足しています。再登録してください',
+                          style: TextStyle(
+                            color: Colors.orange[900],
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pushNamed('/customer/addresses/add');
+                        },
+                        child: const Text('再登録'),
                       ),
                     ],
                   ),

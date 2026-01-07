@@ -24,11 +24,41 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   String _paymentMethod = 'card';  // Stripe決済のみ対応
   bool _isPlacingOrder = false;
   AddressModel? _selectedAddress;
+  bool _isInitialized = false;
 
   @override
   void initState() {
     super.initState();
     _stripeService.initialize();
+    // デフォルト住所を非同期で読み込む
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadDefaultAddress();
+    });
+  }
+
+  Future<void> _loadDefaultAddress() async {
+    if (_isInitialized) return;
+
+    try {
+      final defaultAddr = await ref.read(defaultAddressProvider.future);
+      if (defaultAddr != null && mounted) {
+        setState(() {
+          _selectedAddress = defaultAddr;
+          _isInitialized = true;
+        });
+      } else if (mounted) {
+        setState(() {
+          _isInitialized = true;
+        });
+      }
+    } catch (e) {
+      print('[Checkout] Error loading default address: $e');
+      if (mounted) {
+        setState(() {
+          _isInitialized = true;
+        });
+      }
+    }
   }
 
   @override
