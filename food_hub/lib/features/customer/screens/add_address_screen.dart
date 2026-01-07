@@ -5,6 +5,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_text_field.dart';
 import '../providers/address_provider.dart';
+import '../widgets/location_picker_map.dart';
 
 class AddAddressScreen extends ConsumerStatefulWidget {
   const AddAddressScreen({super.key});
@@ -23,6 +24,12 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
   bool _isDefault = false;
   bool _isLoading = false;
 
+  // 地図関連の状態
+  bool _showMapPicker = false;
+  bool _isReverseGeocodingLoading = false;
+  double? _latitude;
+  double? _longitude;
+
   final List<Map<String, dynamic>> _labelOptions = [
     {'value': 'Home', 'label': '自宅', 'icon': Icons.home},
     {'value': 'Work', 'label': '会社', 'icon': Icons.business},
@@ -37,6 +44,108 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
     super.dispose();
   }
 
+  /// 地図で位置が選択されたときの処理
+  void _onMapLocationSelected(double lat, double lon) async {
+    print('[AddAddress] Map location selected: lat=$lat, lon=$lon');
+
+    setState(() {
+      _latitude = lat;
+      _longitude = lon;
+    });
+
+    // 住所フィールドが空なら自動入力
+    final currentAddress = _addressLine1Controller.text.trim();
+
+    if (currentAddress.isEmpty) {
+      await _fetchAndFillAddress(lat, lon);
+    } else {
+      // 入力済みなら確認ダイアログ
+      final shouldUpdate = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('住所を更新しますか？'),
+          content: const Text('選択した位置の住所で上書きします。'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('そのまま'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('更新する'),
+            ),
+          ],
+        ),
+      );
+
+      if (shouldUpdate == true) {
+        await _fetchAndFillAddress(lat, lon);
+      }
+    }
+  }
+
+  /// 逆ジオコーディング実行
+  Future<void> _fetchAndFillAddress(double lat, double lon) async {
+    setState(() {
+      _isReverseGeocodingLoading = true;
+    });
+
+    try {
+      print('[AddAddress] Reverse geocoding: lat=$lat, lon=$lon');
+      final placemarks = await placemarkFromCoordinates(lat, lon);
+
+      if (placemarks.isNotEmpty && mounted) {
+        final place = placemarks.first;
+        print('[AddAddress] Placemark found: ${place.toString()}');
+
+        // 日本の住所形式で組み立て
+        final addressParts = [
+          place.administrativeArea ?? '', // 都道府県
+          place.locality ?? '',            // 市区町村
+          place.subLocality ?? '',         // 町名
+          place.thoroughfare ?? '',        // 番地
+        ].where((part) => part.isNotEmpty).join('');
+
+        setState(() {
+          if (addressParts.isNotEmpty) {
+            _addressLine1Controller.text = addressParts;
+          }
+          if (place.postalCode != null && place.postalCode!.isNotEmpty) {
+            _postalCodeController.text = place.postalCode!;
+          }
+          _isReverseGeocodingLoading = false;
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('住所を取得しました'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print('[AddAddress] Reverse geocoding error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('住所の取得に失敗しました。手動で入力してください。'),
+            backgroundColor: Colors.orange,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isReverseGeocodingLoading = false;
+        });
+      }
+    }
+  }
+
   Future<void> _saveAddress() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -47,27 +156,32 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
     });
 
     try {
-      // 自動ジオコーディング処理
-      double? latitude;
-      double? longitude;
+      // 地図選択の座標を優先、未選択時のみテキストからジオコーディング
+      double? latitude = _latitude;
+      double? longitude = _longitude;
 
-      final fullAddress = '${_postalCodeController.text.trim()} '
-                          '${_addressLine1Controller.text.trim()}';
+      // 地図で選択していない場合のみ自動ジオコーディング
+      if (latitude == null || longitude == null) {
+        final fullAddress = '${_postalCodeController.text.trim()} '
+                            '${_addressLine1Controller.text.trim()}';
 
-      try {
-        print('[AddAddress] Geocoding address: $fullAddress');
-        final locations = await locationFromAddress(fullAddress);
+        try {
+          print('[AddAddress] Geocoding address: $fullAddress');
+          final locations = await locationFromAddress(fullAddress);
 
-        if (locations.isNotEmpty) {
-          latitude = locations.first.latitude;
-          longitude = locations.first.longitude;
-          print('[AddAddress] Geocoded successfully: lat=$latitude, lng=$longitude');
-        } else {
-          print('[AddAddress] No locations found for address');
+          if (locations.isNotEmpty) {
+            latitude = locations.first.latitude;
+            longitude = locations.first.longitude;
+            print('[AddAddress] Geocoded successfully: lat=$latitude, lng=$longitude');
+          } else {
+            print('[AddAddress] No locations found for address');
+          }
+        } catch (e) {
+          print('[AddAddress] Geocoding error: $e');
+          // エラーでも続行（latitude/longitudeはNULL）
         }
-      } catch (e) {
-        print('[AddAddress] Geocoding error: $e');
-        // エラーでも続行（latitude/longitudeはNULL）
+      } else {
+        print('[AddAddress] Using map-selected coordinates: lat=$latitude, lng=$longitude');
       }
 
       final result = await ref.read(addressListProvider.notifier).addAddress(
@@ -211,6 +325,7 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
                   }
                   return null;
                 },
+                enabled: !_isReverseGeocodingLoading,
               ),
 
               const SizedBox(height: 16),
@@ -227,7 +342,94 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
                   }
                   return null;
                 },
+                enabled: !_isReverseGeocodingLoading,
               ),
+
+              const SizedBox(height: 16),
+
+              // 地図選択ボタン
+              OutlinedButton.icon(
+                onPressed: _isReverseGeocodingLoading
+                    ? null
+                    : () {
+                        setState(() {
+                          _showMapPicker = !_showMapPicker;
+                        });
+                      },
+                icon: Icon(_showMapPicker ? Icons.close : Icons.map),
+                label: Text(_showMapPicker ? '地図を閉じる' : '地図で位置を選択'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.black,
+                  side: const BorderSide(color: Colors.black),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+
+              // 地図表示エリア（トグル）
+              if (_showMapPicker) ...[
+                const SizedBox(height: 16),
+                if (_isReverseGeocodingLoading)
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          CircularProgressIndicator(color: Colors.black),
+                          SizedBox(height: 12),
+                          Text(
+                            '住所を取得中...',
+                            style: TextStyle(fontSize: 14, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else
+                  LocationPickerMap(
+                    initialLatitude: _latitude,
+                    initialLongitude: _longitude,
+                    onLocationSelected: _onMapLocationSelected,
+                    height: 350,
+                  ),
+                const SizedBox(height: 8),
+                if (_latitude != null && _longitude != null)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.green[50],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.green[200]!),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.check_circle, color: Colors.green[700], size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                '位置情報が設定されました',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '緯度: ${_latitude!.toStringAsFixed(6)}, 経度: ${_longitude!.toStringAsFixed(6)}',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
 
               const SizedBox(height: 16),
 
@@ -238,6 +440,7 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
                 hintText: '例: グランドメゾン青山 402号室',
                 prefixIcon: const Icon(Icons.apartment_outlined),
                 validator: null, // Optional field
+                enabled: !_isReverseGeocodingLoading,
               ),
 
               const SizedBox(height: 24),

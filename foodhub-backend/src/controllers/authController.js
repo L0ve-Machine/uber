@@ -183,7 +183,7 @@ exports.registerRestaurant = async (req, res) => {
       address,
       latitude,
       longitude,
-      is_approved: false, // Requires admin approval
+      is_approved: true,  // Auto-approved on registration
     });
 
     // Generate token
@@ -252,7 +252,7 @@ exports.registerDriver = async (req, res) => {
       phone,
       vehicle_type,
       license_number,
-      is_approved: false, // Requires admin approval
+      is_approved: true,  // Auto-approved on registration
     });
 
     // Generate token

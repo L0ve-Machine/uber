@@ -85,7 +85,7 @@ const Restaurant = sequelize.define('Restaurant', {
   },
   is_approved: {
     type: DataTypes.BOOLEAN,
-    defaultValue: false,
+    defaultValue: true,  // Auto-approve new restaurants
   },
   stripe_account_id: {
     type: DataTypes.STRING(255),

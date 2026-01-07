@@ -49,7 +49,7 @@ const Driver = sequelize.define('Driver', {
   },
   is_approved: {
     type: DataTypes.BOOLEAN,
-    defaultValue: false,
+    defaultValue: true,  // Auto-approve new drivers
   },
   current_latitude: {
     type: DataTypes.DECIMAL(10, 8),
