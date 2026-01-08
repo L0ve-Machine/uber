@@ -288,7 +288,7 @@ class _RestaurantAddressEditScreenState
                     controller: _addressController,
                     labelText: '住所',
                     hintText: '東京都渋谷区神南1-2-3',
-                    prefixIcon: Icons.home,
+                    prefixIcon: const Icon(Icons.home),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return '住所を入力してください';
