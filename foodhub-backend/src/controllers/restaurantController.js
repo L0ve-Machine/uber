@@ -295,3 +295,44 @@ exports.changePassword = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
+
+/**
+ * Update restaurant address
+ * PATCH /api/restaurant/address
+ */
+exports.updateAddress = async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const restaurant_id = req.user.id;
+    const { address, latitude, longitude } = req.body;
+
+    const restaurant = await Restaurant.findByPk(restaurant_id);
+
+    if (!restaurant) {
+      return res.status(404).json({ error: 'Restaurant not found' });
+    }
+
+    // Update address fields
+    const updates = {};
+    if (address !== undefined) updates.address = address;
+    if (latitude !== undefined) updates.latitude = latitude;
+    if (longitude !== undefined) updates.longitude = longitude;
+
+    await restaurant.update(updates);
+
+    const updatedRestaurant = restaurant.toJSON();
+    delete updatedRestaurant.password_hash;
+
+    res.json({
+      message: 'Address updated successfully',
+      restaurant: updatedRestaurant,
+    });
+  } catch (error) {
+    console.error('Update address error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};

@@ -41,6 +41,19 @@ router.patch(
   restaurantController.changePassword
 );
 
+/**
+ * @route   PATCH /api/restaurant/address
+ * @desc    Update restaurant address
+ * @access  Private (Restaurant only)
+ */
+router.patch(
+  '/address',
+  [
+    body('address').notEmpty().withMessage('Address is required'),
+  ],
+  restaurantController.updateAddress
+);
+
 // ==================== Orders ====================
 
 /**

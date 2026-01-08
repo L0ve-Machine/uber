@@ -69,4 +69,17 @@ class RestaurantMenuRepository {
   Future<ApiResult<RestaurantModel>> getProfile() async {
     return await _apiService.getProfile();
   }
+
+  /// Update restaurant address
+  Future<ApiResult<RestaurantModel>> updateAddress({
+    required String address,
+    double? latitude,
+    double? longitude,
+  }) async {
+    return await _apiService.updateAddress(
+      address: address,
+      latitude: latitude,
+      longitude: longitude,
+    );
+  }
 }

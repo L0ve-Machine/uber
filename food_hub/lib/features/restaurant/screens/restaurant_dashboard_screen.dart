@@ -7,11 +7,13 @@ import '../../../shared/widgets/empty_state.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/restaurant_order_provider.dart';
 import '../providers/restaurant_menu_provider.dart';
+import '../providers/restaurant_profile_provider.dart';
 import '../widgets/restaurant_order_card.dart';
 import 'restaurant_order_detail_screen.dart';
 import 'restaurant_menu_list_screen.dart';
 import 'restaurant_stripe_setup_screen.dart';
 import 'restaurant_image_settings_screen.dart';
+import 'restaurant_address_edit_screen.dart';
 
 class RestaurantDashboardScreen extends ConsumerStatefulWidget {
   const RestaurantDashboardScreen({super.key});
@@ -117,11 +119,75 @@ class _RestaurantDashboardScreenState
 
   Widget _buildOrdersTab() {
     final user = ref.watch(authProvider).value;
+    final profileAsync = ref.watch(restaurantProfileProvider);
     final statsAsync = ref.watch(restaurantStatsProvider());
     final ordersAsync = ref.watch(restaurantOrdersProvider(status: _selectedStatus));
 
     return Column(
       children: [
+        // Stripe未設定警告バナー
+        profileAsync.when(
+          data: (profile) {
+            if (profile != null && !profile.stripePayoutsEnabled) {
+              return Container(
+                width: double.infinity,
+                color: Colors.orange.shade50,
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.warning, color: Colors.orange.shade700),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Stripe設定が未完了です',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.orange.shade900,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '顧客アプリに表示されません。振込先設定を完了してください。',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.orange.shade800,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const RestaurantStripeSetupScreen(),
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange.shade700,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        child: const Text('今すぐ設定する'),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+            return const SizedBox.shrink();
+          },
+          loading: () => const SizedBox.shrink(),
+          error: (_, __) => const SizedBox.shrink(),
+        ),
+
         // Stats summary
         statsAsync.when(
           data: (stats) => Container(
@@ -412,6 +478,8 @@ class _RestaurantDashboardScreenState
   }
 
   Widget _buildSettingsTab() {
+    final profileAsync = ref.watch(restaurantProfileProvider);
+
     return ListView(
       children: [
         const SizedBox(height: 8),
@@ -434,9 +502,45 @@ class _RestaurantDashboardScreenState
               ),
               const Divider(height: 1),
               ListTile(
+                leading: const Icon(Icons.location_on, color: Colors.black),
+                title: const Text('住所変更'),
+                subtitle: const Text('店舗の住所を変更'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const RestaurantAddressEditScreen(),
+                    ),
+                  );
+                },
+              ),
+              const Divider(height: 1),
+              ListTile(
                 leading: const Icon(Icons.account_balance, color: Colors.black),
                 title: const Text('振込先設定'),
-                subtitle: const Text('振込先アカウント'),
+                subtitle: profileAsync.when(
+                  data: (profile) {
+                    if (profile == null) return const Text('振込先アカウント');
+                    if (profile.stripePayoutsEnabled) {
+                      return const Row(
+                        children: [
+                          Text('設定済み'),
+                          SizedBox(width: 8),
+                          Icon(Icons.check_circle, color: Colors.green, size: 16),
+                        ],
+                      );
+                    }
+                    return const Row(
+                      children: [
+                        Text('未設定'),
+                        SizedBox(width: 8),
+                        Icon(Icons.warning, color: Colors.orange, size: 16),
+                      ],
+                    );
+                  },
+                  loading: () => const Text('振込先アカウント'),
+                  error: (_, __) => const Text('振込先アカウント'),
+                ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
                   Navigator.of(context).push(

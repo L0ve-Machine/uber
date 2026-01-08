@@ -174,4 +174,36 @@ class RestaurantMenuApiService {
       return Failure(ApiError(message: 'Unexpected error: $e'));
     }
   }
+
+  /// Update restaurant address
+  Future<ApiResult<RestaurantModel>> updateAddress({
+    required String address,
+    double? latitude,
+    double? longitude,
+  }) async {
+    try {
+      final response = await _dio.patch(
+        '/restaurant/address',
+        data: {
+          'address': address,
+          if (latitude != null) 'latitude': latitude,
+          if (longitude != null) 'longitude': longitude,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data as Map<String, dynamic>;
+        final restaurant = RestaurantModel.fromJson(
+          data['restaurant'] as Map<String, dynamic>,
+        );
+        return Success(restaurant);
+      }
+
+      return Failure(ApiError.fromResponse(response.statusCode, response.data));
+    } on DioException catch (e) {
+      return Failure(ApiError.fromDioException(e));
+    } catch (e) {
+      return Failure(ApiError(message: 'Unexpected error: $e'));
+    }
+  }
 }
