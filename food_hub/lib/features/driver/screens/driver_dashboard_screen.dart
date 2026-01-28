@@ -357,7 +357,9 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
                     ...activeOrders.map((order) => DriverOrderCard(
                       order: order,
                       onTap: () => _navigateToActiveDelivery(order.id),
-                      onStartDelivering: () => _handleStartDelivering(order.id),
+                      onStartDelivering: order.status == 'picked_up'
+                          ? () => _handleStartDeliveringWithoutPin(order.id)
+                          : () => _handleStartDelivering(order.id),
                       onCompleteDelivery: () => _handleCompleteDelivery(order.id),
                     )),
                     const Divider(height: 32),
@@ -549,6 +551,32 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
       message: '商品をピックアップし、配達先に向かいます。',
       confirmText: '開始する',
       confirmColor: Colors.orange,
+    );
+
+    if (confirmed != true) return;
+
+    final success = await ref
+        .read(activeDeliveriesProvider.notifier)
+        .startDelivering(orderId);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(success ? '配達を開始しました' : '更新に失敗しました'),
+          backgroundColor: success ? Colors.blue : Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _handleStartDeliveringWithoutPin(int orderId) async {
+    // picked_up状態の場合はPIN不要（既に確認済み）
+    final confirmed = await ConfirmationDialog.show(
+      context,
+      title: '配達を開始しますか？',
+      message: '配達先に向かいます。',
+      confirmText: '開始する',
+      confirmColor: Colors.blue,
     );
 
     if (confirmed != true) return;
