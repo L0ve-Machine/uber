@@ -39,8 +39,41 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
   void initState() {
     super.initState();
     _initializeBackgroundService();
-    _getCurrentLocation();
+    _loadDriverLocation(); // 先にDBから位置を読み込む
     _loadMaxDistancePreference();
+  }
+
+  /// 配達員の位置を読み込み（DB → GPS）
+  Future<void> _loadDriverLocation() async {
+    try {
+      // まずDBから読み込む（即座に利用可能）
+      final repository = ref.read(driverRepositoryProvider);
+      final result = await repository.getProfile();
+
+      result.when(
+        success: (profile) {
+          if (profile.currentLatitude != null && profile.currentLongitude != null) {
+            if (mounted) {
+              setState(() {
+                _currentLatitude = profile.currentLatitude;
+                _currentLongitude = profile.currentLongitude;
+              });
+              print('[DriverDashboard] Loaded saved location: $_currentLatitude, $_currentLongitude');
+            }
+          } else {
+            print('[DriverDashboard] No saved location in profile');
+          }
+        },
+        failure: (error) {
+          print('[DriverDashboard] Error loading profile: $error');
+        },
+      );
+    } catch (e) {
+      print('[DriverDashboard] Error loading saved location: $e');
+    }
+
+    // 次にGPSで更新（より正確な位置）
+    _getCurrentLocation();
   }
 
   /// 距離上限設定を読み込み
@@ -54,7 +87,7 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
     }
   }
 
-  /// 配達員の現在地を取得
+  /// 配達員の現在地を取得（GPS）
   Future<void> _getCurrentLocation() async {
     try {
       final position = await LocationService.getCurrentPosition();
@@ -63,9 +96,12 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
           _currentLatitude = position.latitude;
           _currentLongitude = position.longitude;
         });
+        print('[DriverDashboard] GPS location updated: $_currentLatitude, $_currentLongitude');
+      } else {
+        print('[DriverDashboard] GPS location unavailable');
       }
     } catch (e) {
-      print('[DriverDashboard] Error getting current location: $e');
+      print('[DriverDashboard] Error getting GPS location: $e');
     }
   }
 
@@ -453,11 +489,59 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
           ),
           availableOrdersAsync.when(
             data: (orders) {
+              print('[DriverDashboard] Total available orders: ${orders.length}');
+              print('[DriverDashboard] Current location: $_currentLatitude, $_currentLongitude');
+              print('[DriverDashboard] Max distance preference: $_maxDistancePreference');
+
+              // 位置情報がない場合の警告
+              if (_currentLatitude == null || _currentLongitude == null) {
+                return Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        Icon(Icons.location_off, size: 48, color: Colors.orange[700]),
+                        const SizedBox(height: 16),
+                        const Text(
+                          '位置情報を取得中...',
+                          style: TextStyle(color: Colors.grey, fontSize: 16),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '位置情報が取得できない場合、\n設定から位置情報の権限を確認してください',
+                          style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            _loadDriverLocation();
+                            ref.invalidate(availableOrdersProvider);
+                          },
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('再読み込み'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.black,
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
               // 距離でフィルタリング
               final filteredOrders = orders.where((order) {
-                if (_maxDistancePreference == null) return true; // 制限なし
-                if (_currentLatitude == null || _currentLongitude == null) return true;
-                if (order.restaurant?.latitude == null || order.restaurant?.longitude == null) return true;
+                // 制限なしの場合は全て表示
+                if (_maxDistancePreference == null) return true;
+
+                // レストラン位置情報がない場合は除外
+                if (order.restaurant?.latitude == null || order.restaurant?.longitude == null) {
+                  print('[DriverDashboard] Order ${order.id} has no restaurant location - excluded');
+                  return false;
+                }
 
                 // 現在地 → レストランの距離を計算
                 final distanceToRestaurant = Geolocator.distanceBetween(
@@ -467,8 +551,12 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
                   order.restaurant!.longitude!,
                 ) / 1000; // km変換
 
+                print('[DriverDashboard] Order ${order.id}: ${distanceToRestaurant.toStringAsFixed(1)}km (max: ${_maxDistancePreference!.toStringAsFixed(0)}km) - ${distanceToRestaurant <= _maxDistancePreference! ? "PASS" : "FILTERED"}');
+
                 return distanceToRestaurant <= _maxDistancePreference!;
               }).toList();
+
+              print('[DriverDashboard] Filtered orders: ${filteredOrders.length}/${orders.length}');
 
               if (filteredOrders.isEmpty) {
                 String message = '現在利用可能な配達はありません';

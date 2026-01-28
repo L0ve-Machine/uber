@@ -14,6 +14,10 @@ class DriverModel {
   final String? licenseNumber;
   @JsonKey(name: 'is_online')
   final bool isOnline;
+  @JsonKey(name: 'current_latitude')
+  final double? currentLatitude;
+  @JsonKey(name: 'current_longitude')
+  final double? currentLongitude;
   @JsonKey(name: 'stripe_account_id')
   final String? stripeAccountId;
   @JsonKey(name: 'stripe_onboarding_completed')
@@ -32,6 +36,8 @@ class DriverModel {
     required this.vehicleType,
     this.licenseNumber,
     required this.isOnline,
+    this.currentLatitude,
+    this.currentLongitude,
     this.stripeAccountId,
     required this.stripeOnboardingCompleted,
     required this.stripePayoutsEnabled,
