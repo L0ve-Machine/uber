@@ -245,7 +245,7 @@ class _OrderTrackingMapState extends State<OrderTrackingMap> {
         return null; // 配達員割り当て済みなら非表示
       case 'picked_up':
         if (!widget.showDriverLocation) {
-          return 'レストランから配達先に向かっています';
+          return '別の配達先に向かっています';
         }
         return _isDriverNearDelivery() ? 'もうすぐ到着します' : '配達中です';
       case 'delivering':
