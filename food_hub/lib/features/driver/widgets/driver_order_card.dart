@@ -8,6 +8,8 @@ class DriverOrderCard extends StatelessWidget {
   final VoidCallback? onAccept;
   final VoidCallback? onStartDelivering;
   final VoidCallback? onCompleteDelivery;
+  final double? distanceToRestaurant; // 現在地 → レストラン
+  final double? distanceToCustomer; // レストラン → 配達先
 
   const DriverOrderCard({
     super.key,
@@ -16,6 +18,8 @@ class DriverOrderCard extends StatelessWidget {
     this.onAccept,
     this.onStartDelivering,
     this.onCompleteDelivery,
+    this.distanceToRestaurant,
+    this.distanceToCustomer,
   });
 
   @override
@@ -101,6 +105,97 @@ class DriverOrderCard extends StatelessWidget {
                       ),
                     ),
                   ],
+                ),
+                const SizedBox(height: 12),
+              ],
+
+              // Distance information
+              if (distanceToRestaurant != null || distanceToCustomer != null) ...[
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.blue.withValues(alpha: 0.2)),
+                  ),
+                  child: Column(
+                    children: [
+                      if (distanceToRestaurant != null)
+                        Row(
+                          children: [
+                            const Icon(Icons.restaurant, size: 14, color: Colors.blue),
+                            const SizedBox(width: 6),
+                            Text(
+                              'レストランまで:',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                            const Spacer(),
+                            Text(
+                              '${distanceToRestaurant!.toStringAsFixed(1)}km',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue,
+                              ),
+                            ),
+                          ],
+                        ),
+                      if (distanceToRestaurant != null && distanceToCustomer != null)
+                        const SizedBox(height: 6),
+                      if (distanceToCustomer != null)
+                        Row(
+                          children: [
+                            const Icon(Icons.delivery_dining, size: 14, color: Colors.blue),
+                            const SizedBox(width: 6),
+                            Text(
+                              '配達先まで:',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                            const Spacer(),
+                            Text(
+                              '${distanceToCustomer!.toStringAsFixed(1)}km',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue,
+                              ),
+                            ),
+                          ],
+                        ),
+                      if (distanceToRestaurant != null && distanceToCustomer != null) ...[
+                        const Divider(height: 16),
+                        Row(
+                          children: [
+                            const Icon(Icons.route, size: 14, color: Colors.blue),
+                            const SizedBox(width: 6),
+                            Text(
+                              '合計距離:',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: AppColors.textSecondary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const Spacer(),
+                            Text(
+                              '${(distanceToRestaurant! + distanceToCustomer!).toStringAsFixed(1)}km',
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 8),
               ],

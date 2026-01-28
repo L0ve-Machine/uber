@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/network/api_error.dart';
 import '../../../core/storage/secure_storage.dart';
@@ -30,11 +31,42 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
   int _currentIndex = 0;
   bool _locationPermissionGranted = false;
   bool _backgroundServiceInitialized = false;
+  double? _currentLatitude;
+  double? _currentLongitude;
+  double? _maxDistancePreference; // 距離上限設定
 
   @override
   void initState() {
     super.initState();
     _initializeBackgroundService();
+    _getCurrentLocation();
+    _loadMaxDistancePreference();
+  }
+
+  /// 距離上限設定を読み込み
+  Future<void> _loadMaxDistancePreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    final maxDistance = prefs.getDouble('driver_max_distance');
+    if (mounted) {
+      setState(() {
+        _maxDistancePreference = maxDistance;
+      });
+    }
+  }
+
+  /// 配達員の現在地を取得
+  Future<void> _getCurrentLocation() async {
+    try {
+      final position = await LocationService.getCurrentPosition();
+      if (position != null && mounted) {
+        setState(() {
+          _currentLatitude = position.latitude;
+          _currentLongitude = position.longitude;
+        });
+      }
+    } catch (e) {
+      print('[DriverDashboard] Error getting current location: $e');
+    }
   }
 
   /// バックグラウンドサービスを初期化
@@ -354,14 +386,47 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
                         ),
                       ),
                     ),
-                    ...activeOrders.map((order) => DriverOrderCard(
-                      order: order,
-                      onTap: () => _navigateToActiveDelivery(order.id),
-                      onStartDelivering: order.status == 'picked_up'
-                          ? () => _handleStartDeliveringWithoutPin(order.id)
-                          : () => _handleStartDelivering(order.id),
-                      onCompleteDelivery: () => _handleCompleteDelivery(order.id),
-                    )),
+                    ...activeOrders.map((order) {
+                      // 距離計算
+                      double? distanceToRestaurant;
+                      double? distanceToCustomer;
+
+                      if (_currentLatitude != null && _currentLongitude != null) {
+                        // 現在地 → レストラン
+                        if (order.restaurant?.latitude != null && order.restaurant?.longitude != null) {
+                          distanceToRestaurant = Geolocator.distanceBetween(
+                            _currentLatitude!,
+                            _currentLongitude!,
+                            order.restaurant!.latitude!,
+                            order.restaurant!.longitude!,
+                          ) / 1000; // km変換
+                        }
+
+                        // レストラン → 配達先
+                        if (order.restaurant?.latitude != null &&
+                            order.restaurant?.longitude != null &&
+                            order.deliveryAddress?.latitude != null &&
+                            order.deliveryAddress?.longitude != null) {
+                          distanceToCustomer = Geolocator.distanceBetween(
+                            order.restaurant!.latitude!,
+                            order.restaurant!.longitude!,
+                            order.deliveryAddress!.latitude!,
+                            order.deliveryAddress!.longitude!,
+                          ) / 1000; // km変換
+                        }
+                      }
+
+                      return DriverOrderCard(
+                        order: order,
+                        distanceToRestaurant: distanceToRestaurant,
+                        distanceToCustomer: distanceToCustomer,
+                        onTap: () => _navigateToActiveDelivery(order.id),
+                        onStartDelivering: order.status == 'picked_up'
+                            ? () => _handleStartDeliveringWithoutPin(order.id)
+                            : () => _handleStartDelivering(order.id),
+                        onCompleteDelivery: () => _handleCompleteDelivery(order.id),
+                      );
+                    }),
                     const Divider(height: 32),
                   ],
                 );
@@ -388,28 +453,85 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
           ),
           availableOrdersAsync.when(
             data: (orders) {
-              if (orders.isEmpty) {
-                return const Padding(
-                  padding: EdgeInsets.all(32),
+              // 距離でフィルタリング
+              final filteredOrders = orders.where((order) {
+                if (_maxDistancePreference == null) return true; // 制限なし
+                if (_currentLatitude == null || _currentLongitude == null) return true;
+                if (order.restaurant?.latitude == null || order.restaurant?.longitude == null) return true;
+
+                // 現在地 → レストランの距離を計算
+                final distanceToRestaurant = Geolocator.distanceBetween(
+                  _currentLatitude!,
+                  _currentLongitude!,
+                  order.restaurant!.latitude!,
+                  order.restaurant!.longitude!,
+                ) / 1000; // km変換
+
+                return distanceToRestaurant <= _maxDistancePreference!;
+              }).toList();
+
+              if (filteredOrders.isEmpty) {
+                String message = '現在利用可能な配達はありません';
+                if (_maxDistancePreference != null && orders.isNotEmpty) {
+                  message = '${_maxDistancePreference!.toStringAsFixed(0)}km以内に利用可能な配達はありません\n設定で距離上限を変更できます';
+                }
+
+                return Padding(
+                  padding: const EdgeInsets.all(32),
                   child: Center(
                     child: Column(
                       children: [
-                        Icon(Icons.local_shipping_outlined, size: 48, color: Colors.grey),
-                        SizedBox(height: 16),
+                        const Icon(Icons.local_shipping_outlined, size: 48, color: Colors.grey),
+                        const SizedBox(height: 16),
                         Text(
-                          '現在利用可能な配達はありません',
-                          style: TextStyle(color: Colors.grey),
+                          message,
+                          style: const TextStyle(color: Colors.grey),
+                          textAlign: TextAlign.center,
                         ),
                       ],
                     ),
                   ),
                 );
               }
+
               return Column(
-                children: orders.map((order) => DriverOrderCard(
-                  order: order,
-                  onAccept: () => _handleAcceptDelivery(order.id),
-                )).toList(),
+                children: filteredOrders.map((order) {
+                  // 距離計算
+                  double? distanceToRestaurant;
+                  double? distanceToCustomer;
+
+                  if (_currentLatitude != null && _currentLongitude != null) {
+                    // 現在地 → レストラン
+                    if (order.restaurant?.latitude != null && order.restaurant?.longitude != null) {
+                      distanceToRestaurant = Geolocator.distanceBetween(
+                        _currentLatitude!,
+                        _currentLongitude!,
+                        order.restaurant!.latitude!,
+                        order.restaurant!.longitude!,
+                      ) / 1000; // km変換
+                    }
+
+                    // レストラン → 配達先
+                    if (order.restaurant?.latitude != null &&
+                        order.restaurant?.longitude != null &&
+                        order.deliveryAddress?.latitude != null &&
+                        order.deliveryAddress?.longitude != null) {
+                      distanceToCustomer = Geolocator.distanceBetween(
+                        order.restaurant!.latitude!,
+                        order.restaurant!.longitude!,
+                        order.deliveryAddress!.latitude!,
+                        order.deliveryAddress!.longitude!,
+                      ) / 1000; // km変換
+                    }
+                  }
+
+                  return DriverOrderCard(
+                    order: order,
+                    distanceToRestaurant: distanceToRestaurant,
+                    distanceToCustomer: distanceToCustomer,
+                    onAccept: () => _handleAcceptDelivery(order.id),
+                  );
+                }).toList(),
               );
             },
             loading: () => const LoadingIndicator(message: '配達を読み込み中...'),
@@ -448,6 +570,8 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
             itemCount: orders.length,
             itemBuilder: (context, index) {
               final order = orders[index];
+
+              // 履歴の場合は距離計算しない（既に完了済み）
               return DriverOrderCard(order: order);
             },
           ),
@@ -666,7 +790,82 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
             ],
           ),
         ),
+        const SizedBox(height: 8),
+        Card(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Column(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.social_distance, color: Colors.black),
+                title: const Text('配達距離の上限'),
+                subtitle: Text(
+                  _maxDistancePreference == null
+                      ? '制限なし'
+                      : '${_maxDistancePreference!.toStringAsFixed(0)}km以内',
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => _showMaxDistanceDialog(),
+              ),
+            ],
+          ),
+        ),
       ],
+    );
+  }
+
+  Future<void> _showMaxDistanceDialog() async {
+    final prefs = await SharedPreferences.getInstance();
+    final currentMaxDistance = prefs.getDouble('driver_max_distance');
+
+    final options = [
+      {'label': '制限なし', 'value': null},
+      {'label': '1km以内', 'value': 1.0},
+      {'label': '3km以内', 'value': 3.0},
+      {'label': '5km以内', 'value': 5.0},
+      {'label': '10km以内', 'value': 10.0},
+    ];
+
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('配達距離の上限'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: options.map((option) {
+            final isSelected = option['value'] == currentMaxDistance;
+            return RadioListTile<double?>(
+              title: Text(option['label'] as String),
+              value: option['value'] as double?,
+              groupValue: currentMaxDistance,
+              selected: isSelected,
+              activeColor: Colors.black,
+              onChanged: (value) async {
+                if (value == null) {
+                  await prefs.remove('driver_max_distance');
+                } else {
+                  await prefs.setDouble('driver_max_distance', value);
+                }
+                if (mounted) {
+                  setState(() {
+                    _maxDistancePreference = value;
+                  });
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(value == null
+                          ? '配達距離の制限を解除しました'
+                          : '配達距離の上限を${value.toStringAsFixed(0)}kmに設定しました'),
+                      backgroundColor: AppColors.success,
+                    ),
+                  );
+                  // リフレッシュ
+                  ref.invalidate(availableOrdersProvider);
+                }
+              },
+            );
+          }).toList(),
+        ),
+      ),
     );
   }
 }

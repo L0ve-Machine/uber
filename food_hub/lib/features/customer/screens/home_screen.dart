@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/restaurant_card.dart';
 import '../../../shared/widgets/loading_indicator.dart';
@@ -8,10 +9,13 @@ import '../../../shared/widgets/error_view.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/custom_text_field.dart';
 import '../../../shared/widgets/custom_button.dart';
+import '../../../shared/models/restaurant_model.dart';
 import '../providers/restaurant_provider.dart';
 import '../providers/cart_provider.dart';
 import '../providers/address_provider.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../widgets/restaurant_list_view.dart';
+import '../widgets/restaurant_map_view.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -26,6 +30,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   String _sortBy = 'distance'; // 'distance', 'price', 'rating'
   String _maxDistanceFilter = 'all'; // 'all', '5', '10', '20'
   bool _showFilters = false;
+  bool _isMapView = false; // リスト/マップ切り替え
+  LatLng? _currentLocation; // 現在地
 
   double? get _maxDistance {
     if (_maxDistanceFilter == 'all') return null;
@@ -33,9 +39,33 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _getCurrentLocation();
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  /// 現在地を取得（デフォルト住所から）
+  Future<void> _getCurrentLocation() async {
+    final addressesAsync = ref.read(addressListProvider);
+    addressesAsync.whenData((addresses) {
+      final defaultAddress = addresses.where((a) => a.isDefault).firstOrNull;
+      if (defaultAddress?.latitude != null && defaultAddress?.longitude != null) {
+        if (mounted) {
+          setState(() {
+            _currentLocation = LatLng(
+              defaultAddress!.latitude!,
+              defaultAddress.longitude!,
+            );
+          });
+        }
+      }
+    });
   }
 
   void _onSearch(String query) {
@@ -131,7 +161,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
 
 
-          // Search bar with filter toggle
+          // Search bar with filter toggle and view switcher
           Container(
             color: Colors.white,
             padding: const EdgeInsets.all(16),
@@ -156,6 +186,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       _showFilters = !_showFilters;
                     });
                   },
+                ),
+                const SizedBox(width: 4),
+                // リスト/マップ切り替えボタン
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  padding: const EdgeInsets.all(2),
+                  child: Row(
+                    children: [
+                      _buildViewToggleButton(
+                        label: 'リスト',
+                        icon: Icons.list,
+                        isSelected: !_isMapView,
+                        onTap: () => setState(() => _isMapView = false),
+                      ),
+                      _buildViewToggleButton(
+                        label: 'マップ',
+                        icon: Icons.map,
+                        isSelected: _isMapView,
+                        onTap: () => setState(() => _isMapView = true),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -295,54 +350,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       }).toList();
                     }
 
-                    return RefreshIndicator(
-                      onRefresh: () async {
-                        await ref.read(restaurantListProvider().notifier).refresh();
-                      },
-                      child: ListView.builder(
-                        padding: const EdgeInsets.only(top: 8, bottom: 16),
-                        itemCount: restaurantsWithDistance.length,
-                        itemBuilder: (context, index) {
-                          final item = restaurantsWithDistance[index];
-                          final restaurant = item['restaurant'];
-                          final distance = item['distance'] as double?;
-
-                          return RestaurantCard(
-                            restaurant: restaurant,
-                            distance: distance,
-                            onTap: () {
-                              Navigator.of(context).pushNamed(
-                                '/customer/restaurant',
-                                arguments: restaurant.id,
-                              );
-                            },
-                          );
-                        },
-                      ),
+                    // リスト/マップ切り替え
+                    return _buildContent(
+                      restaurants: restaurants,
+                      restaurantsWithDistance: restaurantsWithDistance,
                     );
                   },
                   loading: () => const LoadingIndicator(message: 'レストランを読み込み中...'),
-                  error: (_, __) => RefreshIndicator(
-                    onRefresh: () async {
-                      await ref.read(restaurantListProvider().notifier).refresh();
-                    },
-                    child: ListView.builder(
-                      padding: const EdgeInsets.only(top: 8, bottom: 16),
-                      itemCount: restaurants.length,
-                      itemBuilder: (context, index) {
-                        final restaurant = restaurants[index];
-                        return RestaurantCard(
-                          restaurant: restaurant,
-                          onTap: () {
-                            Navigator.of(context).pushNamed(
-                              '/customer/restaurant',
-                              arguments: restaurant.id,
-                            );
-                          },
-                        );
-                      },
-                    ),
-                  ),
+                  error: (_, __) {
+                    // エラー時もリスト表示（距離なし）
+                    final restaurantsWithDistance = restaurants.map((r) => {
+                      'restaurant': r,
+                      'distance': null,
+                    }).toList();
+
+                    return _buildContent(
+                      restaurants: restaurants,
+                      restaurantsWithDistance: restaurantsWithDistance,
+                    );
+                  },
                 );
               },
               loading: () => const LoadingIndicator(message: 'レストランを読み込み中...'),
@@ -477,6 +503,79 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         );
       }).toList(),
+    );
+  }
+
+  /// リスト/マップを切り替えて表示
+  Widget _buildContent({
+    required List<RestaurantModel> restaurants,
+    required List<Map<String, dynamic>> restaurantsWithDistance,
+  }) {
+    if (_isMapView) {
+      // マップビュー
+      return RestaurantMapView(
+        restaurants: restaurants,
+        restaurantsWithDistance: restaurantsWithDistance,
+        currentLocation: _currentLocation,
+        onRestaurantTap: (restaurant) {
+          Navigator.of(context).pushNamed(
+            '/customer/restaurant',
+            arguments: restaurant.id,
+          );
+        },
+      );
+    } else {
+      // リストビュー
+      return RestaurantListView(
+        restaurantsWithDistance: restaurantsWithDistance,
+        onRestaurantTap: (restaurant) {
+          Navigator.of(context).pushNamed(
+            '/customer/restaurant',
+            arguments: restaurant.id,
+          );
+        },
+        onRefresh: () async {
+          await ref.read(restaurantListProvider().notifier).refresh();
+        },
+      );
+    }
+  }
+
+  /// 切り替えボタン
+  Widget _buildViewToggleButton({
+    required String label,
+    required IconData icon,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.black : Colors.transparent,
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 16,
+              color: isSelected ? Colors.white : Colors.grey[700],
+            ),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? Colors.white : Colors.grey[700],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
