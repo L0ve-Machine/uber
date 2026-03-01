@@ -8,8 +8,10 @@ import '../../../shared/widgets/confirmation_dialog.dart';
 import '../providers/driver_provider.dart';
 import '../widgets/delivery_status_stepper.dart';
 import '../widgets/pickup_pin_dialog.dart';
+import '../widgets/driver_delivery_map.dart';
+import '../services/location_service.dart';
 
-class DriverActiveDeliveryScreen extends ConsumerWidget {
+class DriverActiveDeliveryScreen extends ConsumerStatefulWidget {
   final int orderId;
 
   const DriverActiveDeliveryScreen({
@@ -18,7 +20,34 @@ class DriverActiveDeliveryScreen extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DriverActiveDeliveryScreen> createState() =>
+      _DriverActiveDeliveryScreenState();
+}
+
+class _DriverActiveDeliveryScreenState
+    extends ConsumerState<DriverActiveDeliveryScreen> {
+  double? _currentLatitude;
+  double? _currentLongitude;
+
+  @override
+  void initState() {
+    super.initState();
+    _getCurrentLocation();
+  }
+
+  /// 配達員の現在地を取得
+  Future<void> _getCurrentLocation() async {
+    final position = await LocationService.getCurrentPosition();
+    if (position != null && mounted) {
+      setState(() {
+        _currentLatitude = position.latitude;
+        _currentLongitude = position.longitude;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final activeDeliveriesAsync = ref.watch(activeDeliveriesProvider);
 
     return Scaffold(
@@ -30,7 +59,7 @@ class DriverActiveDeliveryScreen extends ConsumerWidget {
       ),
       body: activeDeliveriesAsync.when(
         data: (orders) {
-          final order = orders.where((o) => o.id == orderId).firstOrNull;
+          final order = orders.where((o) => o.id == widget.orderId).firstOrNull;
 
           if (order == null) {
             return const Center(child: Text('配達が見つかりません'));
@@ -74,6 +103,49 @@ class DriverActiveDeliveryScreen extends ConsumerWidget {
                     ),
                   ),
                 ),
+                const SizedBox(height: 16),
+
+                // 配達ルート地図
+                if (_currentLatitude != null &&
+                    _currentLongitude != null &&
+                    order.restaurant?.latitude != null &&
+                    order.restaurant?.longitude != null &&
+                    order.deliveryAddress?.latitude != null &&
+                    order.deliveryAddress?.longitude != null)
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.map, color: Colors.black, size: 20),
+                              const SizedBox(width: 8),
+                              const Text(
+                                '配達ルート',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          DriverDeliveryMap(
+                            driverLatitude: _currentLatitude!,
+                            driverLongitude: _currentLongitude!,
+                            restaurantLatitude: order.restaurant!.latitude!,
+                            restaurantLongitude: order.restaurant!.longitude!,
+                            deliveryLatitude: order.deliveryAddress!.latitude!,
+                            deliveryLongitude: order.deliveryAddress!.longitude!,
+                            orderStatus: order.status,
+                            restaurantName: order.restaurant?.name,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 const SizedBox(height: 16),
 
                 // Restaurant info
@@ -251,7 +323,7 @@ class DriverActiveDeliveryScreen extends ConsumerWidget {
                 const SizedBox(height: 24),
 
                 // Action button
-                _buildActionButton(context, ref, order.status),
+                _buildActionButton(context, order.status),
                 const SizedBox(height: 24),
               ],
             ),
@@ -268,14 +340,14 @@ class DriverActiveDeliveryScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildActionButton(BuildContext context, WidgetRef ref, String status) {
+  Widget _buildActionButton(BuildContext context, String status) {
     switch (status) {
       case 'ready':
         // Driver has accepted, needs to verify PIN at restaurant
         return SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
-            onPressed: () => _handleStartDelivering(context, ref),
+            onPressed: () => _handleStartDelivering(context),
             icon: const Icon(Icons.pin),
             label: const Text('受け取り確認'),
             style: ElevatedButton.styleFrom(
@@ -290,7 +362,7 @@ class DriverActiveDeliveryScreen extends ConsumerWidget {
         return SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
-            onPressed: () => _handleStartDeliveryWithoutPin(context, ref),
+            onPressed: () => _handleStartDeliveryWithoutPin(context),
             icon: const Icon(Icons.directions_bike),
             label: const Text('配達開始'),
             style: ElevatedButton.styleFrom(
@@ -304,7 +376,7 @@ class DriverActiveDeliveryScreen extends ConsumerWidget {
         return SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
-            onPressed: () => _handleCompleteDelivery(context, ref),
+            onPressed: () => _handleCompleteDelivery(context),
             icon: const Icon(Icons.check_circle),
             label: const Text('配達完了'),
             style: ElevatedButton.styleFrom(
@@ -319,12 +391,12 @@ class DriverActiveDeliveryScreen extends ConsumerWidget {
     }
   }
 
-  Future<void> _handleStartDelivering(BuildContext context, WidgetRef ref) async {
+  Future<void> _handleStartDelivering(BuildContext context) async {
     // まずPIN入力ダイアログを表示
     final pinVerified = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => PickupPinDialog(orderId: orderId),
+      builder: (context) => PickupPinDialog(orderId: widget.orderId),
     );
 
     if (pinVerified != true) return;
@@ -342,7 +414,7 @@ class DriverActiveDeliveryScreen extends ConsumerWidget {
 
     final success = await ref
         .read(activeDeliveriesProvider.notifier)
-        .startDelivering(orderId);
+        .startDelivering(widget.orderId);
 
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -354,7 +426,7 @@ class DriverActiveDeliveryScreen extends ConsumerWidget {
     }
   }
 
-  Future<void> _handleStartDeliveryWithoutPin(BuildContext context, WidgetRef ref) async {
+  Future<void> _handleStartDeliveryWithoutPin(BuildContext context) async {
     // PIN already verified, just show confirmation
     final confirmed = await ConfirmationDialog.show(
       context,
@@ -368,7 +440,7 @@ class DriverActiveDeliveryScreen extends ConsumerWidget {
 
     final success = await ref
         .read(activeDeliveriesProvider.notifier)
-        .startDelivering(orderId);
+        .startDelivering(widget.orderId);
 
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -380,7 +452,7 @@ class DriverActiveDeliveryScreen extends ConsumerWidget {
     }
   }
 
-  Future<void> _handleCompleteDelivery(BuildContext context, WidgetRef ref) async {
+  Future<void> _handleCompleteDelivery(BuildContext context) async {
     final confirmed = await ConfirmationDialog.show(
       context,
       title: '配達完了しましたか？',
@@ -392,7 +464,7 @@ class DriverActiveDeliveryScreen extends ConsumerWidget {
     if (confirmed == true) {
       final success = await ref
           .read(activeDeliveriesProvider.notifier)
-          .completeDelivery(orderId);
+          .completeDelivery(widget.orderId);
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

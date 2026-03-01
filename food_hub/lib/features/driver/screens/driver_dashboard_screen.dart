@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/network/api_error.dart';
 import '../../../core/storage/secure_storage.dart';
@@ -13,6 +14,7 @@ import '../../auth/providers/auth_provider.dart';
 import '../providers/driver_provider.dart';
 import '../providers/driver_profile_provider.dart';
 import '../widgets/driver_order_card.dart';
+import '../widgets/driver_map_view.dart';
 import '../widgets/pickup_pin_dialog.dart';
 import '../services/background_location_service.dart';
 import '../services/location_service.dart';
@@ -34,6 +36,7 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
   double? _currentLatitude;
   double? _currentLongitude;
   double? _maxDistancePreference; // 距離上限設定
+  bool _isMapView = false; // リスト/マップ切り替えフラグ
 
   @override
   void initState() {
@@ -401,12 +404,50 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
     final activeDeliveriesAsync = ref.watch(activeDeliveriesProvider);
     final availableOrdersAsync = ref.watch(availableOrdersProvider);
 
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Active deliveries section
-          activeDeliveriesAsync.when(
+    return Column(
+      children: [
+        // リスト/マップ切り替えUI
+        Container(
+          color: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                padding: const EdgeInsets.all(2),
+                child: Row(
+                  children: [
+                    _buildViewToggleButton(
+                      label: 'リスト',
+                      icon: Icons.list,
+                      isSelected: !_isMapView,
+                      onTap: () => setState(() => _isMapView = false),
+                    ),
+                    _buildViewToggleButton(
+                      label: 'マップ',
+                      icon: Icons.map,
+                      isSelected: _isMapView,
+                      onTap: () => setState(() => _isMapView = true),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // コンテンツ
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Active deliveries section
+                activeDeliveriesAsync.when(
             data: (activeOrders) {
               if (activeOrders.isNotEmpty) {
                 return Column(
@@ -582,45 +623,67 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
                 );
               }
 
-              return Column(
-                children: filteredOrders.map((order) {
-                  // 距離計算
-                  double? distanceToRestaurant;
-                  double? distanceToCustomer;
+              // リスト/マップ切り替え
+              if (_isMapView) {
+                // マップビュー
+                return SizedBox(
+                  height: 600,
+                  child: DriverMapView(
+                    availableOrders: filteredOrders,
+                    driverLocation: _currentLatitude != null && _currentLongitude != null
+                        ? LatLng(_currentLatitude!, _currentLongitude!)
+                        : null,
+                    onOrderTap: (order) {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => DriverActiveDeliveryScreen(orderId: order.id),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              } else {
+                // リストビュー（既存）
+                return Column(
+                  children: filteredOrders.map((order) {
+                    // 距離計算
+                    double? distanceToRestaurant;
+                    double? distanceToCustomer;
 
-                  if (_currentLatitude != null && _currentLongitude != null) {
-                    // 現在地 → レストラン
-                    if (order.restaurant?.latitude != null && order.restaurant?.longitude != null) {
-                      distanceToRestaurant = Geolocator.distanceBetween(
-                        _currentLatitude!,
-                        _currentLongitude!,
-                        order.restaurant!.latitude!,
-                        order.restaurant!.longitude!,
-                      ) / 1000; // km変換
+                    if (_currentLatitude != null && _currentLongitude != null) {
+                      // 現在地 → レストラン
+                      if (order.restaurant?.latitude != null && order.restaurant?.longitude != null) {
+                        distanceToRestaurant = Geolocator.distanceBetween(
+                          _currentLatitude!,
+                          _currentLongitude!,
+                          order.restaurant!.latitude!,
+                          order.restaurant!.longitude!,
+                        ) / 1000; // km変換
+                      }
+
+                      // レストラン → 配達先
+                      if (order.restaurant?.latitude != null &&
+                          order.restaurant?.longitude != null &&
+                          order.deliveryAddress?.latitude != null &&
+                          order.deliveryAddress?.longitude != null) {
+                        distanceToCustomer = Geolocator.distanceBetween(
+                          order.restaurant!.latitude!,
+                          order.restaurant!.longitude!,
+                          order.deliveryAddress!.latitude!,
+                          order.deliveryAddress!.longitude!,
+                        ) / 1000; // km変換
+                      }
                     }
 
-                    // レストラン → 配達先
-                    if (order.restaurant?.latitude != null &&
-                        order.restaurant?.longitude != null &&
-                        order.deliveryAddress?.latitude != null &&
-                        order.deliveryAddress?.longitude != null) {
-                      distanceToCustomer = Geolocator.distanceBetween(
-                        order.restaurant!.latitude!,
-                        order.restaurant!.longitude!,
-                        order.deliveryAddress!.latitude!,
-                        order.deliveryAddress!.longitude!,
-                      ) / 1000; // km変換
-                    }
-                  }
-
-                  return DriverOrderCard(
-                    order: order,
-                    distanceToRestaurant: distanceToRestaurant,
-                    distanceToCustomer: distanceToCustomer,
-                    onAccept: () => _handleAcceptDelivery(order.id),
-                  );
-                }).toList(),
-              );
+                    return DriverOrderCard(
+                      order: order,
+                      distanceToRestaurant: distanceToRestaurant,
+                      distanceToCustomer: distanceToCustomer,
+                      onAccept: () => _handleAcceptDelivery(order.id),
+                    );
+                  }).toList(),
+                );
+              }
             },
             loading: () => const LoadingIndicator(message: '配達を読み込み中...'),
             error: (error, _) => ErrorView(
@@ -633,6 +696,9 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
           const SizedBox(height: 80),
         ],
       ),
+        ),
+      ),
+    ],
     );
   }
 
@@ -898,6 +964,44 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  /// リスト/マップ切り替えボタン
+  Widget _buildViewToggleButton({
+    required String label,
+    required IconData icon,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.black : Colors.transparent,
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 16,
+              color: isSelected ? Colors.white : Colors.grey[700],
+            ),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? Colors.white : Colors.grey[700],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
