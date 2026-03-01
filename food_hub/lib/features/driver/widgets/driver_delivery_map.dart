@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import '../services/routing_service.dart';
 
 /// 配達員用の配達ルート地図ウィジェット
 class DriverDeliveryMap extends StatefulWidget {
@@ -31,11 +32,36 @@ class DriverDeliveryMap extends StatefulWidget {
 
 class _DriverDeliveryMapState extends State<DriverDeliveryMap> {
   late final MapController _mapController;
+  List<LatLng>? _routeToRestaurant; // レストランへのルート
+  List<LatLng>? _routeToDelivery; // 配達先へのルート
+  bool _isLoadingRoute = true;
 
   @override
   void initState() {
     super.initState();
     _mapController = MapController();
+    _fetchRoutes();
+  }
+
+  /// ルートを取得
+  Future<void> _fetchRoutes() async {
+    final restaurantPoint = LatLng(widget.restaurantLatitude, widget.restaurantLongitude);
+    final driverPoint = LatLng(widget.driverLatitude, widget.driverLongitude);
+    final deliveryPoint = LatLng(widget.deliveryLatitude, widget.deliveryLongitude);
+
+    // 並行してルートを取得
+    final results = await Future.wait([
+      RoutingService.getRoute(restaurantPoint, driverPoint),
+      RoutingService.getRoute(driverPoint, deliveryPoint),
+    ]);
+
+    if (mounted) {
+      setState(() {
+        _routeToRestaurant = results[0];
+        _routeToDelivery = results[1];
+        _isLoadingRoute = false;
+      });
+    }
   }
 
   @override
@@ -140,6 +166,41 @@ class _DriverDeliveryMapState extends State<DriverDeliveryMap> {
                     child: const Icon(Icons.my_location, color: Colors.black, size: 20),
                   ),
                 ),
+
+                // ルート読み込み中インジケーター
+                if (_isLoadingRoute)
+                  Positioned(
+                    top: 12,
+                    left: 12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.7),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'ルート取得中...',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -176,19 +237,20 @@ class _DriverDeliveryMapState extends State<DriverDeliveryMap> {
     );
   }
 
-  /// ルート線を構築（ステータス別）
+  /// ルート線を構築（ステータス別、実際の道路に沿う）
   List<Polyline> _buildRoutePolylines() {
-    final restaurantPoint = LatLng(widget.restaurantLatitude, widget.restaurantLongitude);
-    final driverPoint = LatLng(widget.driverLatitude, widget.driverLongitude);
-    final deliveryPoint = LatLng(widget.deliveryLatitude, widget.deliveryLongitude);
-
     final polylines = <Polyline>[];
+
+    // ルート取得中はローディング表示のため空を返す
+    if (_isLoadingRoute || _routeToRestaurant == null || _routeToDelivery == null) {
+      return polylines;
+    }
 
     if (widget.orderStatus == 'ready') {
       // ピックアップ前: レストラン → 配達員（緑の線）
       polylines.add(
         Polyline(
-          points: [restaurantPoint, driverPoint],
+          points: _routeToRestaurant!,
           color: Colors.green,
           strokeWidth: 3.0,
         ),
@@ -196,7 +258,7 @@ class _DriverDeliveryMapState extends State<DriverDeliveryMap> {
       // 配達員 → 配達先（薄い青）
       polylines.add(
         Polyline(
-          points: [driverPoint, deliveryPoint],
+          points: _routeToDelivery!,
           color: Colors.blue.withOpacity(0.4),
           strokeWidth: 2.0,
         ),
@@ -205,7 +267,7 @@ class _DriverDeliveryMapState extends State<DriverDeliveryMap> {
       // ピックアップ済み: 配達員 → 配達先（青の太線）
       polylines.add(
         Polyline(
-          points: [driverPoint, deliveryPoint],
+          points: _routeToDelivery!,
           color: Colors.blue,
           strokeWidth: 4.0,
         ),
@@ -213,7 +275,7 @@ class _DriverDeliveryMapState extends State<DriverDeliveryMap> {
       // レストラン → 配達員（完了済み、薄いグレー）
       polylines.add(
         Polyline(
-          points: [restaurantPoint, driverPoint],
+          points: _routeToRestaurant!,
           color: Colors.grey.withOpacity(0.3),
           strokeWidth: 2.0,
         ),
@@ -222,7 +284,7 @@ class _DriverDeliveryMapState extends State<DriverDeliveryMap> {
       // 配達中: 配達員 → 配達先（青の極太線）
       polylines.add(
         Polyline(
-          points: [driverPoint, deliveryPoint],
+          points: _routeToDelivery!,
           color: Colors.blue,
           strokeWidth: 5.0,
         ),
@@ -368,8 +430,14 @@ class _DriverDeliveryMapState extends State<DriverDeliveryMap> {
     );
   }
 
-  /// 残り距離を計算（配達員 → 配達先）
+  /// 残り距離を計算（配達員 → 配達先、ルートベース）
   double _calculateRemainingDistance() {
+    if (_routeToDelivery != null && _routeToDelivery!.length >= 2) {
+      // ルートに沿った距離を計算
+      return RoutingService.calculateRouteDistance(_routeToDelivery!) / 1000; // kmに変換
+    }
+
+    // フォールバック: 直線距離
     return const Distance().as(
       LengthUnit.Meter,
       LatLng(widget.driverLatitude, widget.driverLongitude),
@@ -380,16 +448,6 @@ class _DriverDeliveryMapState extends State<DriverDeliveryMap> {
   /// 到着予定時刻を推定（平均速度20km/hと仮定）
   String _estimateArrivalTime() {
     final distanceKm = _calculateRemainingDistance();
-    final avgSpeed = 20.0; // km/h（バイク・自転車の平均速度）
-    final hours = distanceKm / avgSpeed;
-    final minutes = (hours * 60).round();
-
-    if (minutes < 1) return '1分以内';
-    if (minutes > 60) {
-      final hrs = (minutes / 60).floor();
-      final mins = minutes % 60;
-      return '約${hrs}時間${mins}分';
-    }
-    return '約${minutes}分';
+    return RoutingService.estimateArrivalTimeString(distanceKm);
   }
 }
