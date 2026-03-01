@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
-import 'package:flutter_map_heatmap/flutter_map_heatmap.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../shared/models/order_model.dart';
 
@@ -73,26 +72,7 @@ class _DriverMapViewState extends State<DriverMapView> {
               maxZoom: 19,
             ),
 
-            // 2. ヒートマップレイヤー（常時表示）
-            if (ordersWithLocation.isNotEmpty)
-              HeatMapLayer(
-                heatMapDataSource: InMemoryHeatMapDataSource(
-                  data: _generateHeatmapData(),
-                ),
-                heatMapOptions: HeatMapOptions(
-                  gradient: {
-                    0.0: Colors.blue,
-                    0.4: Colors.green,
-                    0.6: Colors.yellow,
-                    0.8: Colors.orange,
-                    1.0: Colors.red,
-                  },
-                  minOpacity: 0.2,
-                  radius: 50,
-                ),
-              ),
-
-            // 3. クラスタリングレイヤー or 個別マーカー
+            // 2. クラスタリングレイヤー or 個別マーカー
             if (shouldCluster)
               MarkerClusterLayerWidget(
                 options: MarkerClusterLayerOptions(
@@ -195,22 +175,6 @@ class _DriverMapViewState extends State<DriverMapView> {
           ),
       ],
     );
-  }
-
-  /// ヒートマップデータを生成
-  List<WeightedLatLng> _generateHeatmapData() {
-    return widget.availableOrders
-        .where((order) =>
-            order.restaurant?.latitude != null &&
-            order.restaurant?.longitude != null)
-        .map((order) => WeightedLatLng(
-              LatLng(
-                order.restaurant!.latitude!,
-                order.restaurant!.longitude!,
-              ),
-              1.0, // 全て同じ重み（将来的に配送料で重み付け可能）
-            ))
-        .toList();
   }
 
   /// 配達リクエストマーカーリストを生成

@@ -963,8 +963,83 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
             ],
           ),
         ),
+        const SizedBox(height: 8),
+        Card(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Column(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.location_city, color: Colors.black),
+                title: const Text('デモ位置を使用（テスト用）'),
+                subtitle: Text(
+                  _currentLatitude != null &&
+                  _currentLatitude! >= 35.0 &&
+                  _currentLatitude! <= 36.0
+                      ? '東京駅周辺に設定済み'
+                      : '現在: ${_currentLatitude?.toStringAsFixed(4) ?? "未取得"}, ${_currentLongitude?.toStringAsFixed(4) ?? ""}',
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => _setDemoLocation(),
+              ),
+            ],
+          ),
+        ),
       ],
     );
+  }
+
+  /// デモ位置を設定（東京駅）
+  Future<void> _setDemoLocation() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('デモ位置を設定'),
+        content: const Text(
+          '位置情報を東京駅周辺に設定します。\n\n'
+          'これはテスト用の機能です。実際の配達時は必ず現在地を使用してください。',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('キャンセル'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('設定する'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      setState(() {
+        _currentLatitude = 35.6812;  // 東京駅
+        _currentLongitude = 139.7671;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('デモ位置を設定しました（東京駅）'),
+            backgroundColor: AppColors.success,
+            action: SnackBarAction(
+              label: '元に戻す',
+              textColor: Colors.white,
+              onPressed: () {
+                _loadDriverLocation();
+              },
+            ),
+          ),
+        );
+
+        // 配達リストを更新
+        ref.invalidate(availableOrdersProvider);
+      }
+    }
   }
 
   /// リスト/マップ切り替えボタン
