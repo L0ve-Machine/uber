@@ -13,6 +13,7 @@ import '../../../shared/widgets/confirmation_dialog.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/driver_provider.dart';
 import '../providers/driver_profile_provider.dart';
+import '../providers/driver_location_provider.dart';
 import '../widgets/driver_order_card.dart';
 import '../widgets/driver_map_view.dart';
 import '../widgets/pickup_pin_dialog.dart';
@@ -33,8 +34,6 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
   int _currentIndex = 0;
   bool _locationPermissionGranted = false;
   bool _backgroundServiceInitialized = false;
-  double? _currentLatitude;
-  double? _currentLongitude;
   double? _maxDistancePreference; // 距離上限設定
   bool _isMapView = false; // リスト/マップ切り替えフラグ
 
@@ -42,41 +41,7 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
   void initState() {
     super.initState();
     _initializeBackgroundService();
-    _loadDriverLocation(); // 先にDBから位置を読み込む
     _loadMaxDistancePreference();
-  }
-
-  /// 配達員の位置を読み込み（DB → GPS）
-  Future<void> _loadDriverLocation() async {
-    try {
-      // まずDBから読み込む（即座に利用可能）
-      final repository = ref.read(driverRepositoryProvider);
-      final result = await repository.getProfile();
-
-      result.when(
-        success: (profile) {
-          if (profile.currentLatitude != null && profile.currentLongitude != null) {
-            if (mounted) {
-              setState(() {
-                _currentLatitude = profile.currentLatitude;
-                _currentLongitude = profile.currentLongitude;
-              });
-              print('[DriverDashboard] Loaded saved location: $_currentLatitude, $_currentLongitude');
-            }
-          } else {
-            print('[DriverDashboard] No saved location in profile');
-          }
-        },
-        failure: (error) {
-          print('[DriverDashboard] Error loading profile: $error');
-        },
-      );
-    } catch (e) {
-      print('[DriverDashboard] Error loading saved location: $e');
-    }
-
-    // 次にGPSで更新（より正確な位置）
-    _getCurrentLocation();
   }
 
   /// 距離上限設定を読み込み
@@ -87,24 +52,6 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
       setState(() {
         _maxDistancePreference = maxDistance;
       });
-    }
-  }
-
-  /// 配達員の現在地を取得（GPS）
-  Future<void> _getCurrentLocation() async {
-    try {
-      final position = await LocationService.getCurrentPosition();
-      if (position != null && mounted) {
-        setState(() {
-          _currentLatitude = position.latitude;
-          _currentLongitude = position.longitude;
-        });
-        print('[DriverDashboard] GPS location updated: $_currentLatitude, $_currentLongitude');
-      } else {
-        print('[DriverDashboard] GPS location unavailable');
-      }
-    } catch (e) {
-      print('[DriverDashboard] Error getting GPS location: $e');
     }
   }
 
@@ -383,6 +330,7 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
 
   Widget _buildContent() {
     final isOnline = ref.watch(driverOnlineStatusProvider);
+    final driverLocation = ref.watch(driverCurrentLocationProvider);
 
     if (_currentIndex == 0) {
       if (!isOnline) {
@@ -403,6 +351,7 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
   Widget _buildDeliveryTab() {
     final activeDeliveriesAsync = ref.watch(activeDeliveriesProvider);
     final availableOrdersAsync = ref.watch(availableOrdersProvider);
+    final driverLocation = ref.watch(driverCurrentLocationProvider);
 
     return Column(
       children: [
@@ -468,12 +417,12 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
                       double? distanceToRestaurant;
                       double? distanceToCustomer;
 
-                      if (_currentLatitude != null && _currentLongitude != null) {
+                      if (driverLocation != null) {
                         // 現在地 → レストラン
                         if (order.restaurant?.latitude != null && order.restaurant?.longitude != null) {
                           distanceToRestaurant = Geolocator.distanceBetween(
-                            _currentLatitude!,
-                            _currentLongitude!,
+                            driverLocation.latitude,
+                            driverLocation.longitude,
                             order.restaurant!.latitude!,
                             order.restaurant!.longitude!,
                           ) / 1000; // km変換
@@ -531,11 +480,11 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
           availableOrdersAsync.when(
             data: (orders) {
               print('[DriverDashboard] Total available orders: ${orders.length}');
-              print('[DriverDashboard] Current location: $_currentLatitude, $_currentLongitude');
+              print('[DriverDashboard] Current location: ${driverLocation?.latitude}, ${driverLocation?.longitude}');
               print('[DriverDashboard] Max distance preference: $_maxDistancePreference');
 
               // 位置情報がない場合の警告
-              if (_currentLatitude == null || _currentLongitude == null) {
+              if (driverLocation == null) {
                 return Padding(
                   padding: const EdgeInsets.all(32),
                   child: Center(
@@ -557,7 +506,7 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
                         const SizedBox(height: 16),
                         ElevatedButton.icon(
                           onPressed: () {
-                            _loadDriverLocation();
+                            ref.read(driverCurrentLocationProvider.notifier).updateFromGPS();
                             ref.invalidate(availableOrdersProvider);
                           },
                           icon: const Icon(Icons.refresh),
@@ -586,8 +535,8 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
 
                 // 現在地 → レストランの距離を計算
                 final distanceToRestaurant = Geolocator.distanceBetween(
-                  _currentLatitude!,
-                  _currentLongitude!,
+                  driverLocation.latitude,
+                  driverLocation.longitude,
                   order.restaurant!.latitude!,
                   order.restaurant!.longitude!,
                 ) / 1000; // km変換
@@ -630,9 +579,7 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
                   height: 600,
                   child: DriverMapView(
                     availableOrders: filteredOrders,
-                    driverLocation: _currentLatitude != null && _currentLongitude != null
-                        ? LatLng(_currentLatitude!, _currentLongitude!)
-                        : null,
+                    driverLocation: driverLocation,
                     onOrderTap: (order) {
                       Navigator.of(context).push(
                         MaterialPageRoute(
@@ -650,12 +597,12 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
                     double? distanceToRestaurant;
                     double? distanceToCustomer;
 
-                    if (_currentLatitude != null && _currentLongitude != null) {
+                    if (driverLocation != null) {
                       // 現在地 → レストラン
                       if (order.restaurant?.latitude != null && order.restaurant?.longitude != null) {
                         distanceToRestaurant = Geolocator.distanceBetween(
-                          _currentLatitude!,
-                          _currentLongitude!,
+                          driverLocation.latitude,
+                          driverLocation.longitude,
                           order.restaurant!.latitude!,
                           order.restaurant!.longitude!,
                         ) / 1000; // km変換
@@ -971,12 +918,19 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
               ListTile(
                 leading: const Icon(Icons.location_city, color: Colors.black),
                 title: const Text('デモ位置を使用（テスト用）'),
-                subtitle: Text(
-                  _currentLatitude != null &&
-                  _currentLatitude! >= 35.0 &&
-                  _currentLatitude! <= 36.0
-                      ? '東京駅周辺に設定済み'
-                      : '現在: ${_currentLatitude?.toStringAsFixed(4) ?? "未取得"}, ${_currentLongitude?.toStringAsFixed(4) ?? ""}',
+                subtitle: Builder(
+                  builder: (context) {
+                    final location = ref.watch(driverCurrentLocationProvider);
+                    final isDemo = ref.read(driverCurrentLocationProvider.notifier).isDemoLocation;
+
+                    if (isDemo) {
+                      return const Text('東京駅周辺に設定済み');
+                    }
+                    if (location != null) {
+                      return Text('現在: ${location.latitude.toStringAsFixed(4)}, ${location.longitude.toStringAsFixed(4)}');
+                    }
+                    return const Text('位置情報未取得');
+                  },
                 ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => _setDemoLocation(),
@@ -1016,10 +970,8 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
     );
 
     if (confirmed == true) {
-      setState(() {
-        _currentLatitude = 35.6812;  // 東京駅
-        _currentLongitude = 139.7671;
-      });
+      // Providerでデモ位置を設定
+      ref.read(driverCurrentLocationProvider.notifier).setDemoLocation();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1030,7 +982,7 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
               label: '元に戻す',
               textColor: Colors.white,
               onPressed: () {
-                _loadDriverLocation();
+                ref.read(driverCurrentLocationProvider.notifier).clearDemoLocation();
               },
             ),
           ),

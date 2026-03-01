@@ -6,10 +6,10 @@ import '../../../shared/widgets/loading_indicator.dart';
 import '../../../shared/widgets/error_view.dart';
 import '../../../shared/widgets/confirmation_dialog.dart';
 import '../providers/driver_provider.dart';
+import '../providers/driver_location_provider.dart';
 import '../widgets/delivery_status_stepper.dart';
 import '../widgets/pickup_pin_dialog.dart';
 import '../widgets/driver_delivery_map.dart';
-import '../services/location_service.dart';
 
 class DriverActiveDeliveryScreen extends ConsumerStatefulWidget {
   final int orderId;
@@ -26,29 +26,10 @@ class DriverActiveDeliveryScreen extends ConsumerStatefulWidget {
 
 class _DriverActiveDeliveryScreenState
     extends ConsumerState<DriverActiveDeliveryScreen> {
-  double? _currentLatitude;
-  double? _currentLongitude;
-
-  @override
-  void initState() {
-    super.initState();
-    _getCurrentLocation();
-  }
-
-  /// 配達員の現在地を取得
-  Future<void> _getCurrentLocation() async {
-    final position = await LocationService.getCurrentPosition();
-    if (position != null && mounted) {
-      setState(() {
-        _currentLatitude = position.latitude;
-        _currentLongitude = position.longitude;
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final activeDeliveriesAsync = ref.watch(activeDeliveriesProvider);
+    final driverLocation = ref.watch(driverCurrentLocationProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -106,8 +87,7 @@ class _DriverActiveDeliveryScreenState
                 const SizedBox(height: 16),
 
                 // 配達ルート地図
-                if (_currentLatitude != null &&
-                    _currentLongitude != null &&
+                if (driverLocation != null &&
                     order.restaurant?.latitude != null &&
                     order.restaurant?.longitude != null &&
                     order.deliveryAddress?.latitude != null &&
@@ -133,8 +113,8 @@ class _DriverActiveDeliveryScreenState
                           ),
                           const SizedBox(height: 12),
                           DriverDeliveryMap(
-                            driverLatitude: _currentLatitude!,
-                            driverLongitude: _currentLongitude!,
+                            driverLatitude: driverLocation.latitude,
+                            driverLongitude: driverLocation.longitude,
                             restaurantLatitude: order.restaurant!.latitude!,
                             restaurantLongitude: order.restaurant!.longitude!,
                             deliveryLatitude: order.deliveryAddress!.latitude!,
