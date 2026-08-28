@@ -1,4 +1,24 @@
 const { verifyToken } = require('../utils/jwt');
+const { isTokenRevoked } = require('../utils/tokenDenylist');
+const { audit, clientIp } = require('../utils/audit');
+
+/**
+ * 403 (権限不足) を監査ログに残してからレスポンスを返す (ASVS V7.2)
+ */
+const denyRole = (req, res, requiredRole) => {
+  audit('authz.denied', {
+    actor_type: req.user?.user_type,
+    actor_id: req.user?.id,
+    required_role: requiredRole,
+    method: req.method,
+    path: req.originalUrl,
+    ip: clientIp(req),
+    result: 'denied',
+  });
+  return res
+    .status(403)
+    .json({ error: `Access denied. ${requiredRole} only.` });
+};
 
 /**
  * Authentication middleware
@@ -17,6 +37,18 @@ const authMiddleware = (req, res, next) => {
     // Verify token
     const decoded = verifyToken(token);
 
+    // ログアウト済みトークンを拒否する (ASVS V3.3)
+    if (isTokenRevoked(decoded.jti)) {
+      audit('auth.token.revoked_use', {
+        actor_type: decoded.user_type,
+        actor_id: decoded.id,
+        path: req.originalUrl,
+        ip: clientIp(req),
+        result: 'denied',
+      });
+      return res.status(401).json({ error: 'Token has been revoked' });
+    }
+
     // Attach user info to request
     req.user = decoded;
 
@@ -31,7 +63,7 @@ const authMiddleware = (req, res, next) => {
  */
 const isCustomer = (req, res, next) => {
   if (req.user.user_type !== 'customer') {
-    return res.status(403).json({ error: 'Access denied. Customer only.' });
+    return denyRole(req, res, 'Customer');
   }
   next();
 };
@@ -41,7 +73,7 @@ const isCustomer = (req, res, next) => {
  */
 const isRestaurant = (req, res, next) => {
   if (req.user.user_type !== 'restaurant') {
-    return res.status(403).json({ error: 'Access denied. Restaurant only.' });
+    return denyRole(req, res, 'Restaurant');
   }
   next();
 };
@@ -51,7 +83,7 @@ const isRestaurant = (req, res, next) => {
  */
 const isDriver = (req, res, next) => {
   if (req.user.user_type !== 'driver') {
-    return res.status(403).json({ error: 'Access denied. Driver only.' });
+    return denyRole(req, res, 'Driver');
   }
   next();
 };

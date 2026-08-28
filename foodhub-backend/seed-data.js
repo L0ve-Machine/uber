@@ -1,13 +1,53 @@
+require('dotenv').config();
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 const sequelize = require('./src/config/database');
 const { Customer, Restaurant, Driver, MenuItem, MenuItemOption, CustomerAddress, Coupon } = require('./src/models');
 
+/**
+ * 本番環境でのシード実行を拒否する (ASVS V2.5)
+ *
+ * このスクリプトはテスト用アカウントを作成する。本番 DB に対して
+ * 誤って実行すると、既知のテストアカウントが本番に生えてしまう。
+ * どうしても本番系ホストで実行が必要な場合は、実行者が意図を明示するため
+ * ALLOW_SEED_IN_PRODUCTION=yes を付けて起動すること。
+ */
+function assertNotProduction() {
+  if (
+    process.env.NODE_ENV === 'production' &&
+    process.env.ALLOW_SEED_IN_PRODUCTION !== 'yes'
+  ) {
+    console.error('❌ NODE_ENV=production ではシードを実行できません。');
+    console.error(
+      '   テスト用アカウントを本番 DB に作らないための安全装置です。'
+    );
+    console.error(
+      '   意図的に実行する場合のみ ALLOW_SEED_IN_PRODUCTION=yes を指定してください。'
+    );
+    process.exit(1);
+  }
+}
+
+/**
+ * 実行ごとに使い捨てのランダムパスワードを生成する (ASVS V2.5)
+ * 固定の password123 をやめることで、シードの痕跡が既知の認証情報として
+ * 残り続けることを防ぐ。値は実行時に 1 度だけ標準出力へ表示する。
+ */
+function generateSeedPassword() {
+  // base64url 18 バイト = 24 文字。登録時の最低長 8 文字を十分に満たす。
+  return crypto.randomBytes(18).toString('base64url');
+}
+
 async function seedDatabase() {
   try {
+    assertNotProduction();
+
     console.log('🌱 Starting database seeding...\n');
 
     // Hash password for all test accounts
-    const passwordHash = await bcrypt.hash('password123', 10);
+    // パスワードは実行ごとにランダム生成し、この実行でだけ表示する
+    const seedPassword = generateSeedPassword();
+    const passwordHash = await bcrypt.hash(seedPassword, 10);
 
     // 1. Create Customer account
     const customer = await Customer.create({
@@ -319,10 +359,13 @@ async function seedDatabase() {
     console.log('========================================\n');
     console.log('📧 ログインアカウント情報:');
     console.log('----------------------------------------');
-    console.log('Customer: customer@test.com / password123');
-    console.log('Restaurant: restaurant@test.com / password123');
-    console.log('Driver: driver@test.com / password123');
+    console.log('Customer:   customer@test.com');
+    console.log('Restaurant: restaurant@test.com');
+    console.log('Driver:     driver@test.com');
+    console.log(`Password (この実行限り): ${seedPassword}`);
     console.log('----------------------------------------');
+    console.log('⚠️  このパスワードは今この場でしか表示されません。');
+    console.log('    必要なら控えたうえで、テスト完了後はアカウントごと削除してください。');
     console.log('\n📍 サーバーIP: 133.117.77.23');
     console.log('🌐 API URL: http://133.117.77.23:3000/api');
     console.log('\n利用可能なクーポンコード:');

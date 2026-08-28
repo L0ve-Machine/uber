@@ -7,6 +7,7 @@ const Restaurant = require('../models/Restaurant');
 const CustomerAddress = require('../models/CustomerAddress');
 const MenuItem = require('../models/MenuItem');
 const Driver = require('../models/Driver');
+const { audit, clientIp } = require('../utils/audit');
 
 /**
  * Generate unique order number
@@ -577,7 +578,16 @@ exports.createPaymentIntent = async (req, res) => {
       stripe_payment_id: paymentIntent.id,
     });
 
-    console.log(`[STRIPE] Payment Intent created: ${paymentIntent.id} for order ${order.id}`);
+    audit('payment.intent.create', {
+      actor_type: 'customer',
+      actor_id: req.user.id,
+      target_id: order.id,
+      stripe_payment_intent_id: paymentIntent.id,
+      amount: order.total,
+      currency: 'jpy',
+      ip: clientIp(req),
+      result: 'success',
+    });
 
     res.json({
       client_secret: paymentIntent.client_secret,
@@ -586,7 +596,7 @@ exports.createPaymentIntent = async (req, res) => {
     });
   } catch (error) {
     console.error('Create payment intent error:', error);
-    res.status(500).json({ error: 'Server error', details: error.message });
+    res.status(500).json({ error: 'Server error' });
   }
 };
 
@@ -642,7 +652,16 @@ async function processOrderPayouts(orderId) {
           description: `Order ${order.order_number} - Restaurant payout`,
         });
 
-        console.log(`[PAYOUT] Restaurant transfer: ${restaurantTransfer.id}`);
+        audit('payment.transfer', {
+          actor_type: 'system',
+          target_id: order.id,
+          payee_type: 'restaurant',
+          payee_id: order.restaurant_id,
+          stripe_transfer_id: restaurantTransfer.id,
+          amount: Math.round(restaurant_payout),
+          currency: 'jpy',
+          result: 'success',
+        });
 
         // Update order
         await order.update({
@@ -671,7 +690,16 @@ async function processOrderPayouts(orderId) {
           description: `Order ${order.order_number} - Driver payout`,
         });
 
-        console.log(`[PAYOUT] Driver transfer: ${driverTransfer.id}`);
+        audit('payment.transfer', {
+          actor_type: 'system',
+          target_id: order.id,
+          payee_type: 'driver',
+          payee_id: order.driver_id,
+          stripe_transfer_id: driverTransfer.id,
+          amount: Math.round(driver_payout),
+          currency: 'jpy',
+          result: 'success',
+        });
 
         // Update order
         await order.update({
@@ -690,6 +718,11 @@ async function processOrderPayouts(orderId) {
     console.log(`[PAYOUT] Completed for order ${orderId}`);
   } catch (error) {
     console.error(`[PAYOUT] Error for order ${orderId}:`, error);
+    audit('payment.transfer', {
+      actor_type: 'system',
+      target_id: orderId,
+      result: 'failure',
+    });
     throw error;
   }
 }

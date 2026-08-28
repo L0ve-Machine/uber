@@ -8,6 +8,7 @@ const Customer = require('../models/Customer');
 const CustomerAddress = require('../models/CustomerAddress');
 const Restaurant = require('../models/Restaurant');
 const { generatePickupPin } = require('../utils/pinGenerator');
+const { audit, clientIp } = require('../utils/audit');
 
 /**
  * Get restaurant's orders
@@ -143,6 +144,16 @@ exports.acceptOrder = async (req, res) => {
       accepted_at: new Date(),
     });
 
+    audit('order.status.change', {
+      actor_type: 'restaurant',
+      actor_id: restaurant_id,
+      target_id: order.id,
+      from: 'pending',
+      to: 'accepted',
+      ip: clientIp(req),
+      result: 'success',
+    });
+
     res.json({
       message: 'Order accepted successfully',
       order,
@@ -183,6 +194,16 @@ exports.rejectOrder = async (req, res) => {
       special_instructions: reason || order.special_instructions,
     });
 
+    audit('order.status.change', {
+      actor_type: 'restaurant',
+      actor_id: restaurant_id,
+      target_id: order.id,
+      from: 'pending',
+      to: 'cancelled',
+      ip: clientIp(req),
+      result: 'success',
+    });
+
     // Refund customer if paid by card
     if (order.payment_method === 'card' && order.stripe_payment_id) {
       const stripe = require('../config/stripe');
@@ -195,17 +216,37 @@ exports.rejectOrder = async (req, res) => {
           const refund = await stripe.refunds.create({
             payment_intent: order.stripe_payment_id,
           });
-          console.log(`[REFUND] Restaurant rejected order ${order.id}, refund created: ${refund.id}`);
+          audit('payment.refund', {
+            actor_type: 'restaurant',
+            actor_id: restaurant_id,
+            target_id: order.id,
+            stripe_refund_id: refund.id,
+            ip: clientIp(req),
+            result: 'success',
+          });
         } else if (paymentIntent.status === 'requires_payment_method' ||
                    paymentIntent.status === 'requires_confirmation') {
           // Payment not completed - cancel
           await stripe.paymentIntents.cancel(order.stripe_payment_id);
-          console.log(`[REFUND] Restaurant rejected order ${order.id}, payment cancelled: ${order.stripe_payment_id}`);
+          audit('payment.cancel', {
+            actor_type: 'restaurant',
+            actor_id: restaurant_id,
+            target_id: order.id,
+            ip: clientIp(req),
+            result: 'success',
+          });
         } else {
           console.log(`[REFUND] Payment Intent status is ${paymentIntent.status}, no action needed`);
         }
       } catch (error) {
         console.error('[REFUND] Failed to process refund:', error);
+        audit('payment.refund', {
+          actor_type: 'restaurant',
+          actor_id: restaurant_id,
+          target_id: order.id,
+          ip: clientIp(req),
+          result: 'failure',
+        });
         // Continue even if refund fails - can be processed manually later
       }
     }
@@ -262,10 +303,28 @@ exports.updateOrderStatus = async (req, res) => {
     // ステータスがreadyになった時にピックアップPINを生成
     if (status === 'ready' && !order.pickup_pin) {
       updateData.pickup_pin = generatePickupPin();
-      console.log(`📍 Generated pickup PIN for order ${order.order_number}: ${updateData.pickup_pin}`);
+      // PIN 自体はログに出さない。生成した事実だけを監査ログに残す (ASVS V2.3)
+      audit('order.pin.generate', {
+        actor_type: 'restaurant',
+        actor_id: restaurant_id,
+        target_id: order.id,
+        ip: clientIp(req),
+        result: 'success',
+      });
     }
 
+    const previousStatus = order.status;
     await order.update(updateData);
+
+    audit('order.status.change', {
+      actor_type: 'restaurant',
+      actor_id: restaurant_id,
+      target_id: order.id,
+      from: previousStatus,
+      to: status,
+      ip: clientIp(req),
+      result: 'success',
+    });
 
     res.json({
       message: 'Order status updated successfully',

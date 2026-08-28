@@ -2,6 +2,7 @@ const express = require('express');
 const { body } = require('express-validator');
 const orderController = require('../controllers/orderController');
 const { authMiddleware, isCustomer } = require('../middleware/auth');
+const { stripeLimiter } = require('../middleware/rateLimit');
 
 const router = express.Router();
 
@@ -62,6 +63,6 @@ router.get('/:id/tracking', authMiddleware, isCustomer, orderController.getOrder
  * @desc    Create Stripe Payment Intent for order
  * @access  Private (Customer only)
  */
-router.post('/:id/create-payment-intent', authMiddleware, isCustomer, orderController.createPaymentIntent);
+router.post('/:id/create-payment-intent', authMiddleware, isCustomer, stripeLimiter, orderController.createPaymentIntent);
 
 module.exports = router;

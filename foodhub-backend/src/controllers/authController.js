@@ -4,6 +4,12 @@ const Restaurant = require('../models/Restaurant');
 const Driver = require('../models/Driver');
 const { hashPassword, comparePassword } = require('../utils/password');
 const { generateToken } = require('../utils/jwt');
+const { revokeToken } = require('../utils/tokenDenylist');
+const { audit, maskEmail, clientIp } = require('../utils/audit');
+const {
+  recordLoginFailure,
+  clearLoginFailures,
+} = require('../middleware/rateLimit');
 
 /**
  * Login
@@ -38,30 +44,79 @@ exports.login = async (req, res) => {
     // Find user by email
     const user = await UserModel.findOne({ where: { email } });
     if (!user) {
+      // 存在しないアカウントへの試行もアカウント単位で数える (列挙・総当たり対策)
+      const locked = recordLoginFailure(user_type, email);
+      audit('auth.login.failure', {
+        user_type,
+        email: maskEmail(email),
+        ip: clientIp(req),
+        reason: 'unknown_account',
+        result: 'failure',
+        locked,
+      });
+      // レスポンス文言は成功/失敗で共通にし、アカウントの存在を漏らさない
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     // Check if user is active (for customers and drivers)
     if (user.is_active === false) {
+      audit('auth.login.failure', {
+        user_type,
+        actor_id: user.id,
+        email: maskEmail(email),
+        ip: clientIp(req),
+        reason: 'deactivated',
+        result: 'failure',
+      });
       return res.status(403).json({ error: 'Account is deactivated' });
     }
 
     // Check if approved (for restaurants and drivers)
     if ((user_type === 'restaurant' || user_type === 'driver') && !user.is_approved) {
+      audit('auth.login.failure', {
+        user_type,
+        actor_id: user.id,
+        email: maskEmail(email),
+        ip: clientIp(req),
+        reason: 'pending_approval',
+        result: 'failure',
+      });
       return res.status(403).json({ error: 'Account pending approval' });
     }
 
     // Compare password
     const isPasswordValid = await comparePassword(password, user.password_hash);
     if (!isPasswordValid) {
+      // 連続失敗が閾値に達するとアカウント単位でロックする (ASVS V2.2)
+      const locked = recordLoginFailure(user_type, email);
+      audit('auth.login.failure', {
+        user_type,
+        actor_id: user.id,
+        email: maskEmail(email),
+        ip: clientIp(req),
+        reason: 'bad_password',
+        result: 'failure',
+        locked,
+      });
       return res.status(401).json({ error: 'Invalid credentials' });
     }
+
+    // 認証成功したので失敗カウントをリセット
+    clearLoginFailures(user_type, email);
 
     // Generate JWT token
     const token = generateToken({
       id: user.id,
       email: user.email,
       user_type,
+    });
+
+    audit('auth.login.success', {
+      user_type,
+      actor_id: user.id,
+      email: maskEmail(user.email),
+      ip: clientIp(req),
+      result: 'success',
     });
 
     // Prepare user data (exclude password_hash)
@@ -274,6 +329,40 @@ exports.registerDriver = async (req, res) => {
     });
   } catch (error) {
     console.error('Register driver error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+/**
+ * Logout
+ * POST /api/auth/logout
+ *
+ * 現在のアクセストークンの jti を失効リストに登録し、以後の利用を拒否する
+ * (ASVS V3.3)。クライアント側もローカルのトークンを破棄すること。
+ *
+ * ⚠️ 失効リストはプロセス内メモリのため、pm2 を cluster モードにしたり
+ *    インスタンスを増やしたりすると他プロセスでは失効が効かない。
+ *    マルチプロセス構成にする場合は Redis 等の共有ストアへ移すこと
+ *    (src/utils/tokenDenylist.js のコメント参照)。
+ */
+exports.logout = async (req, res) => {
+  try {
+    const { jti, exp, id, user_type } = req.user || {};
+
+    if (jti) {
+      revokeToken(jti, exp);
+    }
+
+    audit('auth.logout', {
+      user_type,
+      actor_id: id,
+      ip: clientIp(req),
+      result: 'success',
+    });
+
+    res.json({ message: 'Logged out successfully' });
+  } catch (error) {
+    console.error('Logout error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };

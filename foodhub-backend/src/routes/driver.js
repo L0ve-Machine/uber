@@ -2,6 +2,7 @@ const express = require('express');
 const { body } = require('express-validator');
 const driverController = require('../controllers/driverController');
 const { authMiddleware, isDriver } = require('../middleware/auth');
+const { verifyPinLimiter } = require('../middleware/rateLimit');
 
 const router = express.Router();
 
@@ -74,6 +75,7 @@ router.patch(
  */
 router.post(
   '/orders/:id/verify-pin',
+  verifyPinLimiter,
   [body('pin').isLength({ min: 4, max: 4 }).withMessage('PIN must be 4 digits')],
   driverController.verifyPickupPin
 );

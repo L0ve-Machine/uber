@@ -1,6 +1,7 @@
 const stripe = require('../config/stripe');
 const Restaurant = require('../models/Restaurant');
 const Driver = require('../models/Driver');
+const { audit, clientIp } = require('../utils/audit');
 
 /**
  * Create Stripe Connect account for restaurant
@@ -64,7 +65,7 @@ exports.createRestaurantAccount = async (req, res) => {
     });
   } catch (error) {
     console.error('Create restaurant Stripe account error:', error);
-    res.status(500).json({ error: 'Server error', details: error.message });
+    res.status(500).json({ error: 'Server error' });
   }
 };
 
@@ -124,7 +125,7 @@ exports.createDriverAccount = async (req, res) => {
     });
   } catch (error) {
     console.error('Create driver Stripe account error:', error);
-    res.status(500).json({ error: 'Server error', details: error.message });
+    res.status(500).json({ error: 'Server error' });
   }
 };
 
@@ -141,7 +142,13 @@ exports.handleConnectWebhook = async (req, res) => {
       process.env.STRIPE_CONNECT_WEBHOOK_SECRET
     );
 
-    console.log(`[Stripe Webhook] Received: ${event.type}`);
+    audit('stripe.webhook.received', {
+      actor_type: 'stripe',
+      event_type: event.type,
+      event_id: event.id,
+      ip: clientIp(req),
+      result: 'success',
+    });
 
     if (event.type === 'account.updated') {
       const account = event.data.object;
@@ -157,7 +164,14 @@ exports.handleConnectWebhook = async (req, res) => {
           stripe_charges_enabled: account.charges_enabled,
           stripe_payouts_enabled: account.payouts_enabled,
         });
-        console.log(`[Stripe Webhook] Restaurant ${restaurant.id} updated`);
+        audit('stripe.account.updated', {
+          actor_type: 'stripe',
+          target_type: 'restaurant',
+          target_id: restaurant.id,
+          charges_enabled: account.charges_enabled,
+          payouts_enabled: account.payouts_enabled,
+          result: 'success',
+        });
       }
 
       const driver = await Driver.findOne({
@@ -169,13 +183,25 @@ exports.handleConnectWebhook = async (req, res) => {
           stripe_onboarding_completed: account.details_submitted,
           stripe_payouts_enabled: account.payouts_enabled,
         });
-        console.log(`[Stripe Webhook] Driver ${driver.id} updated`);
+        audit('stripe.account.updated', {
+          actor_type: 'stripe',
+          target_type: 'driver',
+          target_id: driver.id,
+          payouts_enabled: account.payouts_enabled,
+          result: 'success',
+        });
       }
     }
 
     res.json({ received: true });
   } catch (error) {
     console.error('Stripe webhook error:', error);
+    // 署名検証の失敗は攻撃の兆候でもあるため必ず記録する
+    audit('stripe.webhook.rejected', {
+      actor_type: 'stripe',
+      ip: clientIp(req),
+      result: 'failure',
+    });
     res.status(400).json({ error: 'Webhook error' });
   }
 };

@@ -1,6 +1,7 @@
 const express = require('express');
 const stripeConnectController = require('../controllers/stripeConnectController');
 const { authMiddleware, isRestaurant, isDriver } = require('../middleware/auth');
+const { stripeLimiter } = require('../middleware/rateLimit');
 
 const router = express.Router();
 
@@ -13,6 +14,7 @@ router.post(
   '/connect/restaurant',
   authMiddleware,
   isRestaurant,
+  stripeLimiter,
   stripeConnectController.createRestaurantAccount
 );
 
@@ -25,6 +27,7 @@ router.post(
   '/connect/driver',
   authMiddleware,
   isDriver,
+  stripeLimiter,
   stripeConnectController.createDriverAccount
 );
 

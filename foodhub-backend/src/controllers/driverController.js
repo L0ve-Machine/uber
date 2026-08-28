@@ -8,6 +8,7 @@ const MenuItem = require('../models/MenuItem');
 const Restaurant = require('../models/Restaurant');
 const CustomerAddress = require('../models/CustomerAddress');
 const Driver = require('../models/Driver');
+const { audit, clientIp } = require('../utils/audit');
 
 /**
  * Get available orders (ready for pickup)
@@ -196,16 +197,40 @@ exports.updateDeliveryStatus = async (req, res) => {
       updateData.delivered_at = new Date();
     }
 
+    const previousStatus = order.status;
     await order.update(updateData);
+
+    audit('order.status.change', {
+      actor_type: 'driver',
+      actor_id: driver_id,
+      target_id: order.id,
+      from: previousStatus,
+      to: status,
+      ip: clientIp(req),
+      result: 'success',
+    });
 
     // Process payouts when delivery is completed
     if (status === 'delivered' && order.payment_method === 'card') {
       const { processOrderPayouts } = require('./orderController');
       try {
         await processOrderPayouts(order.id);
-        console.log(`[DELIVERY] Payouts processed for order ${order.id}`);
+        audit('payment.payout', {
+          actor_type: 'driver',
+          actor_id: driver_id,
+          target_id: order.id,
+          ip: clientIp(req),
+          result: 'success',
+        });
       } catch (error) {
         console.error('[DELIVERY] Payout failed:', error);
+        audit('payment.payout', {
+          actor_type: 'driver',
+          actor_id: driver_id,
+          target_id: order.id,
+          ip: clientIp(req),
+          result: 'failure',
+        });
         // Continue even if payout fails - can be processed manually later
       }
     }
@@ -414,7 +439,14 @@ exports.verifyPickupPin = async (req, res) => {
 
     // PIN照合
     if (order.pickup_pin !== pin) {
-      console.log(`Incorrect PIN for order ${order.order_number}: entered=${pin}, expected=${order.pickup_pin}`);
+      // PIN は認証情報なので、入力値・正解値ともにログへ出さない (ASVS V2.3)
+      audit('order.pin.verify', {
+        actor_type: 'driver',
+        actor_id: driver_id,
+        target_id: order.id,
+        ip: clientIp(req),
+        result: 'failure',
+      });
       return res.status(400).json({
         error: 'Incorrect PIN',
         message: 'ピックアップPINが正しくありません。レストランに確認してください。',
@@ -428,7 +460,13 @@ exports.verifyPickupPin = async (req, res) => {
       pin_verified_at: new Date(),
     });
 
-    console.log(`PIN verified for order ${order.order_number}`);
+    audit('order.pin.verify', {
+      actor_type: 'driver',
+      actor_id: driver_id,
+      target_id: order.id,
+      ip: clientIp(req),
+      result: 'success',
+    });
 
     res.json({
       message: 'PIN verified successfully',

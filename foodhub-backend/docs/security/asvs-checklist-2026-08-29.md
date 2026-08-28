@@ -560,3 +560,88 @@ curl -sI https://133-117-77-23.nip.io/health  # Strict-Transport-Security の有
 11. **V9.1** — nginx の HTTPS リダイレクト・HSTS を確認 (`?` の解消)
 
 修正後は本チェックリストを再実行し、判定を更新すること (SKILL.md 手順 6: 修正は別パスで行い、同一ターンで自己承認しない)。
+
+---
+
+## 修正実施 (2026-08-29)
+
+- 実施者: Claude Code (fix パス) / レビュー: (未記入)
+- 対象: `foodhub-backend/` のみ。Flutter アプリ `food_hub/` と `node_modules/` は変更していない。
+- 検証: 変更した全 JS に `node --check` (19 ファイル OK)。加えてスクラッチ領域に helmet / express-rate-limit / socket.io-client を入れ、`NODE_PATH` 経由で実際にサーバーを起動して 14 項目のスモークテストを実行 (全 PASS)。プロジェクトの `node_modules/` には一切書き込んでいない。
+
+### 修正した項目
+
+| # | 項目 | 対応内容 | 変更ファイル |
+|---|---|---|---|
+| V3.2 | JWT 署名鍵 | 起動時に `JWT_SECRET` を検証し、未設定 / 32 文字未満 / 既知のプレースホルダ (`.env.example` の値を実行時に読んで比較 + ハードコードした既知値) のいずれかなら **例外を投げてプロセスを起動させない**。あわせて署名・検証で `HS256` を明示 | `src/utils/jwt.js`、`.env.example` (新規) |
+| V2.2 | レート制限 / ロックアウト | `express-rate-limit` を導入。login・register×3 に IP あたり 15 分 10 回。加えて**アカウント単位のロックアウト** (同一 `user_type`+email で 5 回連続失敗 → 15 分ロック、メモリ内)。`verify-pin` は配達員 ID 単位で 10 分 5 回。`app.set('trust proxy', 1)` を設定 | `src/middleware/rateLimit.js` (新規)、`src/routes/auth.js`、`src/routes/driver.js`、`src/app.js`、`src/controllers/authController.js` |
+| V2.3 | 認証情報のログ出力 | ピックアップ PIN の平文ログ 2 箇所を削除し、代わりに PIN を含まない監査ログに置換。Socket.IO の位置座標ログも削除 | `src/controllers/driverController.js`、`src/controllers/restaurantDashboardController.js`、`src/app.js` |
+| V6.2 | PIN の乱数 | `Math.random` → `crypto.randomInt(1000, 10000)` | `src/utils/pinGenerator.js` |
+| V4.2 | 画像削除の IDOR | `DELETE /api/upload/image` に所有者チェックを追加。自店舗の `MenuItem.image_url`、または自店舗の `cover_image_url` / `logo_url` に一致する場合のみ削除する。不一致は (存在有無を漏らさないため) 404。パスは `path.basename` で正規化したうえで `path.resolve` 後に `uploads/` 配下であることを再確認 | `src/controllers/uploadController.js` |
+| V3.3 | ログアウト / トークン失効 | 署名時に `jti` を付与し、`POST /api/auth/logout` で失効リストに登録。認証ミドルウェアと Socket.IO ハンドシェイクの両方で照合する | `src/utils/jwt.js`、`src/utils/tokenDenylist.js` (新規)、`src/middleware/auth.js`、`src/controllers/authController.js`、`src/routes/auth.js`、`src/app.js` |
+| V2.4 | パスワード最低長 | 登録 3 経路を `min: 6` → `min: 8` に統一 (パスワード変更側と一致) | `src/routes/auth.js` |
+| V2.5 | テストアカウント | `seed-data.js` の固定 `password123` を廃止し、実行ごとのランダムパスワード (base64url 24 文字) を生成してその実行時に 1 度だけ表示。`NODE_ENV=production` では実行を拒否 (`ALLOW_SEED_IN_PRODUCTION=yes` の明示指定がない限り)。同じ問題があった `scripts/updateTestUsers.js` にも同じ対処を適用 | `seed-data.js`、`scripts/updateTestUsers.js` |
+| V7.1 | エラー詳細の露出 | グローバルエラーハンドラは `NODE_ENV=development` 以外で `message` を返さない (サーバー側 `console.error` は維持)。Stripe 例外の生メッセージを返していた `details: error.message` 3 箇所を削除 | `src/app.js`、`src/controllers/orderController.js`、`src/controllers/stripeConnectController.js` |
+| V7.2 | 監査ログ | `utils/audit.js` を追加し `[AUDIT] {JSON}` の 1 行 1 レコードで出力。対象: ログイン成功/失敗 (IP + マスク済みメール + 失敗理由)、ロックアウト、403 権限拒否、失効トークンの使用、注文ステータス変更 (店舗・配達員)、PIN 生成/照合の成否、返金・キャンセル、Payment Intent 作成、店舗/配達員への送金、Stripe Webhook 受信と署名検証失敗、Socket.IO の接続/拒否/切断。PIN・トークン・`password_hash` は出力しない | `src/utils/audit.js` (新規) ほか各コントローラ |
+| V13.1 | CORS | `ALLOWED_ORIGINS` (カンマ区切り、未設定なら `APP_URL`) の許可リスト方式に変更、`credentials: false`。Socket.IO にも同じリストを適用。`Origin` ヘッダの無いリクエスト (Flutter ネイティブ・Stripe Webhook) は許可、ブラウザ由来の未登録オリジンは 403 | `src/app.js` |
+| V4.1 / V4.2 (S1-S3) | Socket.IO | `io.use` でハンドシェイク時に JWT を検証 (`socket.handshake.auth.token`、互換のため `Authorization` ヘッダも受理)。失効済みトークンも拒否。`driver:register` / `driver:location-update` はクライアント送信の `driverId` を無視し **JWT の ID のみ**を使用し、配達員以外は拒否。ブロードキャストは `io.emit` (全接続) をやめ、`driver-<id>` と担当中注文の `order-<id>` ルーム限定に変更。顧客が自注文を追跡するための `customer:track-order` / `customer:untrack-order` を追加 (所有者確認あり) | `src/app.js` |
+| V14.1 | セキュリティヘッダ | `helmet({ contentSecurityPolicy: false })` を適用 (CSP を切っている理由はコード内に明記)。`/uploads` のみ `Cross-Origin-Resource-Policy: cross-origin` を付与し画像配信が壊れないようにした | `src/app.js` |
+| V14.2 | 課金 API のレート制限 | `POST /api/stripe/connect/restaurant`、`/connect/driver`、`POST /api/orders/:id/create-payment-intent` にユーザー単位 1 分 10 回の制限 | `src/routes/stripeConnect.js`、`src/routes/orders.js`、`src/middleware/rateLimit.js` |
+
+### 追加した依存 (バージョン固定・`npm install` は未実行)
+
+```
+"express-rate-limit": "8.6.2"
+"helmet": "8.3.0"
+```
+
+### 動作確認の結果
+
+サーバーを実際に起動して確認 (14/14 PASS):
+
+- プレースホルダのままの `JWT_SECRET` では**起動を拒否**することを確認 (未設定 / 6 文字 / 旧プレースホルダ / `.env.example` の値の 4 パターンすべて拒否、ランダム値のみ起動可)
+- helmet ヘッダ: `X-Content-Type-Options: nosniff` / `X-Frame-Options: SAMEORIGIN` / `Referrer-Policy: no-referrer` を付与、CSP は意図通り未設定
+- CORS: 許可オリジンは 200、未許可オリジンは 403、`Origin` 無しは 200
+- レート制限: `POST /api/auth/login` の 11 回目以降が 429
+- アカウントロックアウト: 5 回連続失敗で 429、別アカウントは無影響、メールの大文字小文字では回避不可、成功でリセット
+- ログアウト: `jti` 失効後は同じトークンが 401 (`Token has been revoked`)
+- Socket.IO: トークン無し / 不正トークンは接続拒否、正当な配達員トークンは接続・登録成功、**顧客トークンで `driver:register` / 他人の `driver:location-update` を送っても拒否**される
+- PIN: `crypto.randomInt` で 20,000 件生成し全件が 1000-9999 の 4 桁
+
+### 運用側で必要な作業
+
+1. `cd /root/uber/foodhub-backend && npm install` (`express-rate-limit` と `helmet` の取得。※ 本スナップショットの `node_modules` には `multer` も欠けていたため、この install は必須)
+2. `.env` に `ALLOWED_ORIGINS=https://133-117-77-23.nip.io` を追加 (未設定でも `APP_URL` にフォールバックする)
+3. `pm2 restart` — **`JWT_SECRET` がプレースホルダ/32 文字未満のままだと起動しない**。起動失敗時は `pm2 logs` に日本語の理由と生成コマンドが出る
+4. 既存の pm2 ログには PIN・SQL・ハッシュ済みパスワードが残っているため、ローテートまたは削除する
+5. 本番 DB のテストアカウント (`customer@test.com` / `restaurant@test.com` / `sushi@test.com` / `burger@test.com` / `driver@test.com`) の存在を確認し削除する — これはコード修正では消えない
+6. リポジトリルートの `.gitignore:4` の `.env.*` により、今回追加した `foodhub-backend/.env.example` が Git の追跡対象外になっている。コミットするなら `.gitignore` に `!foodhub-backend/.env.example` を追記すること (本タスクは `foodhub-backend/` 配下のみ変更する指示だったためルートの `.gitignore` は変更していない)。なお `.env.example` が存在しなくても `src/utils/jwt.js` はハードコードした既知プレースホルダ一覧で検証を続行する
+
+### Flutter クライアント側で必要な変更 (これを行わないとリアルタイム追跡が動かない)
+
+Socket.IO のハンドシェイクに JWT が必須になった。**未対応のままだと接続が `unauthorized` で拒否される。**
+
+1. `food_hub/lib/features/driver/services/driver_socket_service.dart:36-43` — `OptionBuilder` に `.setAuth({'token': authToken})` を追加する (現在の `.setExtraHeaders({'Authorization': 'Bearer $authToken'})` は WebSocket 専用トランスポートでは環境によって送られないため、`auth` を使うこと)。`_registerDriver()` / `_sendLocationUpdate()` が送っている `driverId` はサーバーが無視するので、そのままでも害はない (削除してもよい)。
+2. `food_hub/lib/core/services/socket_service.dart:29-35` — 顧客側は現在トークンを一切送っていない。同様に `.setAuth({'token': <顧客のJWT>})` を追加する。
+3. 同 `socket_service.dart` — 位置情報が全接続へのブロードキャストではなく注文ルーム限定になったため、追跡開始時に `socket.emit('customer:track-order', {'orderId': <注文ID>})` を送る必要がある (サーバー側で自分の注文かを検証する)。追跡終了時は `customer:untrack-order`。これを送らないと `driver:location-changed` は届かない。
+4. `food_hub/lib/features/driver/services/background_location_service.dart:97-111` — HTTP 経由の位置更新はサーバー側で従来どおり `req.user.id` を使うため変更不要。
+5. ログアウト時に `POST /api/auth/logout` を呼ぶとサーバー側でもトークンが失効する (任意だが推奨)。
+
+### 今回対応していない項目
+
+以下は本タスクの指示範囲外のため未着手。**特に P-1 / P-2 は金銭的損失に直結するため、別途対応が必要。**
+
+- **P-1** メニューオプション価格のクライアント制御 (支払額の任意操作) — 未対応
+- **P-2** 支払い成否を検証せずに調理・配達・送金が進む — 未対応
+- **P-3** 送金の冪等キー・トランザクション化 — 未対応
+- **P-4** Stripe Webhook に raw body が渡らず常に失敗する — 未対応
+- **P-5** クーポンがサーバー側で適用されていない — 未対応
+- **A-1** 店舗・配達員の自動承認 (`is_approved: true` ハードコード) — 未対応
+- **A-2** 公開エンドポイントが `commission_rate` / `stripe_account_id` 等を返す — 未対応
+- **A-3** 未使用の Google Maps API キーが `.env` に残置 — 未対応 (運用側で削除)
+- **A-4** 顧客が自注文の `pickup_pin` を取得できる — 未対応
+- **V14.3** `init-database.js` の `sync({ force: true })`、`node_modules` の Git 追跡解除 — 未対応 (`node_modules` は変更しない指示のため)
+- **V9.1** nginx の HTTPS リダイレクト・HSTS 確認 — サーバー側作業のため未実施
+- JWT の有効期限 7 日は変更していない (短縮 + リフレッシュトークンは別途検討)
+
+> 失効リストとアカウントロックアウトは**いずれもプロセス内メモリ**で保持している。pm2 を cluster モードにする / インスタンスを増やす場合は Redis 等の共有ストアへ移すこと (該当コードにコメントを記載済み)。
